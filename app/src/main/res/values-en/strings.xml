@@ -2,4 +2,6 @@
     <string name="app_name">Snaplock</string>
     <string name="select_file_button">Select Database File</string>
     <string name="select_file_description">Please select a .kdbx database file to open.</string>
+    <string name="error_kdbx_file">Stream not opened.</string>
+
 </resources>
