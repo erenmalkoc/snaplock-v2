@@ -11,7 +11,7 @@ activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 lifecycleViewmodelCompose = "2.9.4"
 navigationCompose = "2.9.5"
-ksp = "2.0.0-1.0.24"
+ksp = "2.0.21-1.0.27"
 hilt = "2.57.2"
 
 [libraries]
