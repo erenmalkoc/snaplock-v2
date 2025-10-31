@@ -4,9 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.erenium.snaplock.presentation.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.core.net.toUri
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.erenium.snaplock.presentation.entrydetail.EntryDetailScreen
+import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 
 @Composable
@@ -44,7 +47,18 @@ fun AppNavigation() {
                     navController.navigate(NavRoutes.SELECT_FILE) {
                         popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
                     }
+                },
+                onEntryClick = { uuid ->
+                    navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                 }
+            )
+        }
+        composable(
+            route = "${NavRoutes.ENTRY_DETAIL}/{uuid}",
+            arguments = listOf(navArgument("uuid") { type = NavType.StringType })
+        ) {
+            EntryDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

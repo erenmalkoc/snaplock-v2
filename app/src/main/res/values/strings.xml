@@ -3,4 +3,5 @@
     <string name="select_file_button">Veritabanı Dosyası Seç</string>
     <string name="select_file_description">Lütfen açmak için bir .kdbx veritabanı dosyası seçin.</string>
     <string name="error_kdbx_file">Stream açılamadı.</string>
+    <string name="entry_list_lock_button">Uygulamayı Kilitle</string>
 </resources>
