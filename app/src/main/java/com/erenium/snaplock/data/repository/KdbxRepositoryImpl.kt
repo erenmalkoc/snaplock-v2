@@ -8,6 +8,9 @@ import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import app.keemobile.kotpass.database.getEntries
+import app.keemobile.kotpass.models.Entry as KotpassEntry
+
 
 class KdbxRepositoryImpl @Inject constructor(
     private val localDataSource: KdbxLocalDataSource,
@@ -16,15 +19,21 @@ class KdbxRepositoryImpl @Inject constructor(
 
     override fun getEntries(): Flow<List<Entry>> {
         return sessionCache.databaseFlow.map { database ->
-            database?.entries?.map { kdbxEntry ->
-                kdbxEntry.toDomainEntry()
-
-            } ?: emptyList()
-
+            if (database == null) {
+                emptyList()
+            } else {
+                val groupedEntriesList = database.getEntries { true }
+                val allEntries: List<KotpassEntry> = groupedEntriesList.flatMap { pair ->
+                    pair.second
+                }
+                allEntries.map { kotpassEntry ->
+                    kotpassEntry.toDomainEntry()
+                }
+            }
         }
     }
 
-    private fun KdbxEntry.toDomainEntry(): Entry {
+    private fun KotpassEntry.toDomainEntry(): Entry {
         return Entry(
             uuid = this.uuid,
             title = this.fields["Title"]?.content ?: "Başlık Yok",
