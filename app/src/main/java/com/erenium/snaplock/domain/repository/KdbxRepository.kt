@@ -12,6 +12,8 @@ interface KdbxRepository {
 
     suspend fun lockDatabase()
 
+    fun isLocked(): Flow<Boolean>
+
     fun getEntries(): Flow<List<Entry>>
 
     suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail>

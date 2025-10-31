@@ -93,4 +93,8 @@ class KdbxRepositoryImpl @Inject constructor(
         sessionCache.lock()
     }
 
+    override fun isLocked(): Flow<Boolean> {
+        return sessionCache.isLocked
+    }
+
 }

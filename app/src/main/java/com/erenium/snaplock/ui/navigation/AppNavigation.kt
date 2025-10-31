@@ -3,6 +3,9 @@ package com.erenium.snaplock.ui.navigation
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,14 +13,18 @@ import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailScreen
+import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import androidx.core.net.toUri
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    mainViewModel: MainViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
     val isLocked by mainViewModel.isLocked.collectAsState()
 
@@ -45,7 +52,7 @@ fun AppNavigation() {
                     encodedUri,
                     StandardCharsets.UTF_8.name()
                 )
-                val uri = Uri.parse(uriString)
+                val uri = uriString.toUri()
                 UnlockScreen(
                     uri = uri,
                     onUnlockSuccess = {
