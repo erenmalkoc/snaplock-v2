@@ -1,6 +1,7 @@
 package com.erenium.snaplock
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,6 +27,10 @@ class MainActivity : FragmentActivity() {
     lateinit var lockDatabaseUseCase: LockDatabaseUseCase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
         setContent {
             SnaplockV2Theme {
              AppNavigation()
