@@ -4,5 +4,20 @@
     <string name="select_file_description">Please select a .kdbx database file to open.</string>
     <string name="error_kdbx_file">Stream not opened.</string>
     <string name="entry_list_lock_button">Lock App</string>
+    <string name="show_password_hint">Show Password</string>
+    <string name="hide_password_hint">Hide Password</string>
+    <string name="show_validation_error">Validation failed.</string>
+    <string name="biometric_decode_error">Biometric decode error.</string>
+    <string name="wrong_password">Wrong Password</string>
+    <string name="unlock_database_title">Unlock Database</string>
+    <string name="database_password_label">Database Password</string>
+    <string name="enter_password_placeholder">Enter your password</string>
+    <string name="open_button">Open</string>
+    <string name="enable_biometric_login">Enable fingerprint login</string>
+    <string name="authenticating_message">Authenticating...</string>
+    <string name="opening_database_message">Opening database...</string>
+    <string name="biometric_login_title">Sign In</string>
+    <string name="biometric_login_subtitle">Verify your identity to sign in</string>
+    <string name="cancel_button">Cancel</string>
 
 </resources>
