@@ -1,3 +1,5 @@
+package com.erenium.snaplock.ui.screens.unlock
+
 import android.net.Uri
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
@@ -5,10 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.erenium.snaplock.presentation.unlock.UnlockViewModel
+import com.erenium.snaplock.ui.components.LoadingSpinner
+import com.erenium.snaplock.ui.components.PasswordTextField
 
 @Composable
 fun UnlockScreen(
@@ -77,25 +84,67 @@ fun UnlockScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (!state.showBiometricPrompt) {
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = state.useBiometrics,
-                    onCheckedChange = { viewModel.onUseBiometricsChanged(it) }
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Veritabanını Aç",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-                Text("Parmak iziyle oturum açmayı etkinleştir")
-            }
 
-        } else {
-            CircularProgressIndicator()
-            Text("Kimlik doğrulanıyor...")
+                if (state.showBiometricPrompt) {
+                    LoadingSpinner(message = "Kimlik doğrulanıyor...")
+                } else if (state.isLoading) {
+                    LoadingSpinner(message = "Veritabanı açılıyor...")
+                } else {
+                    PasswordTextField(
+                        value = state.password,
+                        onValueChange = { viewModel.onPasswordChange(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "Veritabanı Şifresi",
+                        placeholder = "Şifrenizi girin",
+                        isError = state.error != null,
+                        supportingText = state.error?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { viewModel.onUnlockClicked(uri) },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = state.password.isNotBlank()
+                    ) {
+                        Text("Aç")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(
+                            checked = state.useBiometrics,
+                            onCheckedChange = { viewModel.onUseBiometricsChanged(it) }
+                        )
+                        Text(
+                            "Parmak iziyle oturum açmayı etkinleştir",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
         }
     }
 }

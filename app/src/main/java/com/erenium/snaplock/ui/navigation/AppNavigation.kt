@@ -1,6 +1,5 @@
 package com.erenium.snaplock.ui.navigation
 
-import UnlockScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,6 +14,7 @@ import androidx.navigation.navArgument
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailScreen
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
+import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets

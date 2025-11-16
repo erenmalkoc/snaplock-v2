@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.usecase.GetEntriesUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -14,6 +15,7 @@ data class EntryListUiState(
     val isLoading: Boolean = true
 )
 
+@HiltViewModel
 class EntryListViewModel @Inject constructor(
     getEntriesUseCase: GetEntriesUseCase
 ) : ViewModel() {
