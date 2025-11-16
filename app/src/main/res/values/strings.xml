@@ -4,4 +4,20 @@
     <string name="select_file_description">Lütfen açmak için bir .kdbx veritabanı dosyası seçin.</string>
     <string name="error_kdbx_file">Stream açılamadı.</string>
     <string name="entry_list_lock_button">Uygulamayı Kilitle</string>
+    <string name="show_password_hint">Şifreyi Göster</string>
+    <string name="hide_password_hint">Şifreyi Gizle</string>
+    <string name="show_validation_error">Doğrulama başarısız.</string>
+    <string name="biometric_decode_error">Biyometrik şifre çözme hatası.</string>
+    <string name="wrong_password">Yanlış Şifre</string>
+    <string name="unlock_database_title">Veritabanını Aç</string>
+    <string name="database_password_label">Veritabanı Şifresi</string>
+    <string name="enter_password_placeholder">Şifrenizi girin</string>
+    <string name="open_button">Aç</string>
+    <string name="enable_biometric_login">Parmak iziyle oturum açmayı etkinleştir</string>
+    <string name="authenticating_message">Kimlik doğrulanıyor...</string>
+    <string name="opening_database_message">Veritabanı açılıyor...</string>
+    <string name="biometric_login_title">Oturum Aç</string>
+    <string name="biometric_login_subtitle">Oturum açmak için kimliğinizi doğrulayın</string>
+    <string name="cancel_button">İptal</string>
+
 </resources>

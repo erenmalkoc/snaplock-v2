@@ -19,10 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.erenium.snaplock.R
 
-/**
- * This Composable allows the user to select a database file.
- * @param onFileSelected Triggered when a file is successfully selected.
- */
 @Composable
 fun SelectFileScreen(
     onFileSelected: (Uri) -> Unit

@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.erenium.snaplock.R
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.erenium.snaplock.presentation.unlock.UnlockViewModel
@@ -37,15 +39,15 @@ fun UnlockScreen(
     viewModel: UnlockViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+    val errorStringId = state.errorStringId
     val activity = (LocalContext.current as? FragmentActivity)
         ?: throw IllegalStateException("Activity null olamaz")
 
+    val context = LocalContext.current
     val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Oturum Aç")
-        .setSubtitle("Oturum açmak için kimliğinizi doğrulayın")
-        .setSubtitle("Oturum açmak için kimliğinizi doğrulayın")
-        .setNegativeButtonText("İptal")
+        .setTitle(context.getString(R.string.biometric_login_title))
+        .setSubtitle(context.getString(R.string.biometric_login_subtitle))
+        .setNegativeButtonText(context.getString(R.string.cancel_button))
         .build()
 
     val biometricCallback = remember(viewModel, uri) {
@@ -98,26 +100,33 @@ fun UnlockScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Veritabanını Aç",
+                    text = stringResource(R.string.unlock_database_title),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 if (state.showBiometricPrompt) {
-                    LoadingSpinner(message = "Kimlik doğrulanıyor...")
+                    LoadingSpinner(message = stringResource(R.string.authenticating_message))
                 } else if (state.isLoading) {
-                    LoadingSpinner(message = "Veritabanı açılıyor...")
+                    LoadingSpinner(message = stringResource(R.string.opening_database_message))
                 } else {
                     PasswordTextField(
                         value = state.password,
                         onValueChange = { viewModel.onPasswordChange(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = "Veritabanı Şifresi",
-                        placeholder = "Şifrenizi girin",
-                        isError = state.error != null,
-                        supportingText = state.error?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-                    )
+                        label = stringResource(R.string.database_password_label),
+                        placeholder = stringResource(R.string.enter_password_placeholder),
+                        isError = state.errorStringId != null,
+                        supportingText = state.errorStringId?.let { errorId ->
+                            {
+                                Text(
+                                    text = stringResource(id = errorId),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
 
+                        )
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
@@ -125,7 +134,7 @@ fun UnlockScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = state.password.isNotBlank()
                     ) {
-                        Text("Aç")
+                        Text(stringResource(R.string.open_button))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -139,7 +148,7 @@ fun UnlockScreen(
                             onCheckedChange = { viewModel.onUseBiometricsChanged(it) }
                         )
                         Text(
-                            "Parmak iziyle oturum açmayı etkinleştir",
+                            stringResource(R.string.enable_biometric_login),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

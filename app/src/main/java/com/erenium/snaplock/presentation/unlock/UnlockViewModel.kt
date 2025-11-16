@@ -2,8 +2,10 @@ package com.erenium.snaplock.presentation.unlock
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.erenium.snaplock.R
 import com.erenium.snaplock.data.datasource.prefs.EncryptedPrefs
 import com.erenium.snaplock.data.datasource.security.BiometricCryptoManager
 import com.erenium.snaplock.domain.usecase.UnlockDatabaseUseCase
@@ -20,8 +22,8 @@ data class UnlockUiState(
     val useBiometrics: Boolean = false,
     val showBiometricPrompt: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null,
-    val isUnlockSuccessful: Boolean = false
+    val isUnlockSuccessful: Boolean = false,
+    val errorStringId: Int? = null
 )
 
 @HiltViewModel
@@ -33,7 +35,6 @@ class UnlockViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UnlockUiState())
     val uiState = _uiState.asStateFlow()
 
-
     init {
         if (encryptedPrefs.getEncryptedPassword() != null) {
             _uiState.update { it.copy(showBiometricPrompt = true) }
@@ -44,10 +45,9 @@ class UnlockViewModel @Inject constructor(
         _uiState.update { it.copy(useBiometrics = use) }
     }
 
-
     fun onBiometricFailed() {
         _uiState.update {
-            it.copy(showBiometricPrompt = false, error = "Doğrulama başarısız.")
+            it.copy(showBiometricPrompt = false, errorStringId = R.string.show_validation_error)
         }
     }
 
@@ -59,13 +59,13 @@ class UnlockViewModel @Inject constructor(
             unlockWithPassword(uri, decryptedPassword)
 
         } catch (e: Exception) {
-            _uiState.update { it.copy(error = "Biyometrik şifre çözme hatası.") }
+            _uiState.update { it.copy(errorStringId = R.string.biometric_decode_error) }
         }
     }
 
     fun onPasswordChange(newPassword: String) {
         _uiState.update {
-            it.copy(password = newPassword, error = null)
+            it.copy(password = newPassword, errorStringId = null)
         }
     }
 
@@ -77,7 +77,7 @@ class UnlockViewModel @Inject constructor(
 
     private fun unlockWithPassword(uri: Uri, password: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, errorStringId = null) }
 
             val result = unlockDatabaseUseCase(uri, password)
 
@@ -91,7 +91,7 @@ class UnlockViewModel @Inject constructor(
                 }
             }
             result.onFailure {
-                _uiState.update { it.copy(isLoading = false, error = "Yanlış şifre.") }
+                _uiState.update { it.copy(isLoading = false, errorStringId = R.string.wrong_password) }
             }
         }
     }
@@ -104,7 +104,7 @@ class UnlockViewModel @Inject constructor(
 
             encryptedPrefs.saveEncryptedCredentials(encryptedPassword, iv)
         } catch (e: Exception) {
-            Log.e("UnlockViewModel", "Biyometrik şifre kaydı başarısız", e)
+            Log.e("UnlockViewModel", "Biyometrik şifre kaydı başarısız.", e)
         }
     }
 
