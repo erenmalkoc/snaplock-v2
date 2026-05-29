@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.erenium.snaplock.ui.theme.Dimens
 
-
 @Composable
 fun PrimaryButton(
     text: String,
