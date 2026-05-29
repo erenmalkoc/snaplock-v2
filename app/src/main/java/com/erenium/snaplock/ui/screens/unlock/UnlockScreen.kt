@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,22 +21,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.erenium.snaplock.R
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.presentation.unlock.UnlockViewModel
+import com.erenium.snaplock.ui.components.AppCard
+import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PasswordTextField
+import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
 fun UnlockScreen(
     uri: Uri,
     onUnlockSuccess: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: UnlockViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
-    val errorStringId = state.errorStringId
     val activity = (LocalContext.current as? FragmentActivity)
         ?: throw IllegalStateException("Activity null olamaz")
 
@@ -90,26 +90,16 @@ fun UnlockScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth()
+    AppScaffold(
+        title = stringResource(R.string.unlock_database_title),
+        onNavigateBack = onNavigateBack
+    ) { contentModifier ->
+        Column(
+            modifier = contentModifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(R.string.unlock_database_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
+            AppCard(modifier = Modifier.fillMaxWidth()) {
                 if (state.showBiometricPrompt) {
                     LoadingSpinner(message = stringResource(R.string.authenticating_message))
                 } else if (state.isLoading) {
@@ -129,20 +119,17 @@ fun UnlockScreen(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
-                        },
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(Dimens.spaceMd))
 
-                        )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
+                    PrimaryButton(
+                        text = stringResource(R.string.open_button),
                         onClick = { viewModel.onUnlockClicked(uri) },
-                        modifier = Modifier.fillMaxWidth(),
                         enabled = state.password.isNotBlank()
-                    ) {
-                        Text(stringResource(R.string.open_button))
-                    }
+                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimens.spaceMd))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

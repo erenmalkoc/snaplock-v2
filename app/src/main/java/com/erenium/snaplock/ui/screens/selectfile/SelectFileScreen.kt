@@ -9,15 +9,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import com.erenium.snaplock.R
+import com.erenium.snaplock.ui.components.AppScaffold
+import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
 fun SelectFileScreen(
@@ -35,21 +37,23 @@ fun SelectFileScreen(
         }
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = stringResource(id = R.string.select_file_description))
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = {
-                filePickerLauncher.launch(arrayOf("*/*"))
-            }
+    AppScaffold(title = stringResource(R.string.select_file_title)) { contentModifier ->
+        Column(
+            modifier = contentModifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = stringResource(id = R.string.select_file_button))
+            Text(
+                text = stringResource(id = R.string.select_file_description),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(Dimens.spaceLg))
+            PrimaryButton(
+                text = stringResource(id = R.string.select_file_button),
+                onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
+                fillMaxWidth = false
+            )
         }
     }
 }

@@ -58,7 +58,8 @@ fun AppNavigation(
                         navController.navigate(NavRoutes.ENTRY_LIST) {
                             popUpTo(NavRoutes.SELECT_FILE) { inclusive = true }
                         }
-                    }
+                    },
+                    onNavigateBack = { navController.popBackStack() }
                 )
             } else {
                 navController.popBackStack()

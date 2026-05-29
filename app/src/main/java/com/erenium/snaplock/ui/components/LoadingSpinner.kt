@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.erenium.snaplock.R
+import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
 fun LoadingSpinner(
@@ -28,12 +28,12 @@ fun LoadingSpinner(
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(Dimens.iconLg),
             color = MaterialTheme.colorScheme.primary
         )
-        
+
         if (showMessage) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.spaceMd))
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
