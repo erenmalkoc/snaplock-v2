@@ -4,7 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,7 +18,8 @@ class ClipboardManagerHelper @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    private val scope = MainScope()
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var clearJob: Job? = null
 
     companion object {
         private const val CLIPBOARD_CLEAR_DELAY_MS = 30000L
@@ -24,7 +28,8 @@ class ClipboardManagerHelper @Inject constructor(
     fun copyToClipboard(label: String, text: String) {
         val clip = ClipData.newPlainText(label, text)
         clipboard.setPrimaryClip(clip)
-        scope.launch {
+        clearJob?.cancel()
+        clearJob = scope.launch {
             delay(CLIPBOARD_CLEAR_DELAY_MS)
             val emptyClip = ClipData.newPlainText("", "")
             clipboard.setPrimaryClip(emptyClip)

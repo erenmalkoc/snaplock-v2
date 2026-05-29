@@ -3,6 +3,7 @@ package com.erenium.snaplock.presentation.entrydetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,8 @@ data class EntryDetailUiState(
 @HiltViewModel
 class EntryDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getEntryDetailsUseCase: GetEntryDetailsUseCase
+    private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
+    private val clipboardManager: ClipboardManagerHelper
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EntryDetailUiState())
@@ -53,6 +55,9 @@ class EntryDetailViewModel @Inject constructor(
         _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }
 
-
-     fun onCopyPassword() {  }
+    fun onCopyPassword(label: String) {
+        val password = _uiState.value.entry?.password
+        if (password.isNullOrEmpty()) return
+        clipboardManager.copyToClipboard(label = label, text = password)
+    }
 }

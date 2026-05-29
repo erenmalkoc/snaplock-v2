@@ -2,7 +2,7 @@ package com.erenium.snaplock.data.datasource.local
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.ui.res.stringResource
+import android.util.Log
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
@@ -16,6 +16,10 @@ import javax.inject.Inject
 class KdbxLocalDataSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    companion object {
+        private const val TAG = "KdbxLocalDataSource"
+    }
+
     suspend fun openDatabase(uri: Uri, password: CharSequence): Result<KeePassDatabase> {
         return withContext(Dispatchers.IO) {
             try {
@@ -27,7 +31,7 @@ class KdbxLocalDataSource @Inject constructor(
                 }
                 Result.success(database)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Veritabanı açılamadı.", e)
                 Result.failure(e)
             }
         }

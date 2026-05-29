@@ -53,7 +53,12 @@ fun UnlockScreen(
     val biometricCallback = remember(viewModel, uri) {
         object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                viewModel.onBiometricSuccess(result.cryptoObject!!.cipher!!, uri)
+                val cipher = result.cryptoObject?.cipher
+                if (cipher != null) {
+                    viewModel.onBiometricSuccess(cipher, uri)
+                } else {
+                    viewModel.onBiometricFailed()
+                }
             }
 
             override fun onAuthenticationError(errCode: Int, errString: CharSequence) {

@@ -19,5 +19,7 @@
     <string name="biometric_login_title">Oturum Aç</string>
     <string name="biometric_login_subtitle">Oturum açmak için kimliğinizi doğrulayın</string>
     <string name="cancel_button">İptal</string>
+    <string name="copy_password_hint">Şifreyi Kopyala</string>
+    <string name="clipboard_label_password">Şifre</string>
 
 </resources>
