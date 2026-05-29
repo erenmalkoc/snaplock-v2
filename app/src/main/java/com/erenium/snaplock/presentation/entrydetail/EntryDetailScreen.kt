@@ -29,9 +29,9 @@ fun EntryDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(entry?.title ?: "...") },
+                title = { Text(entry?.title ?: stringResource(R.string.entry_loading_title)) },
                 navigationIcon = {
-                    Button(onClick = onNavigateBack) { Text("Geri") }
+                    Button(onClick = onNavigateBack) { Text(stringResource(R.string.back_button)) }
                 }
             )
         }
@@ -50,7 +50,7 @@ fun EntryDetailScreen(
                 OutlinedTextField(
                     value = entry.username ?: "",
                     onValueChange = {},
-                    label = { Text("Kullanıcı Adı") },
+                    label = { Text(stringResource(R.string.entry_username_label)) },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -59,7 +59,7 @@ fun EntryDetailScreen(
                 OutlinedTextField(
                     value = entry.password ?: "",
                     onValueChange = {},
-                    label = { Text("Şifre") },
+                    label = { Text(stringResource(R.string.entry_password_label)) },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),

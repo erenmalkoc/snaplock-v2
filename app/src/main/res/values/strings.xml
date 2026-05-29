@@ -21,5 +21,15 @@
     <string name="cancel_button">İptal</string>
     <string name="copy_password_hint">Şifreyi Kopyala</string>
     <string name="clipboard_label_password">Şifre</string>
+    <string name="loading_message">Yükleniyor...</string>
+    <string name="back_button">Geri</string>
+    <string name="entry_username_label">Kullanıcı Adı</string>
+    <string name="entry_password_label">Şifre</string>
+    <string name="entry_loading_title">...</string>
+    <string name="entry_load_error">Giriş yüklenemedi.</string>
+    <string name="untitled_entry">Başlık Yok</string>
+    <string name="locked_database_error">Veritabanı kilitli veya yüklenmemiş.</string>
+    <string name="empty_database_error">Veritabanı çözüldü ama boş geldi.</string>
+    <string name="unknown_error">Bilinmeyen bir hata oluştu.</string>
 
 </resources>

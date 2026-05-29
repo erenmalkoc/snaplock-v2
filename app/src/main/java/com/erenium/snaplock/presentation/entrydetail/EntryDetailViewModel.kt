@@ -3,6 +3,7 @@ package com.erenium.snaplock.presentation.entrydetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.erenium.snaplock.R
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
@@ -17,7 +18,7 @@ import javax.inject.Inject
 data class EntryDetailUiState(
     val entry: EntryDetail? = null,
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val errorStringId: Int? = null,
     val isPasswordVisible: Boolean = false
 )
 
@@ -45,8 +46,8 @@ class EntryDetailViewModel @Inject constructor(
 
             result.onSuccess { entry ->
                 _uiState.update { it.copy(isLoading = false, entry = entry) }
-            }.onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, error = "Giriş yüklenemedi.") }
+            }.onFailure {
+                _uiState.update { it.copy(isLoading = false, errorStringId = R.string.entry_load_error) }
             }
         }
     }

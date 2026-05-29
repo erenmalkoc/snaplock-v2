@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Kotpass parses KeePass payloads and cryptographic structures. Keep its model
+# surface intact for release builds; correctness is more important than shaving
+# a few extra methods in this app.
+-keep class app.keemobile.kotpass.** { *; }
+-dontwarn app.keemobile.kotpass.**
