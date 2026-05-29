@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,7 +29,36 @@ fun AppNavigation(
     val navController = rememberNavController()
     val isLocked by mainViewModel.isLocked.collectAsState()
 
-    NavHost(navController = navController, startDestination = NavRoutes.SELECT_FILE) {
+    val slideDuration = 300
+
+    NavHost(
+        navController = navController,
+        startDestination = NavRoutes.SELECT_FILE,
+        enterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(slideDuration)
+            )
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(slideDuration)
+            )
+        },
+        popEnterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(slideDuration)
+            )
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(slideDuration)
+            )
+        }
+    ) {
 
         composable(route = NavRoutes.SELECT_FILE) {
             SelectFileScreen(

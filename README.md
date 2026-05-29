@@ -13,8 +13,7 @@ and clears the session when the app is locked or moved to the background.
 - Toggle password visibility
 - Copy passwords to the clipboard with timed clearing
 - Optional biometric unlock flow for the saved database password
-- `FLAG_SECURE` enabled to reduce screenshot and recents-screen leakage
-![Ekran Resmi 2026-05-30 00.32.09.png](../../../../var/folders/qg/48cgsx093xvfq9pxq8n9vy2m0000gn/T/TemporaryItems/NSIRD_screencaptureui_0Ri8ZF/Ekran%20Resmi%202026-05-30%2000.32.09.png)
+
 ## Project Structure
 
 - `domain`: repository contracts, models, and use cases
