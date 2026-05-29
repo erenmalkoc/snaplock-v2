@@ -31,5 +31,9 @@
     <string name="locked_database_error">Veritabanı kilitli veya yüklenmemiş.</string>
     <string name="empty_database_error">Veritabanı çözüldü ama boş geldi.</string>
     <string name="unknown_error">Bilinmeyen bir hata oluştu.</string>
+    <string name="navigate_back">Geri git</string>
+    <string name="retry_button">Tekrar Dene</string>
+    <string name="error_generic_title">Bir şeyler ters gitti</string>
+    <string name="empty_generic_message">Görüntülenecek bir şey yok.</string>
 
 </resources>

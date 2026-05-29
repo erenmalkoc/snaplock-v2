@@ -1,4 +1,4 @@
-package com.erenium.snaplock.presentation.entrydetail
+package com.erenium.snaplock.ui.screens.entrydetail
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
+import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

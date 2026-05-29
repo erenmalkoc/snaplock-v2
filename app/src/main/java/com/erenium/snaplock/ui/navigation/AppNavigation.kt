@@ -11,7 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.erenium.snaplock.presentation.entrydetail.EntryDetailScreen
+import com.erenium.snaplock.ui.screens.entrydetail.EntryDetailScreen
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
