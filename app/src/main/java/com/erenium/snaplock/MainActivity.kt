@@ -15,6 +15,8 @@ import com.erenium.snaplock.domain.usecase.LockDatabaseUseCase
 import com.erenium.snaplock.ui.navigation.AppNavigation
 import com.erenium.snaplock.ui.theme.SnaplockV2Theme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +27,8 @@ class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var settingsPrefs: SettingsPrefs
+
+    private var autoLockJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +55,26 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        autoLockJob?.cancel()
+        autoLockJob = null
+    }
+
     override fun onStop() {
         super.onStop()
-        lifecycleScope.launch {
+        val delaySeconds = settingsPrefs.settings.value.autoLockSeconds
+        autoLockJob?.cancel()
+        autoLockJob = lifecycleScope.launch {
+            if (delaySeconds > 0) {
+                delay(delaySeconds * MILLIS_PER_SECOND)
+            }
             lockDatabaseUseCase.invoke()
         }
+    }
+
+    private companion object {
+        const val MILLIS_PER_SECOND = 1000L
     }
 }
 

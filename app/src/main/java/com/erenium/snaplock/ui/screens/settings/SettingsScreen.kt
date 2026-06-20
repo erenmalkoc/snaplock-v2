@@ -28,6 +28,7 @@ import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.theme.Dimens
 
 private val ClipboardTimeoutOptions = listOf(15, 30, 60, 120)
+private val AutoLockOptions = listOf(0, 30, 60, 300)
 
 @Composable
 fun SettingsScreen(
@@ -107,8 +108,41 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            SettingsSection(title = stringResource(R.string.settings_security)) {
+                Text(
+                    text = stringResource(R.string.settings_auto_lock),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    text = stringResource(R.string.settings_auto_lock_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = Dimens.spaceSm),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
+                ) {
+                    AutoLockOptions.forEach { seconds ->
+                        FilterChip(
+                            selected = settings.autoLockSeconds == seconds,
+                            onClick = { viewModel.onAutoLockChange(seconds) },
+                            label = { Text(autoLockLabel(seconds)) }
+                        )
+                    }
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun autoLockLabel(seconds: Int): String = when {
+    seconds <= 0 -> stringResource(R.string.auto_lock_immediate)
+    seconds < 60 -> stringResource(R.string.settings_seconds_format, seconds)
+    else -> stringResource(R.string.settings_minutes_format, seconds / 60)
 }
 
 @Composable

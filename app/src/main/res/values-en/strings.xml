@@ -69,5 +69,10 @@
     <string name="settings_clipboard_clear_desc">Remove the copied password from the clipboard after a delay</string>
     <string name="settings_clipboard_timeout">Clear after</string>
     <string name="settings_seconds_format">%1$ds</string>
+    <string name="settings_minutes_format">%1$dm</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_auto_lock">Auto-lock</string>
+    <string name="settings_auto_lock_desc">Lock after the app goes to the background</string>
+    <string name="auto_lock_immediate">Immediately</string>
 
 </resources>

@@ -69,5 +69,10 @@
     <string name="settings_clipboard_clear_desc">Kopyalanan şifreyi bir süre sonra panodan sil</string>
     <string name="settings_clipboard_timeout">Temizleme süresi</string>
     <string name="settings_seconds_format">%1$d sn</string>
+    <string name="settings_minutes_format">%1$d dk</string>
+    <string name="settings_security">Güvenlik</string>
+    <string name="settings_auto_lock">Otomatik kilit</string>
+    <string name="settings_auto_lock_desc">Uygulama arka plana alındıktan sonra kilitle</string>
+    <string name="auto_lock_immediate">Hemen</string>
 
 </resources>

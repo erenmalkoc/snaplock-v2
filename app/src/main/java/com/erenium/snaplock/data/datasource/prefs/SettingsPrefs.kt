@@ -42,6 +42,11 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
         _settings.update { it.copy(clipboardTimeoutSeconds = seconds) }
     }
 
+    fun setAutoLockSeconds(seconds: Int) {
+        prefs.edit { putInt(KEY_AUTO_LOCK, seconds) }
+        _settings.update { it.copy(autoLockSeconds = seconds) }
+    }
+
     private fun readSettings(): AppSettings {
         val themeName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name)
         val themeMode = runCatching { ThemeMode.valueOf(themeName ?: ThemeMode.SYSTEM.name) }
@@ -50,7 +55,8 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
             themeMode = themeMode,
             dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, false),
             clipboardAutoClear = prefs.getBoolean(KEY_CLIPBOARD_AUTO_CLEAR, true),
-            clipboardTimeoutSeconds = prefs.getInt(KEY_CLIPBOARD_TIMEOUT, DEFAULT_CLIPBOARD_TIMEOUT)
+            clipboardTimeoutSeconds = prefs.getInt(KEY_CLIPBOARD_TIMEOUT, DEFAULT_CLIPBOARD_TIMEOUT),
+            autoLockSeconds = prefs.getInt(KEY_AUTO_LOCK, DEFAULT_AUTO_LOCK)
         )
     }
 
@@ -60,6 +66,8 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_DYNAMIC_COLOR = "dynamic_color"
         const val KEY_CLIPBOARD_AUTO_CLEAR = "clipboard_auto_clear"
         const val KEY_CLIPBOARD_TIMEOUT = "clipboard_timeout_seconds"
+        const val KEY_AUTO_LOCK = "auto_lock_seconds"
         const val DEFAULT_CLIPBOARD_TIMEOUT = 30
+        const val DEFAULT_AUTO_LOCK = 0
     }
 }

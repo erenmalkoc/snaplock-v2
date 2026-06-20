@@ -22,4 +22,6 @@ class SettingsViewModel @Inject constructor(
     fun onClipboardAutoClearChange(enabled: Boolean) = settingsPrefs.setClipboardAutoClear(enabled)
 
     fun onClipboardTimeoutChange(seconds: Int) = settingsPrefs.setClipboardTimeoutSeconds(seconds)
+
+    fun onAutoLockChange(seconds: Int) = settingsPrefs.setAutoLockSeconds(seconds)
 }
