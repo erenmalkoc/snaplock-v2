@@ -4,6 +4,7 @@ import android.net.Uri
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.Group
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -18,6 +19,8 @@ interface KdbxRepository {
     fun isLocked(): Flow<Boolean>
 
     fun getEntries(): Flow<List<Entry>>
+
+    fun getGroups(): Flow<List<Group>>
 
     suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail>
 
