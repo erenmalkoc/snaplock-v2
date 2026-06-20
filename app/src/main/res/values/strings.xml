@@ -45,5 +45,9 @@
     <string name="clipboard_label_username">Kullanıcı Adı</string>
     <string name="copy_username_hint">Kullanıcı Adını Kopyala</string>
     <string name="copied_to_clipboard">%1$s panoya kopyalandı</string>
+    <string name="entry_notes_label">Notlar</string>
+    <string name="open_url_hint">Bağlantıyı aç</string>
+    <string name="open_url_error">Bağlantı açılamadı.</string>
+    <string name="app_tagline">KeePass uyumlu parola yöneticisi</string>
 
 </resources>

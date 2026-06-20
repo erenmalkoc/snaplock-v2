@@ -24,7 +24,6 @@ data class EntryDetailUiState(
     val isPasswordVisible: Boolean = false
 )
 
-/** Which field was copied, so the UI can show the matching confirmation. */
 enum class CopiedField { USERNAME, PASSWORD }
 
 @HiltViewModel

@@ -67,7 +67,6 @@ private val LightColorScheme = lightColorScheme(
     outlineVariant = md_light_outlineVariant
 )
 
-/** Success/warning gibi marka-dışı M3 rollerini composition üzerinden sağlar. */
 val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
 
 @Composable

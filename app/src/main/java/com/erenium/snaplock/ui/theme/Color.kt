@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 
-// --- Light scheme ---
 val md_light_primary = Color(0xFF1B5E9B)
 val md_light_onPrimary = Color(0xFFFFFFFF)
 val md_light_primaryContainer = Color(0xFFD3E4FF)
@@ -34,7 +33,6 @@ val md_light_onSurfaceVariant = Color(0xFF43474E)
 val md_light_outline = Color(0xFF73777F)
 val md_light_outlineVariant = Color(0xFFC3C7CF)
 
-// --- Dark scheme ---
 val md_dark_primary = Color(0xFFA0C9FF)
 val md_dark_onPrimary = Color(0xFF003258)
 val md_dark_primaryContainer = Color(0xFF00497D)
@@ -97,3 +95,20 @@ val DarkExtendedColors = ExtendedColors(
     warningContainer = Color(0xFF5C4300),
     onWarningContainer = Color(0xFFFFE08C),
 )
+
+val AvatarColors = listOf(
+    Color(0xFF1B5E9B),
+    Color(0xFF2E7D5B),
+    Color(0xFF6B5B95),
+    Color(0xFFB5651D),
+    Color(0xFFB0306A),
+    Color(0xFF0F8B8D),
+    Color(0xFF7A5C00),
+    Color(0xFF4A4E8C),
+)
+
+fun avatarColorFor(key: String): Color {
+    if (key.isEmpty()) return AvatarColors.first()
+    val index = (key.hashCode() and Int.MAX_VALUE) % AvatarColors.size
+    return AvatarColors[index]
+}

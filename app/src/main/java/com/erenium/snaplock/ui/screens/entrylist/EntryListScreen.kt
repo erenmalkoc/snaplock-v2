@@ -52,7 +52,6 @@ fun EntryListScreen(
             }
         }
     ) { contentModifier ->
-        // No entries in the database at all (and not the result of a search).
         if (state.isEmpty && !state.isSearching) {
             EmptyState(
                 modifier = contentModifier,
