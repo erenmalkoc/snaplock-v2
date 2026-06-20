@@ -29,11 +29,13 @@ import androidx.compose.ui.text.style.TextAlign
 import com.erenium.snaplock.R
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.SecondaryButton
 import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
 fun SelectFileScreen(
-    onFileSelected: (Uri) -> Unit
+    onFileSelected: (Uri) -> Unit,
+    onCreateDatabase: () -> Unit
 ) {
     val context = LocalContext.current
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -97,6 +99,11 @@ fun SelectFileScreen(
             PrimaryButton(
                 text = stringResource(R.string.select_file_button),
                 onClick = { filePickerLauncher.launch(arrayOf("*/*")) }
+            )
+            Spacer(modifier = Modifier.height(Dimens.spaceSm))
+            SecondaryButton(
+                text = stringResource(R.string.create_db_button),
+                onClick = onCreateDatabase
             )
         }
     }

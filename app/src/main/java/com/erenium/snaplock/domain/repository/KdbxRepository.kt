@@ -11,6 +11,8 @@ interface KdbxRepository {
 
     suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit>
 
+    suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit>
+
     suspend fun lockDatabase()
 
     fun isLocked(): Flow<Boolean>

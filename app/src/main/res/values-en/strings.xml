@@ -83,5 +83,15 @@
     <string name="entry_delete_message">Are you sure you want to delete this entry?</string>
     <string name="entry_delete_confirm">Delete</string>
     <string name="entry_delete_error">Could not delete entry.</string>
+    <string name="default_root_group">Passwords</string>
+    <string name="create_db_button">Create new database</string>
+    <string name="create_db_title">New Database</string>
+    <string name="create_db_description">Set a master password for your new KeePass database. If you forget it, your data cannot be recovered.</string>
+    <string name="create_db_password">Master Password</string>
+    <string name="create_db_confirm">Confirm Password</string>
+    <string name="create_db_password_mismatch">Passwords do not match.</string>
+    <string name="create_db_submit">Create</string>
+    <string name="create_db_progress">Creating database...</string>
+    <string name="create_db_error">Could not create database.</string>
 
 </resources>

@@ -101,6 +101,11 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit> {
+        return localDataSource.createDatabase(uri, password, context.getString(R.string.default_root_group))
+            .map { database -> sessionCache.setDatabase(database, uri) }
+    }
+
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))

@@ -94,6 +94,11 @@ class KdbxUseCaseTest {
             return Result.success(Unit)
         }
 
+        override suspend fun createDatabase(uri: android.net.Uri, password: CharSequence): Result<Unit> {
+            locked.value = false
+            return Result.success(Unit)
+        }
+
         override suspend fun lockDatabase() {
             locked.value = true
         }

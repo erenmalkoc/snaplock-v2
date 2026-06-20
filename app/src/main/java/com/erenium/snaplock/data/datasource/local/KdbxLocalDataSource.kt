@@ -8,6 +8,7 @@ import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encode
+import app.keemobile.kotpass.models.Meta
 import com.erenium.snaplock.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ class KdbxLocalDataSource @Inject constructor(
 ) {
     companion object {
         private const val TAG = "KdbxLocalDataSource"
+        private const val GENERATOR_NAME = "Snaplock"
     }
 
     suspend fun openDatabase(uri: Uri, password: CharSequence): Result<KeePassDatabase> {
@@ -48,6 +50,7 @@ class KdbxLocalDataSource @Inject constructor(
                 val credentials = Credentials.from(EncryptedValue.fromString(password.toString()))
                 val database = KeePassDatabase.Ver4x.create(
                     rootName = rootName,
+                    meta = Meta(generator = GENERATOR_NAME, name = rootName),
                     credentials = credentials
                 )
                 val outputStream = context.contentResolver.openOutputStream(uri, "wt")

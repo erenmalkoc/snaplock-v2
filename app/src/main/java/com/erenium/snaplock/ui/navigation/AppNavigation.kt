@@ -10,6 +10,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.erenium.snaplock.ui.screens.createdatabase.CreateDatabaseScreen
 import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -71,9 +72,20 @@ fun AppNavigation(
                         StandardCharsets.UTF_8.name()
                     )
                     navController.navigate("${NavRoutes.UNLOCK_SCREEN}/$encodedUri")
-                }
+                },
+                onCreateDatabase = { navController.navigate(NavRoutes.CREATE_DATABASE) }
             )
 
+        }
+        composable(route = NavRoutes.CREATE_DATABASE) {
+            CreateDatabaseScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onDatabaseCreated = {
+                    navController.navigate(NavRoutes.ENTRY_LIST) {
+                        popUpTo(NavRoutes.SELECT_FILE) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(
             route = "${NavRoutes.UNLOCK_SCREEN}/{uri}",
