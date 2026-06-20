@@ -3,6 +3,7 @@ package com.erenium.snaplock.domain.usecase
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,9 @@ class KdbxUseCaseTest {
             Entry(
                 uuid = UUID.fromString("00000000-0000-0000-0000-000000000001"),
                 title = "Email",
-                username = "eren"
+                username = "eren",
+                groupUuid = ROOT_GROUP_UUID,
+                groupName = "Passwords"
             )
         )
         repository.entries.value = expected
@@ -42,7 +45,8 @@ class KdbxUseCaseTest {
             username = "root",
             password = "secret",
             url = "https://example.com",
-            notes = "production"
+            notes = "production",
+            groupUuid = ROOT_GROUP_UUID
         )
         repository.entryDetails[uuid] = expected
 
@@ -64,7 +68,7 @@ class KdbxUseCaseTest {
     @Test
     fun addEntryAppendsEntry() = runTest {
         AddEntryUseCase(repository)(
-            EntryFormData(title = "Bank", username = "eren", password = "secret", url = null, notes = null)
+            EntryFormData(title = "Bank", username = "eren", password = "secret", url = null, notes = null, groupUuid = null)
         )
 
         val entries = repository.getEntries().first()
@@ -75,7 +79,7 @@ class KdbxUseCaseTest {
     @Test
     fun deleteEntryRemovesEntry() = runTest {
         AddEntryUseCase(repository)(
-            EntryFormData(title = "Bank", username = null, password = null, url = null, notes = null)
+            EntryFormData(title = "Bank", username = null, password = null, url = null, notes = null, groupUuid = null)
         )
         val uuid = repository.getEntries().first().first().uuid
 
@@ -107,6 +111,9 @@ class KdbxUseCaseTest {
 
         override fun getEntries(): Flow<List<Entry>> = entries
 
+        override fun getGroups(): Flow<List<Group>> =
+            MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", entries.value.size)))
+
         override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
             return entryDetails[uuid]?.let { Result.success(it) }
                 ?: Result.failure(NoSuchElementException(uuid.toString()))
@@ -114,15 +121,15 @@ class KdbxUseCaseTest {
 
         override suspend fun addEntry(data: EntryFormData): Result<Unit> {
             val uuid = UUID.randomUUID()
-            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes)
-            entries.value = entries.value + Entry(uuid, data.title, data.username)
+            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
+            entries.value = entries.value + Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords")
             return Result.success(Unit)
         }
 
         override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
-            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes)
+            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
             entries.value = entries.value.map {
-                if (it.uuid == uuid) Entry(uuid, data.title, data.username) else it
+                if (it.uuid == uuid) Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords") else it
             }
             return Result.success(Unit)
         }
@@ -132,5 +139,9 @@ class KdbxUseCaseTest {
             entries.value = entries.value.filterNot { it.uuid == uuid }
             return Result.success(Unit)
         }
+    }
+
+    private companion object {
+        val ROOT_GROUP_UUID: UUID = UUID.fromString("00000000-0000-0000-0000-0000000000ff")
     }
 }
