@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,7 +38,7 @@ fun EntryListScreen(
     onEntryClick: (UUID) -> Unit,
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
-    val entries by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
     AppScaffold(
         title = stringResource(R.string.entry_list_title),
@@ -49,31 +52,84 @@ fun EntryListScreen(
             }
         }
     ) { contentModifier ->
-        if (entries.isEmpty()) {
+        // No entries in the database at all (and not the result of a search).
+        if (state.isEmpty && !state.isSearching) {
             EmptyState(
                 modifier = contentModifier,
                 message = stringResource(R.string.entry_list_empty)
             )
-        } else {
-            LazyColumn(
-                modifier = contentModifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    horizontal = Dimens.screenPadding,
-                    vertical = Dimens.spaceSm
-                )
-            ) {
-                items(
-                    items = entries,
-                    key = { it.uuid }
-                ) { entry ->
-                    EntryListItem(
-                        entry = entry,
-                        onClick = { onEntryClick(entry.uuid) }
+            return@AppScaffold
+        }
+
+        Column(modifier = contentModifier.fillMaxSize()) {
+            SearchBar(
+                query = state.query,
+                onQueryChange = viewModel::onQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = Dimens.screenPadding,
+                        vertical = Dimens.spaceSm
                     )
+            )
+
+            if (state.isEmpty) {
+                EmptyState(
+                    modifier = Modifier.fillMaxSize(),
+                    message = stringResource(R.string.entry_search_no_results)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        horizontal = Dimens.screenPadding,
+                        vertical = Dimens.spaceSm
+                    )
+                ) {
+                    items(
+                        items = state.entries,
+                        key = { it.uuid }
+                    ) { entry ->
+                        EntryListItem(
+                            entry = entry,
+                            onClick = { onEntryClick(entry.uuid) }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier,
+        singleLine = true,
+        placeholder = { Text(stringResource(R.string.entry_search_hint)) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = null
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = stringResource(R.string.entry_search_clear)
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable

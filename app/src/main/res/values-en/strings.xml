@@ -31,5 +31,19 @@
     <string name="locked_database_error">Database is locked or not loaded.</string>
     <string name="empty_database_error">Database was decoded but returned empty.</string>
     <string name="unknown_error">An unknown error occurred.</string>
+    <string name="navigate_back">Go back</string>
+    <string name="retry_button">Retry</string>
+    <string name="error_generic_title">Something went wrong</string>
+    <string name="empty_generic_message">Nothing to show.</string>
+    <string name="entry_list_title">Entries</string>
+    <string name="entry_list_empty">No entries yet.</string>
+    <string name="select_file_title">Select Database</string>
+    <string name="entry_search_hint">Search entries</string>
+    <string name="entry_search_clear">Clear search</string>
+    <string name="entry_search_no_results">No matching entries found.</string>
+    <string name="entry_url_label">URL</string>
+    <string name="clipboard_label_username">Username</string>
+    <string name="copy_username_hint">Copy Username</string>
+    <string name="copied_to_clipboard">%1$s copied to clipboard</string>
 
 </resources>

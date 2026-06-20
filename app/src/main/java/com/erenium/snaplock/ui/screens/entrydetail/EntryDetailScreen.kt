@@ -14,16 +14,20 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
+import com.erenium.snaplock.presentation.entrydetail.CopiedField
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.ErrorState
@@ -37,10 +41,25 @@ fun EntryDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val entry = state.entry
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val usernameLabel = stringResource(R.string.entry_username_label)
+    val passwordLabel = stringResource(R.string.entry_password_label)
+    val copiedTemplate = stringResource(R.string.copied_to_clipboard)
+    LaunchedEffect(viewModel) {
+        viewModel.copyEvents.collect { field ->
+            val fieldName = when (field) {
+                CopiedField.USERNAME -> usernameLabel
+                CopiedField.PASSWORD -> passwordLabel
+            }
+            snackbarHostState.showSnackbar(String.format(copiedTemplate, fieldName))
+        }
+    }
 
     AppScaffold(
         title = entry?.title ?: stringResource(R.string.entry_loading_title),
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
     ) { contentModifier ->
         when {
             state.isLoading -> {
@@ -55,7 +74,8 @@ fun EntryDetailScreen(
             }
 
             entry != null -> {
-                val clipboardLabel = stringResource(R.string.clipboard_label_password)
+                val usernameClipboardLabel = stringResource(R.string.clipboard_label_username)
+                val passwordClipboardLabel = stringResource(R.string.clipboard_label_password)
                 Column(
                     modifier = contentModifier
                         .fillMaxSize()
@@ -67,7 +87,17 @@ fun EntryDetailScreen(
                         onValueChange = {},
                         label = { Text(stringResource(R.string.entry_username_label)) },
                         readOnly = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            if (!entry.username.isNullOrEmpty()) {
+                                IconButton(onClick = { viewModel.onCopyUsername(usernameClipboardLabel) }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ContentCopy,
+                                        contentDescription = stringResource(R.string.copy_username_hint)
+                                    )
+                                }
+                            }
+                        }
                     )
 
                     OutlinedTextField(
@@ -87,7 +117,7 @@ fun EntryDetailScreen(
                                         )
                                     )
                                 }
-                                IconButton(onClick = { viewModel.onCopyPassword(clipboardLabel) }) {
+                                IconButton(onClick = { viewModel.onCopyPassword(passwordClipboardLabel) }) {
                                     Icon(
                                         imageVector = Icons.Filled.ContentCopy,
                                         contentDescription = stringResource(R.string.copy_password_hint)
@@ -96,6 +126,16 @@ fun EntryDetailScreen(
                             }
                         }
                     )
+
+                    if (!entry.url.isNullOrBlank()) {
+                        OutlinedTextField(
+                            value = entry.url,
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.entry_url_label)) },
+                            readOnly = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }

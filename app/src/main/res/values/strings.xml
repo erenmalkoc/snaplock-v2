@@ -38,5 +38,12 @@
     <string name="entry_list_title">Kayıtlar</string>
     <string name="entry_list_empty">Henüz kayıt yok.</string>
     <string name="select_file_title">Veritabanı Seç</string>
+    <string name="entry_search_hint">Kayıtlarda ara</string>
+    <string name="entry_search_clear">Aramayı temizle</string>
+    <string name="entry_search_no_results">Eşleşen kayıt bulunamadı.</string>
+    <string name="entry_url_label">URL</string>
+    <string name="clipboard_label_username">Kullanıcı Adı</string>
+    <string name="copy_username_hint">Kullanıcı Adını Kopyala</string>
+    <string name="copied_to_clipboard">%1$s panoya kopyalandı</string>
 
 </resources>

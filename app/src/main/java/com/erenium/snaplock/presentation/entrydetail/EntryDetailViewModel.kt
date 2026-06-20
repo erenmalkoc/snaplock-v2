@@ -8,8 +8,10 @@ import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -22,6 +24,9 @@ data class EntryDetailUiState(
     val isPasswordVisible: Boolean = false
 )
 
+/** Which field was copied, so the UI can show the matching confirmation. */
+enum class CopiedField { USERNAME, PASSWORD }
+
 @HiltViewModel
 class EntryDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -31,6 +36,9 @@ class EntryDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _copyEvents = Channel<CopiedField>(Channel.BUFFERED)
+    val copyEvents = _copyEvents.receiveAsFlow()
 
     private val entryUuid: String = checkNotNull(savedStateHandle["uuid"])
 
@@ -60,5 +68,13 @@ class EntryDetailViewModel @Inject constructor(
         val password = _uiState.value.entry?.password
         if (password.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = password)
+        _copyEvents.trySend(CopiedField.PASSWORD)
+    }
+
+    fun onCopyUsername(label: String) {
+        val username = _uiState.value.entry?.username
+        if (username.isNullOrEmpty()) return
+        clipboardManager.copyToClipboard(label = label, text = username)
+        _copyEvents.trySend(CopiedField.USERNAME)
     }
 }
