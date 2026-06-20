@@ -91,7 +91,7 @@ class KdbxRepositoryImpl @Inject constructor(
         return if (result.isSuccess) {
             val database = result.getOrNull()
             if (database != null) {
-                sessionCache.setDatabase(database)
+                sessionCache.setDatabase(database, uri)
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(context.getString(R.string.empty_database_error)))
@@ -101,12 +101,83 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val newEntry = KotpassEntry(uuid = UUID.randomUUID(), fields = data.toFields())
+        val updated = database.modifyParentGroup {
+            copy(entries = entries + newEntry)
+        }
+        return persist(updated)
+    }
+
+    override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val updated = database.modifyEntry(uuid) {
+            copy(fields = data.applyTo(fields))
+        }
+        return persist(updated)
+    }
+
+    override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val updated = database.removeEntry(uuid)
+        return persist(updated)
+    }
+
+    private suspend fun persist(database: KeePassDatabase): Result<Unit> {
+        val uri = sessionCache.getUri()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val saveResult = localDataSource.saveDatabase(uri, database)
+        return saveResult.onSuccess {
+            sessionCache.setDatabase(database, uri)
+        }
+    }
+
+    private fun EntryFormData.toFields(): EntryFields {
+        return applyTo(EntryFields(emptyMap()))
+    }
+
+    private fun EntryFormData.applyTo(existing: EntryFields): EntryFields {
+        var fields = existing
+            .minus(FIELD_TITLE)
+            .minus(FIELD_USERNAME)
+            .minus(FIELD_PASSWORD)
+            .minus(FIELD_URL)
+            .minus(FIELD_NOTES)
+
+        fields = fields.plus(FIELD_TITLE to EntryValue.Plain(title))
+        if (!username.isNullOrEmpty()) {
+            fields = fields.plus(FIELD_USERNAME to EntryValue.Plain(username))
+        }
+        if (!password.isNullOrEmpty()) {
+            fields = fields.plus(FIELD_PASSWORD to EntryValue.Encrypted(EncryptedValue.fromString(password)))
+        }
+        if (!url.isNullOrEmpty()) {
+            fields = fields.plus(FIELD_URL to EntryValue.Plain(url))
+        }
+        if (!notes.isNullOrEmpty()) {
+            fields = fields.plus(FIELD_NOTES to EntryValue.Plain(notes))
+        }
+        return fields
+    }
+
     override suspend fun lockDatabase() {
         sessionCache.lock()
     }
 
     override fun isLocked(): Flow<Boolean> {
         return sessionCache.isLocked
+    }
+
+    private companion object {
+        const val FIELD_TITLE = "Title"
+        const val FIELD_USERNAME = "UserName"
+        const val FIELD_PASSWORD = "Password"
+        const val FIELD_URL = "URL"
+        const val FIELD_NOTES = "Notes"
     }
 
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -30,6 +31,7 @@ enum class CopiedField { USERNAME, PASSWORD }
 class EntryDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
+    private val deleteEntryUseCase: DeleteEntryUseCase,
     private val clipboardManager: ClipboardManagerHelper
 ) : ViewModel() {
 
@@ -38,6 +40,9 @@ class EntryDetailViewModel @Inject constructor(
 
     private val _copyEvents = Channel<CopiedField>(Channel.BUFFERED)
     val copyEvents = _copyEvents.receiveAsFlow()
+
+    private val _deletedEvents = Channel<Unit>(Channel.BUFFERED)
+    val deletedEvents = _deletedEvents.receiveAsFlow()
 
     private val entryUuid: String = checkNotNull(savedStateHandle["uuid"])
 
@@ -75,5 +80,15 @@ class EntryDetailViewModel @Inject constructor(
         if (username.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = username)
         _copyEvents.trySend(CopiedField.USERNAME)
+    }
+
+    fun onDelete() {
+        viewModelScope.launch {
+            deleteEntryUseCase(UUID.fromString(entryUuid))
+                .onSuccess { _deletedEvents.trySend(Unit) }
+                .onFailure {
+                    _uiState.update { it.copy(errorStringId = R.string.entry_delete_error) }
+                }
+        }
     }
 }
