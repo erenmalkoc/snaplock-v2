@@ -14,11 +14,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.createdatabase.CreateDatabaseViewModel
+import com.erenium.snaplock.ui.components.AppLogo
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PasswordTextField
@@ -62,6 +64,11 @@ fun CreateDatabaseScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
         ) {
+            AppLogo(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                size = Dimens.spaceXxl * 2
+            )
+
             Text(
                 text = stringResource(R.string.create_db_description),
                 style = MaterialTheme.typography.bodyMedium,
