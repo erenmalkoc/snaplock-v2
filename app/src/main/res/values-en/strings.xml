@@ -49,5 +49,25 @@
     <string name="open_url_hint">Open link</string>
     <string name="open_url_error">Could not open link.</string>
     <string name="app_tagline">KeePass-compatible password manager</string>
+    <string name="pwgen_title">Password Generator</string>
+    <string name="pwgen_length">Length</string>
+    <string name="pwgen_lowercase">Lowercase (a-z)</string>
+    <string name="pwgen_uppercase">Uppercase (A-Z)</string>
+    <string name="pwgen_digits">Digits (0-9)</string>
+    <string name="pwgen_symbols">Symbols (!@#)</string>
+    <string name="pwgen_regenerate">Regenerate</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_desc">Use wallpaper colors (Android 12+)</string>
+    <string name="settings_clipboard">Clipboard</string>
+    <string name="settings_clipboard_clear">Auto-clear clipboard</string>
+    <string name="settings_clipboard_clear_desc">Remove the copied password from the clipboard after a delay</string>
+    <string name="settings_clipboard_timeout">Clear after</string>
+    <string name="settings_seconds_format">%1$ds</string>
 
 </resources>

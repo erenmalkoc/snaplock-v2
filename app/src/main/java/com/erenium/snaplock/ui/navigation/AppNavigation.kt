@@ -16,6 +16,8 @@ import androidx.navigation.navArgument
 import com.erenium.snaplock.ui.screens.entrydetail.EntryDetailScreen
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
+import com.erenium.snaplock.ui.screens.generator.PasswordGeneratorScreen
+import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -111,11 +113,19 @@ fun AppNavigation(
                             popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
                         }
                     },
+                    onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
+                    onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
                     onEntryClick = { uuid ->
                         navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                     }
                 )
             }
+        }
+        composable(route = NavRoutes.SETTINGS) {
+            SettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(route = NavRoutes.PASSWORD_GENERATOR) {
+            PasswordGeneratorScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(
             route = "${NavRoutes.ENTRY_DETAIL}/{uuid}",

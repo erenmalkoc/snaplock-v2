@@ -14,7 +14,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +42,8 @@ import java.util.UUID
 @Composable
 fun EntryListScreen(
     onNavigateToLock: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToGenerator: () -> Unit,
     onEntryClick: (UUID) -> Unit,
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
@@ -49,6 +53,18 @@ fun EntryListScreen(
         title = stringResource(R.string.entry_list_title),
         applyContentPadding = false,
         actions = {
+            IconButton(onClick = onNavigateToGenerator) {
+                Icon(
+                    imageVector = Icons.Filled.Password,
+                    contentDescription = stringResource(R.string.pwgen_title)
+                )
+            }
+            IconButton(onClick = onNavigateToSettings) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = stringResource(R.string.settings_title)
+                )
+            }
             IconButton(onClick = onNavigateToLock) {
                 Icon(
                     imageVector = Icons.Filled.Lock,

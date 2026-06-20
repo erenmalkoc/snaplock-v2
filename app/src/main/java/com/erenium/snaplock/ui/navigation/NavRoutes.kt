@@ -5,4 +5,6 @@ object NavRoutes {
     const val UNLOCK_SCREEN = "unlock_screen"
     const val ENTRY_LIST = "entry_list"
     const val ENTRY_DETAIL = "entry_detail"
+    const val SETTINGS = "settings"
+    const val PASSWORD_GENERATOR = "password_generator"
 }

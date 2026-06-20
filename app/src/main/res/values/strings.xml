@@ -49,5 +49,25 @@
     <string name="open_url_hint">Bağlantıyı aç</string>
     <string name="open_url_error">Bağlantı açılamadı.</string>
     <string name="app_tagline">KeePass uyumlu parola yöneticisi</string>
+    <string name="pwgen_title">Şifre Üreteci</string>
+    <string name="pwgen_length">Uzunluk</string>
+    <string name="pwgen_lowercase">Küçük harfler (a-z)</string>
+    <string name="pwgen_uppercase">Büyük harfler (A-Z)</string>
+    <string name="pwgen_digits">Rakamlar (0-9)</string>
+    <string name="pwgen_symbols">Semboller (!@#)</string>
+    <string name="pwgen_regenerate">Yeniden üret</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_appearance">Görünüm</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Açık</string>
+    <string name="theme_dark">Koyu</string>
+    <string name="settings_dynamic_color">Dinamik renk</string>
+    <string name="settings_dynamic_color_desc">Duvar kağıdı renklerini kullan (Android 12+)</string>
+    <string name="settings_clipboard">Pano</string>
+    <string name="settings_clipboard_clear">Panoyu otomatik temizle</string>
+    <string name="settings_clipboard_clear_desc">Kopyalanan şifreyi bir süre sonra panodan sil</string>
+    <string name="settings_clipboard_timeout">Temizleme süresi</string>
+    <string name="settings_seconds_format">%1$d sn</string>
 
 </resources>
