@@ -9,5 +9,6 @@ data class EntryDetail(
     val username: String?,
     val password: String?,
     val url: String?,
-    val notes: String?
+    val notes: String?,
+    val groupUuid: UUID?
 )

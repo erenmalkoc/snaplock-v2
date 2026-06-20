@@ -5,5 +5,7 @@ import java.util.UUID
 data class Entry(
     val uuid: UUID,
     val title: String,
-    val username: String?
+    val username: String?,
+    val groupUuid: UUID,
+    val groupName: String
 )
