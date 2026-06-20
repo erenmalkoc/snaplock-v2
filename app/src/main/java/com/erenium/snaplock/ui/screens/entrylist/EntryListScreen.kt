@@ -12,11 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,7 @@ fun EntryListScreen(
     onNavigateToLock: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToGenerator: () -> Unit,
+    onAddEntry: () -> Unit,
     onEntryClick: (UUID) -> Unit,
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
@@ -52,6 +55,14 @@ fun EntryListScreen(
     AppScaffold(
         title = stringResource(R.string.entry_list_title),
         applyContentPadding = false,
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddEntry) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.entry_form_add_title)
+                )
+            }
+        },
         actions = {
             IconButton(onClick = onNavigateToGenerator) {
                 Icon(

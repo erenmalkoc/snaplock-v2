@@ -50,6 +50,8 @@ class EntryDetailViewModel @Inject constructor(
         loadEntryDetails()
     }
 
+    fun reload() = loadEntryDetails()
+
     private fun loadEntryDetails() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

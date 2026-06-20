@@ -17,6 +17,7 @@ fun AppScaffold(
     onNavigateBack: (() -> Unit)? = null,
     actions: @Composable () -> Unit = {},
     snackbarHostState: SnackbarHostState? = null,
+    floatingActionButton: @Composable () -> Unit = {},
     applyContentPadding: Boolean = true,
     content: @Composable (contentModifier: Modifier) -> Unit
 ) {
@@ -29,7 +30,8 @@ fun AppScaffold(
         },
         snackbarHost = {
             if (snackbarHostState != null) SnackbarHost(snackbarHostState)
-        }
+        },
+        floatingActionButton = floatingActionButton
     ) { innerPadding ->
         val contentModifier = Modifier
             .padding(innerPadding)

@@ -11,27 +11,38 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.entrydetail.CopiedField
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
@@ -42,10 +53,12 @@ import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.theme.Dimens
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
 fun EntryDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (UUID) -> Unit,
     viewModel: EntryDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -53,6 +66,7 @@ fun EntryDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val usernameLabel = stringResource(R.string.entry_username_label)
     val passwordLabel = stringResource(R.string.entry_password_label)
@@ -67,11 +81,51 @@ fun EntryDetailScreen(
             snackbarHostState.showSnackbar(String.format(copiedTemplate, fieldName))
         }
     }
+    LaunchedEffect(viewModel) {
+        viewModel.deletedEvents.collect { onNavigateBack() }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.entry_delete_title)) },
+            text = { Text(stringResource(R.string.entry_delete_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    viewModel.onDelete()
+                }) {
+                    Text(stringResource(R.string.entry_delete_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel_button))
+                }
+            }
+        )
+    }
 
     AppScaffold(
         title = entry?.title ?: stringResource(R.string.entry_loading_title),
         onNavigateBack = onNavigateBack,
-        snackbarHostState = snackbarHostState
+        snackbarHostState = snackbarHostState,
+        actions = {
+            if (entry != null) {
+                IconButton(onClick = { onNavigateToEdit(entry.uuid) }) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.entry_form_edit_title)
+                    )
+                }
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.entry_delete_title)
+                    )
+                }
+            }
+        }
     ) { contentModifier ->
         when {
             state.isLoading -> {
