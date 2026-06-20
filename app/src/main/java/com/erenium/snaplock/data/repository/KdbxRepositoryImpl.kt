@@ -2,14 +2,22 @@ package com.erenium.snaplock.data.repository
 
 import android.content.Context
 import android.net.Uri
+import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntries
 import app.keemobile.kotpass.database.getEntryBy
+import app.keemobile.kotpass.database.modifiers.modifyEntry
+import app.keemobile.kotpass.database.modifiers.modifyParentGroup
+import app.keemobile.kotpass.database.modifiers.removeEntry
+import app.keemobile.kotpass.models.EntryFields
+import app.keemobile.kotpass.models.EntryValue
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
