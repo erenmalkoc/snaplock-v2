@@ -2,37 +2,46 @@ package com.erenium.snaplock.ui.screens.entrydetail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.entrydetail.CopiedField
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
+import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
+import com.erenium.snaplock.ui.components.DetailFieldRow
 import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.theme.Dimens
+import kotlinx.coroutines.launch
 
 @Composable
 fun EntryDetailScreen(
@@ -42,10 +51,13 @@ fun EntryDetailScreen(
     val state by viewModel.uiState.collectAsState()
     val entry = state.entry
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
 
     val usernameLabel = stringResource(R.string.entry_username_label)
     val passwordLabel = stringResource(R.string.entry_password_label)
     val copiedTemplate = stringResource(R.string.copied_to_clipboard)
+    val openUrlError = stringResource(R.string.open_url_error)
     LaunchedEffect(viewModel) {
         viewModel.copyEvents.collect { field ->
             val fieldName = when (field) {
@@ -79,65 +91,100 @@ fun EntryDetailScreen(
                 Column(
                     modifier = contentModifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    OutlinedTextField(
-                        value = entry.username ?: "",
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.entry_username_label)) },
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            if (!entry.username.isNullOrEmpty()) {
-                                IconButton(onClick = { viewModel.onCopyUsername(usernameClipboardLabel) }) {
+                    AppCard(modifier = Modifier.fillMaxWidth()) {
+                        if (!entry.username.isNullOrEmpty()) {
+                            DetailFieldRow(
+                                icon = Icons.Filled.Person,
+                                label = usernameLabel,
+                                value = entry.username
+                            ) {
+                                CopyButton(
+                                    contentDescription = stringResource(R.string.copy_username_hint),
+                                    onClick = { viewModel.onCopyUsername(usernameClipboardLabel) }
+                                )
+                            }
+                            HorizontalDivider()
+                        }
+
+                        DetailFieldRow(
+                            icon = Icons.Filled.Lock,
+                            label = passwordLabel,
+                            value = passwordDisplay(entry.password, state.isPasswordVisible)
+                        ) {
+                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                                Icon(
+                                    imageVector = if (state.isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    contentDescription = stringResource(
+                                        if (state.isPasswordVisible) R.string.hide_password_hint else R.string.show_password_hint
+                                    )
+                                )
+                            }
+                            CopyButton(
+                                contentDescription = stringResource(R.string.copy_password_hint),
+                                onClick = { viewModel.onCopyPassword(passwordClipboardLabel) }
+                            )
+                        }
+
+                        if (!entry.url.isNullOrBlank()) {
+                            HorizontalDivider()
+                            DetailFieldRow(
+                                icon = Icons.Filled.Link,
+                                label = stringResource(R.string.entry_url_label),
+                                value = entry.url
+                            ) {
+                                IconButton(onClick = {
+                                    runCatching { uriHandler.openUri(normalizeUrl(entry.url)) }
+                                        .onFailure {
+                                            scope.launch { snackbarHostState.showSnackbar(openUrlError) }
+                                        }
+                                }) {
                                     Icon(
-                                        imageVector = Icons.Filled.ContentCopy,
-                                        contentDescription = stringResource(R.string.copy_username_hint)
+                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                        contentDescription = stringResource(R.string.open_url_hint)
                                     )
                                 }
                             }
                         }
-                    )
 
-                    OutlinedTextField(
-                        value = entry.password ?: "",
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.entry_password_label)) },
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            Row {
-                                IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
-                                    Icon(
-                                        imageVector = if (state.isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                        contentDescription = stringResource(
-                                            if (state.isPasswordVisible) R.string.hide_password_hint else R.string.show_password_hint
-                                        )
-                                    )
-                                }
-                                IconButton(onClick = { viewModel.onCopyPassword(passwordClipboardLabel) }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.ContentCopy,
-                                        contentDescription = stringResource(R.string.copy_password_hint)
-                                    )
-                                }
-                            }
+                        if (!entry.notes.isNullOrBlank()) {
+                            HorizontalDivider()
+                            DetailFieldRow(
+                                icon = Icons.Filled.Description,
+                                label = stringResource(R.string.entry_notes_label),
+                                value = entry.notes,
+                                valueStyle = MaterialTheme.typography.bodyMedium,
+                                singleLineValue = false
+                            )
                         }
-                    )
-
-                    if (!entry.url.isNullOrBlank()) {
-                        OutlinedTextField(
-                            value = entry.url,
-                            onValueChange = {},
-                            label = { Text(stringResource(R.string.entry_url_label)) },
-                            readOnly = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun CopyButton(
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Filled.ContentCopy,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(Dimens.iconSm)
+        )
+    }
+}
+
+private fun passwordDisplay(password: String?, isVisible: Boolean): String {
+    if (password.isNullOrEmpty()) return ""
+    return if (isVisible) password else "•".repeat(password.length.coerceAtMost(12))
+}
+
+private fun normalizeUrl(url: String): String {
+    val trimmed = url.trim()
+    return if (trimmed.contains("://")) trimmed else "https://$trimmed"
 }

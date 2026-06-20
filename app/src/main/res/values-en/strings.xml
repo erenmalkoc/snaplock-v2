@@ -45,5 +45,9 @@
     <string name="clipboard_label_username">Username</string>
     <string name="copy_username_hint">Copy Username</string>
     <string name="copied_to_clipboard">%1$s copied to clipboard</string>
+    <string name="entry_notes_label">Notes</string>
+    <string name="open_url_hint">Open link</string>
+    <string name="open_url_error">Could not open link.</string>
+    <string name="app_tagline">KeePass-compatible password manager</string>
 
 </resources>

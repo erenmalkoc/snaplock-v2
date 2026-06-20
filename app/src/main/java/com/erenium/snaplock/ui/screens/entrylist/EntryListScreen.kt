@@ -3,12 +3,15 @@ package com.erenium.snaplock.ui.screens.entrylist
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
@@ -20,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -29,6 +33,7 @@ import com.erenium.snaplock.presentation.entrylist.EntryListViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.EmptyState
+import com.erenium.snaplock.ui.components.EntryAvatar
 import com.erenium.snaplock.ui.theme.Dimens
 import java.util.UUID
 
@@ -142,24 +147,38 @@ private fun EntryListItem(
             .padding(vertical = Dimens.spaceXs),
         contentPadding = false
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(Dimens.spaceMd)
+                .padding(Dimens.spaceMd),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = entry.title,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (!entry.username.isNullOrBlank()) {
+            EntryAvatar(title = entry.title)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = Dimens.spaceMd)
+            ) {
                 Text(
-                    text = entry.username,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = Dimens.spaceXs)
+                    text = entry.title,
+                    style = MaterialTheme.typography.titleMedium
                 )
+                if (!entry.username.isNullOrBlank()) {
+                    Text(
+                        text = entry.username,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = Dimens.spaceXxs)
+                    )
+                }
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier.size(Dimens.iconMd),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
