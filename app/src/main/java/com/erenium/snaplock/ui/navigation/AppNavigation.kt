@@ -15,6 +15,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.erenium.snaplock.ui.screens.entrydetail.EntryDetailScreen
 import com.erenium.snaplock.presentation.main.MainViewModel
+import com.erenium.snaplock.ui.screens.entryform.EntryFormScreen
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.generator.PasswordGeneratorScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
@@ -115,6 +116,7 @@ fun AppNavigation(
                     },
                     onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
                     onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
+                    onAddEntry = { navController.navigate(NavRoutes.ENTRY_FORM) },
                     onEntryClick = { uuid ->
                         navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                     }
@@ -139,10 +141,33 @@ fun AppNavigation(
                 }
             } else {
                 EntryDetailScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToEdit = { uuid ->
+                        navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid")
+                    }
                 )
             }
 
+        }
+        composable(
+            route = "${NavRoutes.ENTRY_FORM}?uuid={uuid}",
+            arguments = listOf(
+                navArgument("uuid") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.ENTRY_FORM) { inclusive = true }
+                    }
+                }
+            } else {
+                EntryFormScreen(onNavigateBack = { navController.popBackStack() })
+            }
         }
     }
 }

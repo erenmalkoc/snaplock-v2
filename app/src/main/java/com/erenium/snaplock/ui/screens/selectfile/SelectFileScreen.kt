@@ -1,8 +1,10 @@
 package com.erenium.snaplock.ui.screens.selectfile
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,10 +35,14 @@ import com.erenium.snaplock.ui.theme.Dimens
 fun SelectFileScreen(
     onFileSelected: (Uri) -> Unit
 ) {
+    val context = LocalContext.current
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri ->
             if (uri != null) {
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                runCatching { context.contentResolver.takePersistableUriPermission(uri, flags) }
                 onFileSelected(uri)
             }
         }

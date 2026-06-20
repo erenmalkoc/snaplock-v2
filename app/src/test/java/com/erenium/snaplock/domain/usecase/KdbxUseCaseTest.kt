@@ -2,6 +2,7 @@ package com.erenium.snaplock.domain.usecase
 
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +61,29 @@ class KdbxUseCaseTest {
         assertTrue(repository.locked.value)
     }
 
+    @Test
+    fun addEntryAppendsEntry() = runTest {
+        AddEntryUseCase(repository)(
+            EntryFormData(title = "Bank", username = "eren", password = "secret", url = null, notes = null)
+        )
+
+        val entries = repository.getEntries().first()
+        assertEquals(1, entries.size)
+        assertEquals("Bank", entries.first().title)
+    }
+
+    @Test
+    fun deleteEntryRemovesEntry() = runTest {
+        AddEntryUseCase(repository)(
+            EntryFormData(title = "Bank", username = null, password = null, url = null, notes = null)
+        )
+        val uuid = repository.getEntries().first().first().uuid
+
+        DeleteEntryUseCase(repository)(uuid)
+
+        assertTrue(repository.getEntries().first().isEmpty())
+    }
+
     private class FakeKdbxRepository : KdbxRepository {
         val entries = MutableStateFlow<List<Entry>>(emptyList())
         val locked = MutableStateFlow(true)
@@ -81,6 +105,27 @@ class KdbxUseCaseTest {
         override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
             return entryDetails[uuid]?.let { Result.success(it) }
                 ?: Result.failure(NoSuchElementException(uuid.toString()))
+        }
+
+        override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+            val uuid = UUID.randomUUID()
+            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes)
+            entries.value = entries.value + Entry(uuid, data.title, data.username)
+            return Result.success(Unit)
+        }
+
+        override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+            entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes)
+            entries.value = entries.value.map {
+                if (it.uuid == uuid) Entry(uuid, data.title, data.username) else it
+            }
+            return Result.success(Unit)
+        }
+
+        override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
+            entryDetails.remove(uuid)
+            entries.value = entries.value.filterNot { it.uuid == uuid }
+            return Result.success(Unit)
         }
     }
 }

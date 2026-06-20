@@ -38,6 +38,31 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 
+    suspend fun createDatabase(
+        uri: Uri,
+        password: CharSequence,
+        rootName: String
+    ): Result<KeePassDatabase> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val credentials = Credentials.from(EncryptedValue.fromString(password.toString()))
+                val database = KeePassDatabase.Ver4x.create(
+                    rootName = rootName,
+                    credentials = credentials
+                )
+                val outputStream = context.contentResolver.openOutputStream(uri, "wt")
+                outputStream.use {
+                    if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
+                    database.encode(it)
+                }
+                Result.success(database)
+            } catch (e: Exception) {
+                Log.e(TAG, "Veritabanı oluşturulamadı.", e)
+                Result.failure(e)
+            }
+        }
+    }
+
     suspend fun saveDatabase(uri: Uri, database: KeePassDatabase): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {

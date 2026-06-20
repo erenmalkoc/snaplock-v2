@@ -7,4 +7,5 @@ object NavRoutes {
     const val ENTRY_DETAIL = "entry_detail"
     const val SETTINGS = "settings"
     const val PASSWORD_GENERATOR = "password_generator"
+    const val ENTRY_FORM = "entry_form"
 }

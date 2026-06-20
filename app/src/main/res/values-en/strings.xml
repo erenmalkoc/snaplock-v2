@@ -74,5 +74,14 @@
     <string name="settings_auto_lock">Auto-lock</string>
     <string name="settings_auto_lock_desc">Lock after the app goes to the background</string>
     <string name="auto_lock_immediate">Immediately</string>
+    <string name="entry_form_add_title">New Entry</string>
+    <string name="entry_form_edit_title">Edit Entry</string>
+    <string name="entry_form_title_label">Title</string>
+    <string name="entry_form_save">Save</string>
+    <string name="entry_save_error">Could not save entry.</string>
+    <string name="entry_delete_title">Delete Entry</string>
+    <string name="entry_delete_message">Are you sure you want to delete this entry?</string>
+    <string name="entry_delete_confirm">Delete</string>
+    <string name="entry_delete_error">Could not delete entry.</string>
 
 </resources>

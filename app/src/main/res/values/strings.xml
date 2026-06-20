@@ -74,5 +74,14 @@
     <string name="settings_auto_lock">Otomatik kilit</string>
     <string name="settings_auto_lock_desc">Uygulama arka plana alındıktan sonra kilitle</string>
     <string name="auto_lock_immediate">Hemen</string>
+    <string name="entry_form_add_title">Yeni Kayıt</string>
+    <string name="entry_form_edit_title">Kaydı Düzenle</string>
+    <string name="entry_form_title_label">Başlık</string>
+    <string name="entry_form_save">Kaydet</string>
+    <string name="entry_save_error">Kayıt kaydedilemedi.</string>
+    <string name="entry_delete_title">Kaydı Sil</string>
+    <string name="entry_delete_message">Bu kaydı silmek istediğinize emin misiniz?</string>
+    <string name="entry_delete_confirm">Sil</string>
+    <string name="entry_delete_error">Kayıt silinemedi.</string>
 
 </resources>
