@@ -93,5 +93,7 @@
     <string name="create_db_submit">Create</string>
     <string name="create_db_progress">Creating database...</string>
     <string name="create_db_error">Could not create database.</string>
+    <string name="group_filter_all">All</string>
+    <string name="entry_form_group_label">Group</string>
 
 </resources>

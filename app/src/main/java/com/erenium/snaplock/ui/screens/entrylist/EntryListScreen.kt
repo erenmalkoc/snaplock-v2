@@ -1,6 +1,7 @@
 package com.erenium.snaplock.ui.screens.entrylist
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.Entry
+import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.presentation.entrylist.EntryListViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
@@ -85,7 +88,7 @@ fun EntryListScreen(
             }
         }
     ) { contentModifier ->
-        if (state.isEmpty && !state.isSearching) {
+        if (state.isEmpty && !state.isSearching && !state.isFiltering) {
             EmptyState(
                 modifier = contentModifier,
                 message = stringResource(R.string.entry_list_empty)
@@ -104,6 +107,14 @@ fun EntryListScreen(
                         vertical = Dimens.spaceSm
                     )
             )
+
+            if (state.showGroupFilter) {
+                GroupFilterRow(
+                    groups = state.groups,
+                    selectedGroupUuid = state.selectedGroupUuid,
+                    onGroupSelected = viewModel::onGroupSelected
+                )
+            }
 
             if (state.isEmpty) {
                 EmptyState(
@@ -129,6 +140,34 @@ fun EntryListScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun GroupFilterRow(
+    groups: List<Group>,
+    selectedGroupUuid: UUID?,
+    onGroupSelected: (UUID?) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = Dimens.screenPadding),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
+    ) {
+        item {
+            FilterChip(
+                selected = selectedGroupUuid == null,
+                onClick = { onGroupSelected(null) },
+                label = { Text(stringResource(R.string.group_filter_all)) }
+            )
+        }
+        items(items = groups, key = { it.uuid }) { group ->
+            FilterChip(
+                selected = selectedGroupUuid == group.uuid,
+                onClick = { onGroupSelected(group.uuid) },
+                label = { Text(group.name) }
+            )
         }
     }
 }

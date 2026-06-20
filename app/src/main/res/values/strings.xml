@@ -93,5 +93,7 @@
     <string name="create_db_submit">Oluştur</string>
     <string name="create_db_progress">Veritabanı oluşturuluyor...</string>
     <string name="create_db_error">Veritabanı oluşturulamadı.</string>
+    <string name="group_filter_all">Tümü</string>
+    <string name="entry_form_group_label">Grup</string>
 
 </resources>

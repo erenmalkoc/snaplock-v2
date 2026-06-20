@@ -5,13 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
+import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
 import com.erenium.snaplock.domain.usecase.UpdateEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,6 +27,8 @@ data class EntryFormUiState(
     val password: String = "",
     val url: String = "",
     val notes: String = "",
+    val groups: List<Group> = emptyList(),
+    val groupUuid: UUID? = null,
     val isEditMode: Boolean = false,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
@@ -36,6 +41,7 @@ data class EntryFormUiState(
 class EntryFormViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
+    private val getGroupsUseCase: GetGroupsUseCase,
     private val addEntryUseCase: AddEntryUseCase,
     private val updateEntryUseCase: UpdateEntryUseCase
 ) : ViewModel() {
@@ -51,10 +57,25 @@ class EntryFormViewModel @Inject constructor(
     val savedEvents = _savedEvents.receiveAsFlow()
 
     init {
+        loadGroups()
         if (entryUuid != null) {
             loadEntry(entryUuid)
         }
     }
+
+    private fun loadGroups() {
+        viewModelScope.launch {
+            val groups = getGroupsUseCase().first()
+            _uiState.update { state ->
+                state.copy(
+                    groups = groups,
+                    groupUuid = state.groupUuid ?: groups.firstOrNull()?.uuid
+                )
+            }
+        }
+    }
+
+    fun onGroupSelected(groupUuid: UUID) = _uiState.update { it.copy(groupUuid = groupUuid) }
 
     private fun loadEntry(uuid: UUID) {
         viewModelScope.launch {
@@ -67,6 +88,7 @@ class EntryFormViewModel @Inject constructor(
                             password = entry.password.orEmpty(),
                             url = entry.url.orEmpty(),
                             notes = entry.notes.orEmpty(),
+                            groupUuid = entry.groupUuid ?: it.groupUuid,
                             isLoading = false
                         )
                     }
@@ -92,7 +114,8 @@ class EntryFormViewModel @Inject constructor(
             username = state.username.trim().ifBlank { null },
             password = state.password.ifBlank { null },
             url = state.url.trim().ifBlank { null },
-            notes = state.notes.ifBlank { null }
+            notes = state.notes.ifBlank { null },
+            groupUuid = state.groupUuid
         )
 
         viewModelScope.launch {

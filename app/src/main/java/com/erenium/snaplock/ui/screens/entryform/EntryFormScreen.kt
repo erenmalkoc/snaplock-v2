@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +120,25 @@ fun EntryFormScreen(
                     .fillMaxWidth()
                     .heightIn(min = Dimens.spaceXxl * 2)
             )
+
+            if (state.groups.size > 1) {
+                Text(
+                    text = stringResource(R.string.entry_form_group_label),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
+                ) {
+                    items(items = state.groups, key = { it.uuid }) { group ->
+                        FilterChip(
+                            selected = state.groupUuid == group.uuid,
+                            onClick = { viewModel.onGroupSelected(group.uuid) },
+                            label = { Text(group.name) }
+                        )
+                    }
+                }
+            }
         }
     }
 }
