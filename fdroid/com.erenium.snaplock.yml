@@ -6,6 +6,8 @@ AuthorEmail: malkoceren24@gmail.com
 SourceCode: https://github.com/erenmalkoc/snaplock-v2
 IssueTracker: https://github.com/erenmalkoc/snaplock-v2/issues
 
+AutoName: Snaplock
+
 RepoType: git
 Repo: https://github.com/erenmalkoc/snaplock-v2.git
 
