@@ -1,0 +1,6 @@
+İlk sürüm.
+
+* KeePass .kdbx veritabanlarını açma ve kilidini çözme
+* Kayıtları ve grupları görüntüleme
+* Zamanlı pano temizleme ile kimlik bilgilerini görme ve kopyalama
+* İsteğe bağlı biyometrik kilit açma

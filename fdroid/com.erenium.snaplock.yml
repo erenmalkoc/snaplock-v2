@@ -1,0 +1,23 @@
+Categories:
+  - Security
+License: GPL-3.0-or-later
+AuthorName: Eren Malkoç
+AuthorEmail: info@enmdigital.com
+SourceCode: https://github.com/erenmalkoc/snaplock-v2
+IssueTracker: https://github.com/erenmalkoc/snaplock-v2/issues
+
+RepoType: git
+Repo: https://github.com/erenmalkoc/snaplock-v2.git
+
+Builds:
+  - versionName: "1.0"
+    versionCode: 1
+    commit: v1.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: "1.0"
+CurrentVersionCode: 1

@@ -1,0 +1,20 @@
+Snaplock, Android için tamamen çevrimdışı, KeePass uyumlu bir parola yöneticisidir.
+Mevcut .kdbx veritabanınızı açar, çözülmüş veriyi yalnızca aktif oturum boyunca
+bellekte tutar ve uygulama kilitlendiğinde ya da arka plana alındığında bu oturumu
+anında temizler.
+
+Snaplock hiçbir internet izni istemez. Veritabanınız cihazınızdan asla çıkmaz.
+
+Özellikler:
+
+* Standart KeePass .kdbx veritabanlarını açma ve kilidini çözme
+* Çözülmüş veritabanındaki kayıtları ve grupları görüntüleme
+* Kayıt kullanıcı adı ve parola ayrıntılarını görme
+* Parola görünürlüğünü açıp kapatma
+* Parolaları otomatik zamanlı temizleme ile panoya kopyalama
+* Kaydedilmiş veritabanı parolası için isteğe bağlı biyometrik kilit açma
+
+Snaplock çözülmüş veritabanını kalıcı olarak saklamaz. Seçilen dosya Android'in
+belge seçici aracılığıyla okunur ve çözülmüş içerik yalnızca işlem oturum
+önbelleğinde yaşar; bu önbellek uygulama kilitlendiğinde veya arka plana
+alındığında silinir.

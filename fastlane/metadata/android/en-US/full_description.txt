@@ -1,0 +1,19 @@
+Snaplock is a fully offline, KeePass-compatible password manager for Android.
+It opens your existing .kdbx database, keeps the decoded data in memory only for
+the active session, and clears that session as soon as the app is locked or sent
+to the background.
+
+Snaplock requests no internet permission. Your database never leaves your device.
+
+Features:
+
+* Open and unlock standard KeePass .kdbx databases
+* Browse entries and groups from the unlocked database
+* View entry username and password details
+* Toggle password visibility
+* Copy passwords to the clipboard with automatic timed clearing
+* Optional biometric unlock for the saved database password
+
+Snaplock does not persist the decoded database. The selected file is read through
+Android's document picker and the decoded contents live only in the process
+session cache, which is wiped when the app is locked or backgrounded.

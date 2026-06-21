@@ -1,0 +1,1 @@
+Offline KeePass-compatible password manager

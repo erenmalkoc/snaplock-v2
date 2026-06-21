@@ -38,3 +38,14 @@ in `app/proguard-rules.pro`.
 Snaplock does not persist the decoded KeePass database. The selected database is
 read through Android's document picker and the decoded database lives only in the
 process session cache.
+
+## Publishing
+
+Snaplock is distributed on F-Droid and Google Play. Packaging metadata lives in
+`fastlane/metadata/` and the F-Droid build recipe in `fdroid/`. See
+[fdroid/PUBLISHING.md](fdroid/PUBLISHING.md) for the release steps.
+
+## License
+
+Snaplock is free software licensed under the GNU General Public License v3.0 or
+later. See [LICENSE](LICENSE).
