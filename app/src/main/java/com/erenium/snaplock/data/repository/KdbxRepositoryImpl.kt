@@ -31,7 +31,7 @@ import app.keemobile.kotpass.models.Group as KotpassGroup
 
 
 class KdbxRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val localDataSource: KdbxLocalDataSource,
     private val sessionCache: SessionCache
 ) : KdbxRepository {

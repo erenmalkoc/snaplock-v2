@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ClipboardManagerHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsPrefs: SettingsPrefs
 ) {
     private val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
