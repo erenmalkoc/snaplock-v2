@@ -27,7 +27,13 @@ not upload an APK.
    git push origin v1.0
    ```
 
-   The tag name (`v1.0`) must match `commit:` in `fdroid/com.erenium.snaplock.yml`.
+   F-Droid reviewers require `commit:` in `fdroid/com.erenium.snaplock.yml` to be
+   the full 40-character commit hash of the tagged commit, not the tag name.
+
+   Before submitting, also choose the signing model, because it cannot be switched
+   later: either F-Droid signs with its own key (the default), or you set up
+   reproducible builds (`Binaries` + `AllowedAPKSigningKeys`) so F-Droid ships APKs
+   signed with your own key, which requires publishing those signed APKs.
 4. Submit the app:
    - Easiest: open a **Request For Packaging (RFP)** issue at
      https://gitlab.com/fdroid/rfp/-/issues — title `com.erenium.snaplock`, link

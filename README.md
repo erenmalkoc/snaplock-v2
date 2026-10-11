@@ -41,7 +41,7 @@ process session cache.
 
 ## Publishing
 
-Snaplock is distributed on F-Droid and Google Play. Packaging metadata lives in
+Snaplock is not published yet; F-Droid and Google Play releases are planned. Packaging metadata lives in
 `fastlane/metadata/` and the F-Droid build recipe in `fdroid/`. See
 [fdroid/PUBLISHING.md](fdroid/PUBLISHING.md) for the release steps.
 
