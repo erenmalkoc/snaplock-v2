@@ -26,6 +26,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      - name: Unit tests and debug build
-        run: ./gradlew testDebugUnitTest assembleDebug --no-daemon
+      - name: Unit tests, debug build and lint
+        run: ./gradlew testDebugUnitTest assembleDebug lintDebug --no-daemon
 
