@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
+   Backup and device-to-device transfer rules for API 31 and above.
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+
+   The biometric-encrypted master password is only usable with its Android Keystore key,
+   which never leaves the device, so it is excluded from both cloud backup and transfer.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="snaplock_secure_preferences.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="snaplock_secure_preferences.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>
