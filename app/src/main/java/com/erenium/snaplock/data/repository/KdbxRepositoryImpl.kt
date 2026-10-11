@@ -24,6 +24,8 @@ import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import javax.inject.Inject
 import app.keemobile.kotpass.models.Entry as KotpassEntry
@@ -35,6 +37,10 @@ class KdbxRepositoryImpl @Inject constructor(
     private val localDataSource: KdbxLocalDataSource,
     private val sessionCache: SessionCache
 ) : KdbxRepository {
+
+    // Serializes edits so two quick saves can neither interleave their writes to the
+    // vault file nor build on the same stale database and drop each other's changes.
+    private val writeMutex = Mutex()
 
     override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
         val database = sessionCache.getDatabase()
@@ -122,7 +128,7 @@ class KdbxRepositoryImpl @Inject constructor(
             .map { database -> sessionCache.setDatabase(database, uri) }
     }
 
-    override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+    override suspend fun addEntry(data: EntryFormData): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val newEntry = KotpassEntry(uuid = UUID.randomUUID(), fields = data.toFields())
@@ -130,10 +136,10 @@ class KdbxRepositoryImpl @Inject constructor(
         val updated = database.modifyGroup(targetGroup) {
             copy(entries = entries + newEntry)
         }
-        return persist(updated)
+        persist(updated)
     }
 
-    override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+    override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val withUpdatedFields = database.modifyEntry(uuid) {
@@ -146,16 +152,17 @@ class KdbxRepositoryImpl @Inject constructor(
         } else {
             withUpdatedFields
         }
-        return persist(moved)
+        persist(moved)
     }
 
-    override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
+    override suspend fun deleteEntry(uuid: UUID): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val updated = database.removeEntry(uuid)
-        return persist(updated)
+        persist(updated)
     }
 
+    // Call only while holding writeMutex.
     private suspend fun persist(database: KeePassDatabase): Result<Unit> {
         val uri = sessionCache.getUri()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))

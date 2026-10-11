@@ -13,6 +13,7 @@ import com.erenium.snaplock.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 class KdbxLocalDataSource @Inject constructor(
@@ -69,10 +70,13 @@ class KdbxLocalDataSource @Inject constructor(
     suspend fun saveDatabase(uri: Uri, database: KeePassDatabase): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                // Encode first: opening with "wt" truncates the vault, so a failed
+                // encode must happen before the existing file is touched.
+                val bytes = database.encodeToByteArray()
                 val outputStream = context.contentResolver.openOutputStream(uri, "wt")
                 outputStream.use {
                     if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
-                    database.encode(it)
+                    it.write(bytes)
                 }
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -82,3 +86,7 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 }
+
+/** Encodes the database into a complete, encrypted KDBX file held in memory. */
+internal fun KeePassDatabase.encodeToByteArray(): ByteArray =
+    ByteArrayOutputStream().also { encode(it) }.toByteArray()
