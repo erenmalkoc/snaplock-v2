@@ -1,6 +1,7 @@
 package com.erenium.snaplock.ui.screens.unlock
 
 import android.net.Uri
+import androidx.activity.compose.LocalActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.erenium.snaplock.R
 import androidx.fragment.app.FragmentActivity
@@ -40,15 +40,19 @@ fun UnlockScreen(
     viewModel: UnlockViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
-    val activity = (LocalContext.current as? FragmentActivity)
+    val activity = (LocalActivity.current as? FragmentActivity)
         ?: throw IllegalStateException("Activity null olamaz")
 
-    val context = LocalContext.current
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle(context.getString(R.string.biometric_login_title))
-        .setSubtitle(context.getString(R.string.biometric_login_subtitle))
-        .setNegativeButtonText(context.getString(R.string.cancel_button))
-        .build()
+    val title = stringResource(R.string.biometric_login_title)
+    val subtitle = stringResource(R.string.biometric_login_subtitle)
+    val cancel = stringResource(R.string.cancel_button)
+    val promptInfo = remember(title, subtitle, cancel) {
+        BiometricPrompt.PromptInfo.Builder()
+            .setTitle(title)
+            .setSubtitle(subtitle)
+            .setNegativeButtonText(cancel)
+            .build()
+    }
 
     val biometricCallback = remember(viewModel, uri) {
         object : BiometricPrompt.AuthenticationCallback() {
