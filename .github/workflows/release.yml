@@ -1,0 +1,99 @@
+name: Release
+
+# Builds the unsigned release APK that gets signed locally with apksigner and attached
+# to the GitHub release. F-Droid rebuilds the same commit and only publishes our signed
+# APK if its own build is byte-identical, so the build runs on Debian trixie like the
+# F-Droid buildserver, and a second job rebuilds it on another JDK, path and core count.
+# No signing key is stored in this repository or its secrets.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Unsigned release APK (Debian trixie)
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      ANDROID_HOME: /opt/android-sdk
+
+    steps:
+      # git must exist before checkout, otherwise there is no .git and AGP's vcsInfo differs
+      - name: Install JDK and tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends default-jdk-headless git unzip curl ca-certificates
+
+      - uses: actions/checkout@v7
+
+      - name: Install Android command-line tools
+        run: |
+          curl -fsSL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
+          echo "4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583  /tmp/cmdline-tools.zip" | sha256sum -c
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+
+      - name: Build unsigned release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Checksum
+        working-directory: app/build/outputs/apk/release
+        run: sha256sum app-release-unsigned.apk | tee SHA256SUMS
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app-release-unsigned
+          path: |
+            app/build/outputs/apk/release/app-release-unsigned.apk
+            app/build/outputs/apk/release/SHA256SUMS
+          if-no-files-found: error
+
+  verify:
+    name: Rebuild and compare
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: rebuild
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # One core instead of four: catches output that depends on the CPU count (baseline.prof, dex)
+      - name: Rebuild on a single core
+        working-directory: rebuild
+        run: taskset -c 0 ./gradlew assembleRelease --no-daemon
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: app-release-unsigned
+          path: upstream
+
+      - name: Compare with the Debian build
+        run: |
+          sha256sum upstream/app-release-unsigned.apk rebuild/app/build/outputs/apk/release/app-release-unsigned.apk
+          cmp upstream/app-release-unsigned.apk rebuild/app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-release-unsigned-rebuild
+          path: rebuild/app/build/outputs/apk/release/app-release-unsigned.apk
