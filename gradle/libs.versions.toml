@@ -18,6 +18,8 @@ ksp = "2.3.12"
 hilt = "2.60.1"
 icons_extended = "1.7.8"
 okio = "3.18.2"
+robolectric = "4.17"
+androidxTestCore = "1.7.0"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -40,6 +42,8 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
