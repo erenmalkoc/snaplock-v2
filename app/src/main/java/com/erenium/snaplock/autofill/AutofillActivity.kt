@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.service.autofill.Dataset
 import android.view.autofill.AutofillManager
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
@@ -39,6 +40,7 @@ class AutofillActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         blockScreenshots()
         val structure = IntentCompat.getParcelableExtra(
             intent,
