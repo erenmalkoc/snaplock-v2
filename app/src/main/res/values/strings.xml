@@ -95,5 +95,7 @@
     <string name="create_db_error">Veritabanı oluşturulamadı.</string>
     <string name="group_filter_all">Tümü</string>
     <string name="entry_form_group_label">Grup</string>
+    <string name="recent_databases_title">Son kullanılanlar</string>
+    <string name="recent_database_remove">Listeden kaldır</string>
 
 </resources>

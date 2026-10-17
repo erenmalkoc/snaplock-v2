@@ -95,5 +95,7 @@
     <string name="create_db_error">Could not create database.</string>
     <string name="group_filter_all">All</string>
     <string name="entry_form_group_label">Group</string>
+    <string name="recent_databases_title">Recent databases</string>
+    <string name="recent_database_remove">Remove from list</string>
 
 </resources>

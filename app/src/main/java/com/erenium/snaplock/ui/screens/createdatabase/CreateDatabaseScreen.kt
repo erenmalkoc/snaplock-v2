@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.createdatabase
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
@@ -36,10 +38,19 @@ fun CreateDatabaseScreen(
     viewModel: CreateDatabaseViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream"),
-        onResult = { uri -> if (uri != null) viewModel.onCreate(uri) }
+        onResult = { uri ->
+            if (uri != null) {
+                // Keep access after a restart so the database shows up in the recent list
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                runCatching { context.contentResolver.takePersistableUriPermission(uri, flags) }
+                viewModel.onCreate(uri)
+            }
+        }
     )
 
     LaunchedEffect(viewModel) {

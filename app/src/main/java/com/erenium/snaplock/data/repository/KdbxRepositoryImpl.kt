@@ -14,6 +14,7 @@ import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
+import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
 import com.erenium.snaplock.domain.model.Entry
@@ -35,7 +36,8 @@ import app.keemobile.kotpass.models.Group as KotpassGroup
 class KdbxRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val localDataSource: KdbxLocalDataSource,
-    private val sessionCache: SessionCache
+    private val sessionCache: SessionCache,
+    private val recentDatabasesPrefs: RecentDatabasesPrefs
 ) : KdbxRepository {
 
     // Serializes edits so two quick saves can neither interleave their writes to the
@@ -114,6 +116,7 @@ class KdbxRepositoryImpl @Inject constructor(
             val database = result.getOrNull()
             if (database != null) {
                 sessionCache.setDatabase(database, uri)
+                recentDatabasesPrefs.add(uri)
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(context.getString(R.string.empty_database_error)))
@@ -125,7 +128,10 @@ class KdbxRepositoryImpl @Inject constructor(
 
     override suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit> {
         return localDataSource.createDatabase(uri, password, context.getString(R.string.default_root_group))
-            .map { database -> sessionCache.setDatabase(database, uri) }
+            .map { database ->
+                sessionCache.setDatabase(database, uri)
+                recentDatabasesPrefs.add(uri)
+            }
     }
 
     override suspend fun addEntry(data: EntryFormData): Result<Unit> = writeMutex.withLock {

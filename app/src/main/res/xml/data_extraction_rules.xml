@@ -3,13 +3,16 @@
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
 
    The biometric-encrypted master password is only usable with its Android Keystore key,
-   which never leaves the device, so it is excluded from both cloud backup and transfer.
+   which never leaves the device, so it is excluded from both cloud backup and transfer. Recent database URIs only
+   work on this device, so they are excluded too.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="snaplock_secure_preferences.xml" />
+        <exclude domain="sharedpref" path="snaplock_recent_databases.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="snaplock_secure_preferences.xml" />
+        <exclude domain="sharedpref" path="snaplock_recent_databases.xml" />
     </device-transfer>
 </data-extraction-rules>
