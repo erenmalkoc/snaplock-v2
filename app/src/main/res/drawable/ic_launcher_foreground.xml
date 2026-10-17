@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Snaplock mark: padlock with a cut-out S, in the 108dp adaptive-icon grid. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M43.200,51.320L64.800,51.320A6,6 0 0 1 70.800,57.320L70.800,70.920A6,6 0 0 1 64.800,76.920L43.200,76.920A6,6 0 0 1 37.200,70.920L37.200,57.320A6,6 0 0 1 43.200,51.320ZM43.360,55.320L43.360,44.120A10.64,10.64 0 0 1 64.640,44.120L64.640,55.320L59.360,55.320L59.360,44.120A5.36,5.36 0 0 0 48.640,44.120L48.640,55.320ZM59.275,57.067A6.44,5.88 0 1 0 54,66.320A2.52,1.96 0 1 1 51.936,69.404A1.96,1.96 0 0 0 48.725,71.653A6.44,5.88 0 1 0 54,62.400A2.52,1.96 0 1 1 56.064,59.316A1.96,1.96 0 0 0 59.275,57.067Z" />
+</vector>
