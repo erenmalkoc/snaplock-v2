@@ -41,7 +41,9 @@ process session cache.
 
 ## Publishing
 
-Snaplock is not published yet; F-Droid and Google Play releases are planned. Packaging metadata lives in
+Signed APKs are attached to [GitHub Releases](https://github.com/erenmalkoc/snaplock-v2/releases).
+F-Droid inclusion is pending and uses reproducible builds, so F-Droid ships the same
+signed APK; a Google Play release is planned. Packaging metadata lives in
 `fastlane/metadata/` and the F-Droid build recipe in `fdroid/`. See
 [fdroid/PUBLISHING.md](fdroid/PUBLISHING.md) for the release steps.
 

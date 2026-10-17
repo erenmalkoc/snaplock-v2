@@ -9,44 +9,70 @@ This project targets both F-Droid and Google Play. F-Droid is the priority.
 - `local.properties` and signing keystores are git-ignored.
 - Fastlane metadata under `fastlane/metadata/android/<locale>/`.
 - F-Droid build recipe in `fdroid/com.erenium.snaplock.yml`.
+- AGP's dependency metadata block is disabled (`dependenciesInfo` in
+  `app/build.gradle.kts`); F-Droid rejects it.
 
-## F-Droid
+## Signing model: reproducible builds
 
-F-Droid builds from source on its own servers and signs with its own key. You do
-not upload an APK.
+F-Droid rebuilds every release from source and publishes **our** signed APK only if
+its own unsigned build is byte-identical (`Binaries` + `AllowedAPKSigningKeys` in the
+recipe). This was chosen before the first F-Droid release because it cannot be
+switched later, and because the same key can then be registered once for Android
+developer verification, so F-Droid and GitHub installs are the same APK.
 
-1. Make sure the GitHub repo is **public**.
-2. Add at least one phone screenshot to
-   `fastlane/metadata/android/en-US/images/phoneScreenshots/` (PNG/JPG, e.g.
-   `01.png`, `02.png`). Optionally add an `icon.png` (512x512) under
-   `fastlane/metadata/android/en-US/images/`.
-3. Tag the release commit so the build recipe can find it:
+- Keystore: `~/.android-keys/snaplock-release.p12` (PKCS12, alias `snaplock`),
+  password in `~/.android-keys/snaplock-release.pass`. Both stay out of git. Keep an
+  offline backup: losing the key means existing installs can never be updated.
+- Certificate SHA-256 (the `AllowedAPKSigningKeys` value):
+  `e66b0d23e679d1d606573be6f705630f9f90e74be084ec4b59d1181ae608b8b7`
+
+## Releasing a version
+
+1. Bump `versionCode`/`versionName` in `app/build.gradle.kts` and add
+   `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt`.
+2. Push a `vX.Y.Z` tag. The Release workflow (`.github/workflows/release.yml`) builds
+   the unsigned APK on Debian trixie, like the F-Droid buildserver, and a second job
+   rebuilds it with another JDK, path and core count. Both builds must match.
+3. Download the artifact and sign it with apksigner from **build-tools 34**: output
+   from 35 and newer fails apksigcopier, which F-Droid uses for the comparison.
 
    ```bash
-   git tag -s v1.0 -m "Snaplock 1.0"   # -s signs the tag (recommended); use -a if no GPG key
-   git push origin v1.0
+   gh run download <run-id> -n app-release-unsigned -D dist
+   apksigner sign --ks ~/.android-keys/snaplock-release.p12 --ks-key-alias snaplock \
+     --ks-pass file:$HOME/.android-keys/snaplock-release.pass \
+     --out dist/snaplock-X.Y.Z.apk dist/app-release-unsigned.apk
+   apksigcopier compare dist/snaplock-X.Y.Z.apk --unsigned dist/app-release-unsigned.apk
    ```
 
-   F-Droid reviewers require `commit:` in `fdroid/com.erenium.snaplock.yml` to be
-   the full 40-character commit hash of the tagged commit, not the tag name.
+   `apksigcopier` is `pip install apksigcopier`. The compare must print nothing and
+   exit 0. On Windows, call `build-tools\34.0.0\apksigner.bat` with Windows paths and
+   give apksigcopier the same script: `--verify-cmd "<path>\apksigner.bat verify"`.
+4. Create the GitHub release `vX.Y.Z` with `snaplock-X.Y.Z.apk` attached. The
+   `Binaries` URL in the recipe points at it, so the file name must match.
+5. Once the app is in fdroiddata, `AutoUpdateMode` and `UpdateCheckMode` pick up new
+   tags; F-Droid downloads the APK from the release and verifies it.
 
-   Before submitting, also choose the signing model, because it cannot be switched
-   later: either F-Droid signs with its own key (the default), or you set up
-   reproducible builds (`Binaries` + `AllowedAPKSigningKeys`) so F-Droid ships APKs
-   signed with your own key, which requires publishing those signed APKs.
-4. Submit the app:
-   - Easiest: open a **Request For Packaging (RFP)** issue at
-     https://gitlab.com/fdroid/rfp/-/issues — title `com.erenium.snaplock`, link
-     the repo. A volunteer can pick it up.
-   - Faster (self-service): fork https://gitlab.com/fdroid/fdroiddata, add
-     `metadata/com.erenium.snaplock.yml` (copy from `fdroid/com.erenium.snaplock.yml`),
-     test locally with `fdroid build -v -l com.erenium.snaplock`, then open a
-     merge request.
+Never build the APK you sign on Windows: the checkout uses CRLF line endings there,
+so the output differs from F-Droid's Linux build.
 
-For every new release: bump `versionCode`/`versionName` in
-`app/build.gradle.kts`, add a `fastlane/.../changelogs/<versionCode>.txt`, push a
-new `vX.Y` tag, and add a matching `Builds:` entry to the metadata yaml (or rely
-on `AutoUpdateMode` once it is in fdroiddata).
+## F-Droid submission
+
+Merge request: https://gitlab.com/fdroid/fdroiddata/-/merge_requests/40965. It was
+closed for inactivity on 2026-08-14 while the signing model was undecided.
+
+1. In the fork (`gitlab.com/erenmalkoc/fdroiddata`, branch `add-snaplock`), replace
+   `metadata/com.erenium.snaplock.yml` with `fdroid/com.erenium.snaplock.yml`.
+   `commit:` must be the full 40-character hash of the tagged commit.
+2. Reopen the merge request and reply that it now uses reproducible builds. The
+   pipeline rebuilds the app and compares it with the release APK.
+
+## Android developer verification
+
+From 2027, certified Android devices only install apps from registered developers
+without extra steps, whatever the store. Register the package `com.erenium.snaplock`
+with the certificate SHA-256 above in the Android Developer Console (or a Play
+Console account). Because F-Droid ships our signed APK, no F-Droid key needs to be
+registered.
 
 ## Google Play
 
@@ -66,5 +92,6 @@ Play requires you to upload a signed App Bundle (.aab).
    collected and the database never leaves the device), and provide a privacy
    policy URL.
 
-Note: the F-Droid build and the Play build are signed with different keys, so a
-user cannot switch between them without uninstalling. This is normal.
+Note: unless the release key above is uploaded as the Play app signing key, the Play
+build is signed with a different key, so a user cannot switch between the Play and
+F-Droid builds without uninstalling.
