@@ -40,6 +40,13 @@
             android:theme="@style/Theme.SnaplockV2"
             tools:targetApi="o" />
 
+        <activity
+            android:name=".autofill.AutofillSaveActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SnaplockV2" />
+
         <service
             android:name=".autofill.SnaplockAutofillService"
             android:exported="true"

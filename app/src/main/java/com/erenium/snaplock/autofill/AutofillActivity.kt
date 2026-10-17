@@ -3,7 +3,6 @@ package com.erenium.snaplock.autofill
 import android.app.assist.AssistStructure
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.service.autofill.Dataset
@@ -80,11 +79,6 @@ class AutofillActivity : FragmentActivity() {
         }
         finish()
     }
-
-    private fun appLabel(packageName: String): String = runCatching {
-        val info = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-        packageManager.getApplicationLabel(info).toString()
-    }.getOrDefault(packageName)
 
     companion object {
         private const val EXTRA_MODE = "com.erenium.snaplock.autofill.MODE"

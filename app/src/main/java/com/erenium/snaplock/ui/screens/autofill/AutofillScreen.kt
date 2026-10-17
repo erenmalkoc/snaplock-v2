@@ -167,7 +167,7 @@ private fun SearchField(
 }
 
 @Composable
-private fun NoDatabase(onOpenApp: () -> Unit, onCancel: () -> Unit) {
+internal fun NoDatabase(onOpenApp: () -> Unit, onCancel: () -> Unit) {
     AppScaffold(onNavigateBack = onCancel) { contentModifier ->
         Column(
             modifier = contentModifier.fillMaxSize(),

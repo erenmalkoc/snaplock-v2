@@ -11,6 +11,7 @@ import android.os.Build
 import android.service.autofill.Dataset
 import android.service.autofill.FillResponse
 import android.service.autofill.InlinePresentation
+import android.service.autofill.SaveInfo
 import android.view.View
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
@@ -54,7 +55,21 @@ internal class AutofillResponses(private val context: Context) {
             }
         }
         if (datasets.isEmpty()) return null
-        return FillResponse.Builder().apply { datasets.forEach(::addDataset) }.build()
+        return FillResponse.Builder()
+            .apply { datasets.forEach(::addDataset) }
+            .apply { saveInfo(form)?.let(::setSaveInfo) }
+            .build()
+    }
+
+    /** Asks the system to offer saving when the user types a new password into the form. */
+    private fun saveInfo(form: LoginForm<AutofillId>): SaveInfo? {
+        if (form.passwordIds.isEmpty()) return null
+        var type = SaveInfo.SAVE_DATA_TYPE_PASSWORD
+        if (form.usernameIds.isNotEmpty()) type = type or SaveInfo.SAVE_DATA_TYPE_USERNAME
+        return SaveInfo.Builder(type, form.passwordIds.toTypedArray())
+            .apply { if (form.usernameIds.isNotEmpty()) setOptionalIds(form.usernameIds.toTypedArray()) }
+            .setFlags(SaveInfo.FLAG_SAVE_ON_ALL_VIEWS_INVISIBLE)
+            .build()
     }
 
     /** Fills [credential] straight away; also what the unlock and search screens hand back. */

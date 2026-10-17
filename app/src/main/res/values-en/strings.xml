@@ -105,5 +105,10 @@
     <string name="autofill_all_header">All logins</string>
     <string name="autofill_no_database">Open a database in Snaplock first to use autofill.</string>
     <string name="autofill_open_app">Open Snaplock</string>
+    <string name="autofill_save_title">Save to Snaplock</string>
+    <string name="autofill_update_title">Update password</string>
+    <string name="autofill_update_message">The password for %1$s seems to have changed.</string>
+    <string name="autofill_update_button">Update</string>
+    <string name="autofill_save_as_new">Save as a new entry</string>
 
 </resources>

@@ -1,5 +1,7 @@
 package com.erenium.snaplock.autofill
 
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.AutofillService
@@ -72,11 +74,41 @@ class SnaplockAutofillService : AutofillService() {
     }
 
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-        callback.onSuccess()
+        // Multi-page logins put the username and password on different screens.
+        val structures = request.fillContexts.map { it.structure }
+        val forms = structures.map { it.parseLoginForm() }.asReversed()
+        val password = forms.firstNotNullOfOrNull { it.password }
+        if (password == null) {
+            callback.onSuccess()
+            return
+        }
+        val intent = AutofillSaveActivity.newIntent(
+            context = this,
+            packageName = structures.last().packageName,
+            webDomain = forms.firstNotNullOfOrNull { it.webDomain },
+            username = forms.firstNotNullOfOrNull { it.username },
+            password = password
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val sender = PendingIntent.getActivity(
+                this,
+                SAVE_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            ).intentSender
+            callback.onSuccess(sender)
+        } else {
+            startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            callback.onSuccess()
+        }
     }
 
     override fun onDestroy() {
         scope.cancel()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val SAVE_REQUEST_CODE = 100
     }
 }

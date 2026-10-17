@@ -105,5 +105,10 @@
     <string name="autofill_all_header">Tüm kayıtlar</string>
     <string name="autofill_no_database">Otomatik doldurma için önce Snaplock\'ta bir veritabanı açın.</string>
     <string name="autofill_open_app">Snaplock\'u aç</string>
+    <string name="autofill_save_title">Snaplock\'a kaydet</string>
+    <string name="autofill_update_title">Şifreyi güncelle</string>
+    <string name="autofill_update_message">%1$s kaydının şifresi değişmiş görünüyor.</string>
+    <string name="autofill_update_button">Güncelle</string>
+    <string name="autofill_save_as_new">Yeni kayıt olarak kaydet</string>
 
 </resources>
