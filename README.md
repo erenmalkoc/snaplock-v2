@@ -1,28 +1,65 @@
-# Snaplock
+<p align="center">
+  <img src="docs/assets/banner.png" alt="Snaplock — KeePass-compatible password manager" width="720">
+</p>
 
-Snaplock is a KeePass-compatible Android password manager built with Kotlin,
-Jetpack Compose, Hilt, Navigation Compose, and Kotpass. It opens a selected
-`.kdbx` database, keeps the decoded database in memory for the active session,
-and clears the session when the app is locked or moved to the background.
+<p align="center">
+  <a href="https://github.com/erenmalkoc/snaplock-v2/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/erenmalkoc/snaplock-v2?color=1DBF73&label=release"></a>
+  <a href="https://github.com/erenmalkoc/snaplock-v2/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/erenmalkoc/snaplock-v2/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-0A7148"></a>
+  <img alt="Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-1DBF73">
+  <a href="fdroid/PUBLISHING.md"><img alt="Reproducible builds" src="https://img.shields.io/badge/builds-reproducible-0A7148"></a>
+</p>
+
+**Snaplock** is a fast, private password manager for Android that works with standard
+KeePass (`.kdbx`) databases. Your vault is a single encrypted file that you own: keep it
+on the device or sync it through any cloud storage or Syncthing folder. No account, no
+tracking, no ads.
+
+## Download
+
+- **GitHub:** signed APKs on the [releases page](https://github.com/erenmalkoc/snaplock-v2/releases/latest).
+- **F-Droid:** inclusion is in review. F-Droid will ship the same signed APK, so you can
+  switch between the two without reinstalling.
+
+Every release is built reproducibly from its tag: anyone can rebuild the APK and get the
+same bytes. Signing certificate SHA-256:
+`e66b0d23e679d1d606573be6f705630f9f90e74be084ec4b59d1181ae608b8b7`
+
+## Screenshots
+
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_entries.png" width="200" alt="Entry list">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_detail.png" width="200" alt="Entry details">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_generator.png" width="200" alt="Password generator">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_unlock.png" width="200" alt="Unlock">
+</p>
 
 ## Features
 
-- Select and open a KeePass `.kdbx` database
-- List entries from the unlocked database
-- View entry username and password details
-- Toggle password visibility
-- Copy passwords to the clipboard with timed clearing
-- Optional biometric unlock flow for the saved database password
+- **KeePass compatible.** Opens and saves KDBX 4 databases from KeePassXC, KeePass,
+  KeePassDX and Keepass2Android, on any storage Android's file picker can reach.
+- **Autofill.** Fills logins in apps and browsers, with suggestions in the keyboard on
+  Android 11 and later. Websites are only matched when a known browser reports them, so a
+  web page inside another app cannot ask for your credentials.
+- **Works with your existing links.** Reads the app and URL links KeePassDX,
+  Keepass2Android and KeePassXC store in entries.
+- **Biometric unlock** with a key kept in the Android Keystore.
+- **Recent databases** to reopen a vault in one tap.
+- **Password generator** with length and character-set options.
+- **Clipboard clearing** after a configurable delay.
+- **Auto-lock** when Snaplock leaves the screen, immediately or after a delay.
+- **Material You** colours, light and dark themes, English and Turkish.
 
-## Project Structure
+## Privacy and security
 
-- `domain`: repository contracts, models, and use cases
-- `data`: Kotpass data source, session cache, encrypted preferences, clipboard helper
-- `presentation`: ViewModels and UI state
-- `ui`: Compose screens, reusable components, navigation, and theme
-- `di`: Hilt bindings
+- Snaplock has no internet permission. The database never leaves the file you chose.
+- The decrypted database lives only in memory and is dropped when the vault locks.
+- Screenshots, screen recordings and the recents preview are blocked in release builds.
+- For biometric unlock, the master password is encrypted with an Android Keystore key
+  that requires your fingerprint or face, is invalidated when new biometrics are
+  enrolled, and is excluded from backups and device transfers.
 
-## Build And Test
+## Build and test
 
 ```bash
 ./gradlew testDebugUnitTest
@@ -30,24 +67,20 @@ and clears the session when the app is locked or moved to the background.
 ./gradlew assembleRelease
 ```
 
-Release builds enable code and resource shrinking. Project-specific rules live
-in `app/proguard-rules.pro`.
+Release builds enable code and resource shrinking; project-specific rules live in
+`app/proguard-rules.pro`. How releases are built, signed and verified for F-Droid is
+described in [fdroid/PUBLISHING.md](fdroid/PUBLISHING.md).
 
-## Notes
+## Project structure
 
-Snaplock does not persist the decoded KeePass database. The selected database is
-read through Android's document picker and the decoded database lives only in the
-process session cache.
-
-## Publishing
-
-Signed APKs are attached to [GitHub Releases](https://github.com/erenmalkoc/snaplock-v2/releases).
-F-Droid inclusion is pending and uses reproducible builds, so F-Droid ships the same
-signed APK; a Google Play release is planned. Packaging metadata lives in
-`fastlane/metadata/` and the F-Droid build recipe in `fdroid/`. See
-[fdroid/PUBLISHING.md](fdroid/PUBLISHING.md) for the release steps.
+- `domain`: repository contracts, models and use cases
+- `data`: Kotpass data source, session cache, preferences, clipboard helper
+- `autofill`: autofill service, form detection and entry matching
+- `presentation`: ViewModels and UI state
+- `ui`: Compose screens, reusable components, navigation and theme
+- `di`: Hilt bindings
 
 ## License
 
-Snaplock is free software licensed under the GNU General Public License v3.0 or
-later. See [LICENSE](LICENSE).
+Snaplock is free software licensed under the GNU General Public License v3.0 or later.
+See [LICENSE](LICENSE).
