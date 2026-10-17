@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Snaplock is a Credential Manager provider, not a caller, so it needs no Play Services
+         backend for Android 13 and older; that library is proprietary and would break F-Droid. -->
+    <issue id="CredentialDependency" severity="ignore" />
+</lint>
