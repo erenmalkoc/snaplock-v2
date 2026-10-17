@@ -38,6 +38,11 @@ android {
     buildFeatures {
         compose = true
     }
+    dependenciesInfo {
+        // F-Droid rejects the dependency metadata block, which is encrypted with a Google key
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 kotlin {
