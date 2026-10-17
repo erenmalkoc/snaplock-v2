@@ -16,15 +16,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.erenium.snaplock.R
+import com.erenium.snaplock.autofill.AutofillStatus
 import com.erenium.snaplock.domain.model.ThemeMode
 import com.erenium.snaplock.presentation.settings.SettingsViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
+import com.erenium.snaplock.ui.components.PrimaryButton
 import com.erenium.snaplock.ui.theme.Dimens
 
 private val ClipboardTimeoutOptions = listOf(15, 30, 60, 120)
@@ -47,6 +54,10 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
         ) {
+            if (AutofillStatus.isSupported()) {
+                AutofillSection()
+            }
+
             SettingsSection(title = stringResource(R.string.settings_appearance)) {
                 Text(
                     text = stringResource(R.string.settings_theme),
@@ -134,6 +145,36 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AutofillSection() {
+    val context = LocalContext.current
+    var enabled by remember { mutableStateOf(AutofillStatus.isEnabled(context)) }
+    // The user changes this in system settings, so check again whenever the screen returns.
+    LifecycleResumeEffect(Unit) {
+        enabled = AutofillStatus.isEnabled(context)
+        onPauseOrDispose { }
+    }
+
+    SettingsSection(title = stringResource(R.string.settings_autofill)) {
+        Text(
+            text = stringResource(
+                if (enabled) R.string.settings_autofill_enabled else R.string.settings_autofill_disabled
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (!enabled) {
+            PrimaryButton(
+                text = stringResource(R.string.settings_autofill_enable),
+                onClick = {
+                    runCatching { context.startActivity(AutofillStatus.enableIntent(context)) }
+                },
+                modifier = Modifier.padding(top = Dimens.spaceMd)
+            )
         }
     }
 }

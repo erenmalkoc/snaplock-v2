@@ -111,5 +111,9 @@
     <string name="autofill_update_button">Güncelle</string>
     <string name="autofill_save_as_new">Yeni kayıt olarak kaydet</string>
     <string name="autofill_link_picked">Seçtiğim kaydı %1$s ile hatırla</string>
+    <string name="settings_autofill">Otomatik doldurma</string>
+    <string name="settings_autofill_enabled">Snaplock, uygulamalarda ve tarayıcılarda giriş bilgilerini dolduruyor.</string>
+    <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın; giriş ekranlarında kayıtlarınız önerilsin ve yeni şifreler kaydedilsin.</string>
+    <string name="settings_autofill_enable">Otomatik doldurmayı aç</string>
 
 </resources>

@@ -111,5 +111,9 @@
     <string name="autofill_update_button">Update</string>
     <string name="autofill_save_as_new">Save as a new entry</string>
     <string name="autofill_link_picked">Remember the chosen login for %1$s</string>
+    <string name="settings_autofill">Autofill</string>
+    <string name="settings_autofill_enabled">Snaplock fills logins in apps and browsers.</string>
+    <string name="settings_autofill_disabled">Make Snaplock your autofill service to get your logins suggested on sign-in screens and new passwords saved.</string>
+    <string name="settings_autofill_enable">Turn on autofill</string>
 
 </resources>
