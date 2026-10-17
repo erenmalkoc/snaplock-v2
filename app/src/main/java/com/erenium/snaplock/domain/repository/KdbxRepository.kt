@@ -1,6 +1,7 @@
 package com.erenium.snaplock.domain.repository
 
 import android.net.Uri
+import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
@@ -23,6 +24,9 @@ interface KdbxRepository {
     fun getGroups(): Flow<List<Group>>
 
     suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail>
+
+    /** Login data of every entry outside the recycle bin; empty while locked. */
+    suspend fun getCredentials(): List<Credential>
 
     suspend fun addEntry(data: EntryFormData): Result<Unit>
 

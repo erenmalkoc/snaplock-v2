@@ -1,6 +1,7 @@
 package com.erenium.snaplock.testing
 
 import android.net.Uri
+import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
@@ -15,6 +16,7 @@ class FakeKdbxRepository : KdbxRepository {
     val entries = MutableStateFlow<List<Entry>>(emptyList())
     val locked = MutableStateFlow(true)
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
+    val credentials = MutableStateFlow<List<Credential>>(emptyList())
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
         locked.value = false
@@ -41,6 +43,9 @@ class FakeKdbxRepository : KdbxRepository {
         return entryDetails[uuid]?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(uuid.toString()))
     }
+
+    override suspend fun getCredentials(): List<Credential> =
+        if (locked.value) emptyList() else credentials.value
 
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
         val uuid = UUID.randomUUID()

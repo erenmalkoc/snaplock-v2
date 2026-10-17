@@ -17,6 +17,7 @@ import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
+import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
@@ -60,6 +61,20 @@ class KdbxRepositoryImpl @Inject constructor(
             Result.failure(EntryNotFoundException(uuid))
         }
     }
+
+    override suspend fun getCredentials(): List<Credential> {
+        val database = sessionCache.getDatabase() ?: return emptyList()
+        val untitled = context.getString(R.string.untitled_entry)
+        val recycleBin = database.content.meta.recycleBinUuid
+        return database.content.group.entriesOutside(recycleBin).map { it.toCredential(untitled) }
+    }
+
+    private fun KotpassGroup.entriesOutside(excludedGroup: UUID?): List<KotpassEntry> =
+        if (uuid == excludedGroup) {
+            emptyList()
+        } else {
+            entries + groups.flatMap { it.entriesOutside(excludedGroup) }
+        }
 
     override fun getEntries(): Flow<List<Entry>> {
         return sessionCache.databaseFlow.map { database ->
