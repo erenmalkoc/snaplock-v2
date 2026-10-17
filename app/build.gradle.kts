@@ -41,6 +41,10 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+    androidResources {
+        // Lists the app's languages for the per-app language setting on Android 13+
+        generateLocaleConfig = true
+    }
     dependenciesInfo {
         // F-Droid rejects the dependency metadata block, which is encrypted with a Google key
         includeInApk = false
