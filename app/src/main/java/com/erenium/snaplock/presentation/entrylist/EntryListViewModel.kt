@@ -39,7 +39,9 @@ class EntryListViewModel @Inject constructor(
             } else {
                 byGroup.filter { entry ->
                     entry.title.contains(query, ignoreCase = true) ||
-                        entry.username?.contains(query, ignoreCase = true) == true
+                        entry.username?.contains(query, ignoreCase = true) == true ||
+                        entry.url?.contains(query, ignoreCase = true) == true ||
+                        entry.notes?.contains(query, ignoreCase = true) == true
                 }
             }
             EntryListUiState(

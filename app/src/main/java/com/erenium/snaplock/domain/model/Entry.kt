@@ -7,5 +7,7 @@ data class Entry(
     val title: String,
     val username: String?,
     val groupUuid: UUID,
-    val groupName: String
+    val groupName: String,
+    val url: String? = null,
+    val notes: String? = null
 )

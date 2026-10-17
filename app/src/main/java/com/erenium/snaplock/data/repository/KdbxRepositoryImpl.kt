@@ -121,7 +121,9 @@ class KdbxRepositoryImpl @Inject constructor(
             title = this.fields[FIELD_TITLE]?.content ?: context.getString(R.string.untitled_entry),
             username = this.fields[FIELD_USERNAME]?.content,
             groupUuid = group.uuid,
-            groupName = group.name
+            groupName = group.name,
+            url = this.fields[FIELD_URL]?.content?.takeIf { it.isNotBlank() },
+            notes = this.fields[FIELD_NOTES]?.content?.takeIf { it.isNotBlank() }
         )
     }
 
