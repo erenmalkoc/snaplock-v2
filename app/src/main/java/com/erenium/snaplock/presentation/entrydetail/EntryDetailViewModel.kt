@@ -80,7 +80,7 @@ class EntryDetailViewModel @Inject constructor(
     fun onCopyUsername(label: String) {
         val username = _uiState.value.entry?.username
         if (username.isNullOrEmpty()) return
-        clipboardManager.copyToClipboard(label = label, text = username)
+        clipboardManager.copyToClipboard(label = label, text = username, sensitive = false)
         _copyEvents.trySend(CopiedField.USERNAME)
     }
 
