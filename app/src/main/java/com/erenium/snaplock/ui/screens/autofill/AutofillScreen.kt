@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -81,6 +82,15 @@ fun AutofillScreen(
                         .fillMaxWidth()
                         .padding(horizontal = Dimens.screenPadding, vertical = Dimens.spaceSm)
                 )
+                if (state.others.isNotEmpty()) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.autofill_link_picked, target)) },
+                        trailingContent = {
+                            Switch(checked = state.linkPicked, onCheckedChange = viewModel::onLinkPickedChange)
+                        },
+                        modifier = Modifier.clickable { viewModel.onLinkPickedChange(!state.linkPicked) }
+                    )
+                }
                 if (state.matches.isEmpty() && state.others.isEmpty()) {
                     EmptyState(
                         modifier = Modifier.fillMaxSize(),

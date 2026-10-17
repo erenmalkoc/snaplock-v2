@@ -34,4 +34,10 @@ interface KdbxRepository {
 
     suspend fun deleteEntry(uuid: UUID): Result<Unit>
 
+    /** Links an Android app to the entry so autofill offers it there next time. */
+    suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
+
+    /** Adds a website to the entry so autofill offers it there next time. */
+    suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit>
+
 }

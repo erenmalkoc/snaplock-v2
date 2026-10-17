@@ -110,5 +110,6 @@
     <string name="autofill_update_message">%1$s kaydının şifresi değişmiş görünüyor.</string>
     <string name="autofill_update_button">Güncelle</string>
     <string name="autofill_save_as_new">Yeni kayıt olarak kaydet</string>
+    <string name="autofill_link_picked">Seçtiğim kaydı %1$s ile hatırla</string>
 
 </resources>

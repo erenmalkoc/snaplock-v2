@@ -183,6 +183,45 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
+    override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.findEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        if (packageName in entry.toCredential("").androidApps) return Result.success(Unit)
+        val updated = database.modifyEntry(uuid) {
+            copy(fields = fields.plus(fields.nextFreeName(FIELD_ANDROID_APP) to EntryValue.Plain(packageName)))
+        }
+        persist(updated)
+    }
+
+    override suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.findEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        val url = "https://$domain"
+        if (entry.toCredential("").urls.any { it.removeSuffix("/").endsWith("://$domain") }) {
+            return Result.success(Unit)
+        }
+        // The main URL field is what other KeePass clients show; extra sites go in KP2A_URL fields.
+        val name = if (entry.fields[FIELD_URL]?.content.isNullOrBlank()) {
+            FIELD_URL
+        } else {
+            entry.fields.nextFreeName(FIELD_EXTRA_URL)
+        }
+        val updated = database.modifyEntry(uuid) {
+            copy(fields = fields.plus(name to EntryValue.Plain(url)))
+        }
+        persist(updated)
+    }
+
+    /** [base] if unused, else the first free [base]_1, [base]_2, ... */
+    private fun EntryFields.nextFreeName(base: String): String =
+        generateSequence(0) { it + 1 }
+            .map { if (it == 0) base else "${base}_$it" }
+            .first { it !in keys }
+
     // Call only while holding writeMutex.
     private suspend fun persist(database: KeePassDatabase): Result<Unit> {
         val uri = sessionCache.getUri()

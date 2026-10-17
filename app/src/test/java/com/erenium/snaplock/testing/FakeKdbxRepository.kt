@@ -68,6 +68,18 @@ class FakeKdbxRepository : KdbxRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
+        updateCredential(uuid) { copy(androidApps = (androidApps + packageName).distinct()) }
+
+    override suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit> =
+        updateCredential(uuid) { copy(urls = (urls + "https://$domain").distinct()) }
+
+    private fun updateCredential(uuid: UUID, change: Credential.() -> Credential): Result<Unit> {
+        if (credentials.value.none { it.uuid == uuid }) return Result.failure(NoSuchElementException(uuid.toString()))
+        credentials.value = credentials.value.map { if (it.uuid == uuid) it.change() else it }
+        return Result.success(Unit)
+    }
+
     companion object {
         val ROOT_GROUP_UUID: UUID = UUID.fromString("00000000-0000-0000-0000-0000000000ff")
     }

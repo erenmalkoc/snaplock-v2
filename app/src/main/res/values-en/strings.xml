@@ -110,5 +110,6 @@
     <string name="autofill_update_message">The password for %1$s seems to have changed.</string>
     <string name="autofill_update_button">Update</string>
     <string name="autofill_save_as_new">Save as a new entry</string>
+    <string name="autofill_link_picked">Remember the chosen login for %1$s</string>
 
 </resources>

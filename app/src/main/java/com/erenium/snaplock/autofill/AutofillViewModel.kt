@@ -25,7 +25,9 @@ data class AutofillUiState(
     val database: RecentDatabase? = null,
     val matches: List<Credential> = emptyList(),
     val others: List<Credential> = emptyList(),
-    val query: String = ""
+    val query: String = "",
+    /** Link the picked entry to this app or site when it was not a match yet. */
+    val linkPicked: Boolean = true
 )
 
 @HiltViewModel
@@ -39,6 +41,7 @@ class AutofillViewModel @Inject constructor(
     private var started = false
 
     private val query = MutableStateFlow("")
+    private val linkPicked = MutableStateFlow(true)
     private val credentials = MutableStateFlow<List<Credential>>(emptyList())
     private val picks = Channel<Credential>(Channel.BUFFERED)
 
@@ -49,8 +52,9 @@ class AutofillViewModel @Inject constructor(
         repository.isLocked(),
         recentDatabasesRepository.recentDatabases.map { it.firstOrNull() },
         credentials,
-        query
-    ) { isLocked, database, all, query ->
+        query,
+        linkPicked
+    ) { isLocked, database, all, query, linkPicked ->
         val matches = CredentialMatcher.match(all, packageName, webDomain)
         val others = all.filterNot { it in matches }.sortedBy { it.title.lowercase() }
         AutofillUiState(
@@ -59,7 +63,8 @@ class AutofillViewModel @Inject constructor(
             database = database,
             matches = matches.filter { it.matchesQuery(query) },
             others = others.filter { it.matchesQuery(query) },
-            query = query
+            query = query,
+            linkPicked = linkPicked
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AutofillUiState())
 
@@ -87,8 +92,24 @@ class AutofillViewModel @Inject constructor(
         query.value = value
     }
 
+    fun onLinkPickedChange(value: Boolean) {
+        linkPicked.value = value
+    }
+
     fun onPick(credential: Credential) {
-        viewModelScope.launch { picks.send(credential) }
+        viewModelScope.launch {
+            val isMatch = credential in CredentialMatcher.match(credentials.value, packageName, webDomain)
+            if (linkPicked.value && !isMatch) {
+                // Best effort: a failed write must not stop the fill the user asked for.
+                val domain = webDomain?.let(CredentialMatcher::hostOf)
+                if (domain != null && Browsers.isTrusted(packageName)) {
+                    repository.linkToSite(credential.uuid, domain)
+                } else {
+                    repository.linkToApp(credential.uuid, packageName)
+                }
+            }
+            picks.send(credential)
+        }
     }
 
     private fun Credential.matchesQuery(query: String): Boolean =
