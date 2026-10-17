@@ -97,5 +97,13 @@
     <string name="entry_form_group_label">Grup</string>
     <string name="recent_databases_title">Son kullanılanlar</string>
     <string name="recent_database_remove">Listeden kaldır</string>
+    <string name="autofill_unlock_title">Snaplock ile doldur</string>
+    <string name="autofill_unlock_subtitle">Kilidi açmak için dokunun</string>
+    <string name="autofill_search_title">Snaplock\'ta ara</string>
+    <string name="autofill_pick_title">Doldurulacak kaydı seçin</string>
+    <string name="autofill_matches_header">%1$s için</string>
+    <string name="autofill_all_header">Tüm kayıtlar</string>
+    <string name="autofill_no_database">Otomatik doldurma için önce Snaplock\'ta bir veritabanı açın.</string>
+    <string name="autofill_open_app">Snaplock\'u aç</string>
 
 </resources>

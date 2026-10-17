@@ -97,5 +97,13 @@
     <string name="entry_form_group_label">Group</string>
     <string name="recent_databases_title">Recent databases</string>
     <string name="recent_database_remove">Remove from list</string>
+    <string name="autofill_unlock_title">Fill with Snaplock</string>
+    <string name="autofill_unlock_subtitle">Tap to unlock</string>
+    <string name="autofill_search_title">Search Snaplock</string>
+    <string name="autofill_pick_title">Choose a login to fill</string>
+    <string name="autofill_matches_header">For %1$s</string>
+    <string name="autofill_all_header">All logins</string>
+    <string name="autofill_no_database">Open a database in Snaplock first to use autofill.</string>
+    <string name="autofill_open_app">Open Snaplock</string>
 
 </resources>
