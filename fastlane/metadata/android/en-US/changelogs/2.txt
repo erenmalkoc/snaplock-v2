@@ -1,0 +1,6 @@
+First release.
+
+* Open and unlock KeePass .kdbx databases
+* Browse entries and groups
+* View and copy credentials with timed clipboard clearing
+* Optional biometric unlock
