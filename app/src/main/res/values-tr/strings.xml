@@ -115,5 +115,6 @@
     <string name="settings_autofill_enabled">Snaplock, uygulamalarda ve tarayıcılarda giriş bilgilerini dolduruyor.</string>
     <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın; giriş ekranlarında kayıtlarınız önerilsin ve yeni şifreler kaydedilsin.</string>
     <string name="settings_autofill_enable">Otomatik doldurmayı aç</string>
+    <string name="credentials_unlock">Snaplock\'un kilidini aç</string>
 
 </resources>

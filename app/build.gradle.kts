@@ -90,6 +90,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.autofill)
+    implementation(libs.androidx.credentials)
 
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
