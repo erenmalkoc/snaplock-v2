@@ -53,7 +53,7 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
             .getOrDefault(ThemeMode.SYSTEM)
         return AppSettings(
             themeMode = themeMode,
-            dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, false),
+            dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, true),
             clipboardAutoClear = prefs.getBoolean(KEY_CLIPBOARD_AUTO_CLEAR, true),
             clipboardTimeoutSeconds = prefs.getInt(KEY_CLIPBOARD_TIMEOUT, DEFAULT_CLIPBOARD_TIMEOUT),
             autoLockSeconds = prefs.getInt(KEY_AUTO_LOCK, DEFAULT_AUTO_LOCK)
