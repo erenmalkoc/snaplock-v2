@@ -1,17 +1,14 @@
 package com.erenium.snaplock
 
-import android.content.pm.ApplicationInfo
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.FragmentActivity
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
-import com.erenium.snaplock.domain.model.ThemeMode
+import com.erenium.snaplock.ui.blockScreenshots
 import com.erenium.snaplock.ui.navigation.AppNavigation
-import com.erenium.snaplock.ui.theme.SnaplockV2Theme
+import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -22,24 +19,10 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        if (!isDebuggable) {
-            window.setFlags(
-                WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-            )
-        }
+        blockScreenshots()
         setContent {
             val settings by settingsPrefs.settings.collectAsState()
-            val darkTheme = when (settings.themeMode) {
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-            }
-            SnaplockV2Theme(
-                darkTheme = darkTheme,
-                dynamicColor = settings.dynamicColor
-            ) {
+            SnaplockTheme(settings) {
                 AppNavigation()
             }
         }

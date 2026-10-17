@@ -12,6 +12,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import com.erenium.snaplock.domain.model.AppSettings
+import com.erenium.snaplock.domain.model.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = md_dark_primary,
@@ -95,6 +97,17 @@ fun SnaplockV2Theme(
             content = content
         )
     }
+}
+
+/** Applies the theme and colour choices from the user's settings. */
+@Composable
+fun SnaplockTheme(settings: AppSettings, content: @Composable () -> Unit) {
+    val darkTheme = when (settings.themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+    SnaplockV2Theme(darkTheme = darkTheme, dynamicColor = settings.dynamicColor, content = content)
 }
 
 val MaterialTheme.extendedColors: ExtendedColors
