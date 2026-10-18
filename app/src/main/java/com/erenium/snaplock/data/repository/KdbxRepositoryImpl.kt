@@ -486,7 +486,8 @@ class KdbxRepositoryImpl @Inject constructor(
             } else {
                 database
             }
-            withValidBin.withRecycleBin { binUuid -> moveGroup(uuid, binUuid) }
+            // The move time lets a sync tell this move apart from older ones made elsewhere.
+            withValidBin.withRecycleBin { binUuid -> moveGroup(uuid, binUuid).withGroupTimes(uuid) { it.moved() } }
         }
         persist(updated)
     }
@@ -516,6 +517,17 @@ class KdbxRepositoryImpl @Inject constructor(
             copy(entries = entries.map { if (it.uuid == uuid) it.copy(times = change(it.times)) else it })
         }
     }
+
+    /** Changes a group's times without kotpass' modifyGroup, which would keep the old ones. */
+    private fun KeePassDatabase.withGroupTimes(uuid: UUID, change: (TimeData?) -> TimeData): KeePassDatabase {
+        val parent = content.group.parentOf(uuid) ?: return this
+        return modifyGroup(parent.uuid) {
+            copy(groups = groups.map { if (it.uuid == uuid) it.copy(times = change(it.times)) else it })
+        }
+    }
+
+    private fun KotpassGroup.parentOf(target: UUID): KotpassGroup? =
+        if (groups.any { it.uuid == target }) this else groups.firstNotNullOfOrNull { it.parentOf(target) }
 
     private fun TimeData?.withExpiry(expiry: Expiry): TimeData {
         val base = this ?: TimeData.create()

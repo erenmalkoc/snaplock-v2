@@ -109,6 +109,9 @@ class KdbxRepositoryGroupsTest {
         val bin = database.groupNamed("Recycle Bin")
         assertEquals(database.content.meta.recycleBinUuid, bin?.uuid)
         assertEquals(listOf(web), bin?.groups?.map { it.uuid })
+        // The move time is recorded (checked in memory: KDBX 4 stores whole seconds only).
+        val moved = sessionCache.getDatabase()!!.groupNamed("Web")!!.times!!
+        assertTrue(moved.locationChanged!!.isAfter(moved.creationTime))
     }
 
     @Test
