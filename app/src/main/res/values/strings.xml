@@ -236,6 +236,7 @@
     <string name="settings_import_desc">Move logins in from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass or KeePassXC exports, or out to another manager.</string>
     <string name="settings_export">Export as CSV</string>
     <string name="tile_label">Lock Snaplock</string>
+    <string name="entry_passkey_label">Passkey</string>
     <string name="entry_pick_one">Pick an entry to see it here.</string>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_search_long">Search entries</string>

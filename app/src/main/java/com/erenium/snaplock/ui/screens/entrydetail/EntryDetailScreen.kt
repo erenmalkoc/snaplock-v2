@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -268,6 +269,17 @@ fun EntryDetailScreen(
                             CopyButton(
                                 contentDescription = stringResource(R.string.copy_password_hint),
                                 onClick = { viewModel.onCopyPassword(passwordClipboardLabel) }
+                            )
+                        }
+
+                        entry.passkey?.let { passkey ->
+                            HorizontalDivider()
+                            DetailFieldRow(
+                                icon = Icons.Filled.Key,
+                                label = stringResource(R.string.entry_passkey_label),
+                                value = listOf(passkey.relyingParty, passkey.username)
+                                    .filter { it.isNotBlank() }
+                                    .joinToString(" · ")
                             )
                         }
 

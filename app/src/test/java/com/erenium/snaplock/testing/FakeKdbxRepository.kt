@@ -10,6 +10,8 @@ import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.model.VaultBackup
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
@@ -179,6 +181,16 @@ class FakeKdbxRepository : KdbxRepository {
     override suspend fun getBackup(id: String): Result<ByteArray> =
         backups.entries.firstOrNull { it.key.id == id }?.value?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(id))
+
+    val passkeys = mutableListOf<StoredPasskey>()
+
+    override suspend fun getPasskeys(): List<StoredPasskey> = if (locked.value) emptyList() else passkeys.toList()
+
+    override suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID> {
+        val uuid = UUID.randomUUID()
+        passkeys += StoredPasskey(uuid, title, passkey)
+        return Result.success(uuid)
+    }
 
     /** Icons passed to setEntryIcons, by entry. */
     val iconsSet = mutableMapOf<UUID, ByteArray>()

@@ -54,6 +54,8 @@ import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.model.problem
 import com.erenium.snaplock.domain.model.VaultBackup
 import com.erenium.snaplock.domain.otp.OtpParser
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -190,7 +192,9 @@ class KdbxRepositoryImpl @Inject constructor(
             notes = this.fields[FIELD_NOTES]?.content,
             groupUuid = groupUuid,
             customFields = fields
-                .filterKeys { it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) }
+                .filterKeys {
+                    it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) && !Passkey.isPasskeyField(it)
+                }
                 .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) },
             history = history.mapIndexed { index, version ->
                 EntryVersion(
@@ -203,6 +207,7 @@ class KdbxRepositoryImpl @Inject constructor(
             }.asReversed(),
             otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content }),
             expires = times?.takeIf { it.expires }?.expiryTime,
+            passkey = Passkey.fromFields(fields.entries.associate { it.key to it.value.content }),
             attachments = binaries.map { reference ->
                 Attachment(reference.name, storedFiles[reference.hash]?.getContent()?.size?.toLong() ?: 0L)
             }
@@ -603,6 +608,39 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
+    override suspend fun getPasskeys(): List<StoredPasskey> {
+        val database = sessionCache.getDatabase() ?: return emptyList()
+        val untitled = context.getString(R.string.untitled_entry)
+        return database.content.group.entriesOutside(database.recycleBin()).mapNotNull { (_, entry) ->
+            val values = entry.fields.entries.associate { it.key to it.value.content }
+            Passkey.fromFields(values)?.let { passkey ->
+                StoredPasskey(entry.uuid, values[FIELD_TITLE]?.takeIf { it.isNotBlank() } ?: untitled, passkey)
+            }
+        }
+    }
+
+    override suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        // The same title, username and URL fields KeePassXC fills for its passkeys.
+        val fields = listOf(
+            FIELD_TITLE to EntryValue.Plain(title),
+            FIELD_USERNAME to EntryValue.Plain(passkey.username),
+            FIELD_URL to EntryValue.Plain(url)
+        ) + passkey.toFields().map { field ->
+            field.name to if (field.isProtected) {
+                EntryValue.Encrypted(EncryptedValue.fromString(field.value))
+            } else {
+                EntryValue.Plain(field.value)
+            }
+        }
+        val uuid = UUID.randomUUID()
+        val updated = database.modifyGroup(database.content.group.uuid) {
+            copy(entries = entries + KotpassEntry(uuid = uuid, fields = EntryFields(fields.toMap())))
+        }
+        persist(updated).map { uuid }
+    }
+
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
@@ -676,7 +714,9 @@ class KdbxRepositoryImpl @Inject constructor(
             .minus(FIELD_NOTES)
 
         if (customFields != null) {
-            fields = fields.filterKeys { it in STANDARD_FIELDS || it.isLinkField() || OtpParser.isOtpField(it) }
+            fields = fields.filterKeys {
+                it in STANDARD_FIELDS || it.isLinkField() || OtpParser.isOtpField(it) || Passkey.isPasskeyField(it)
+            }
             customFields.filter { it.name.isNotBlank() && it.name !in STANDARD_FIELDS }.forEach { field ->
                 val value = if (field.isProtected) {
                     EntryValue.Encrypted(EncryptedValue.fromString(field.value))

@@ -11,6 +11,8 @@ import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.model.VaultBackup
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
@@ -113,6 +115,12 @@ interface KdbxRepository {
      * stored icon, as do images the vault already holds.
      */
     suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit>
+
+    /** Passkeys of every entry outside the recycle bin; empty while locked. */
+    suspend fun getPasskeys(): List<StoredPasskey>
+
+    /** Saves a new passkey in its own entry under the root group and returns the entry's id. */
+    suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID>
 
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
