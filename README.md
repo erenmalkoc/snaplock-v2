@@ -40,14 +40,23 @@ same bytes. Signing certificate SHA-256:
   password at any time.
 - **Biometric unlock** with a key kept in the Android Keystore.
 - **Recent databases** to reopen a vault in one tap.
-- **Password generator** with length and character-set options.
+- **Two-factor codes.** Shows TOTP and Steam Guard codes stored by any KeePass client,
+  adds new ones from a setup key, a camera QR scan or a QR screenshot, and fills them into
+  one-time code fields.
+- **Password and passphrase generator** with a strength meter; passphrases use the EFF
+  wordlist.
+- **Password health.** Finds weak, reused, old and expired passwords on the device, and
+  optionally checks them against known breaches.
 - **Clipboard clearing** after a configurable delay.
 - **Auto-lock** when Snaplock leaves the screen, immediately or after a delay.
 - **Material You** colours, light and dark themes, English and Turkish.
 
 ## Privacy and security
 
-- Snaplock has no internet permission. The database never leaves the file you chose.
+- The database never leaves the file you chose, and Snaplock has no account or server.
+- The only network use is the optional breach check, which is off until you turn it on.
+  It sends the first 5 characters of each password's SHA-1 hash to Have I Been Pwned
+  (k-anonymity), never a password or a full hash.
 - The decrypted database lives only in memory and is dropped when the vault locks.
 - Screenshots, screen recordings and the recents preview are blocked in release builds.
 - For biometric unlock, the master password is encrypted with an Android Keystore key

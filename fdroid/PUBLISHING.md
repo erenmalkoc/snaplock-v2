@@ -66,6 +66,18 @@ closed for inactivity on 2026-08-14 while the signing model was undecided.
 2. Reopen the merge request and reply that it now uses reproducible builds. The
    pipeline rebuilds the app and compares it with the release APK.
 
+## Anti-features
+
+Since the opt-in breach check, Snaplock has the INTERNET permission and can talk to Have I
+Been Pwned, a service whose server is not free software. F-Droid marks that as
+`NonFreeNet`; add it to the build entries from the first version that ships the check:
+
+```yaml
+    antifeatures:
+      NonFreeNet:
+        en-US: Optional breach check against Have I Been Pwned (off by default).
+```
+
 ## Android developer verification
 
 From 2027, certified Android devices only install apps from registered developers
