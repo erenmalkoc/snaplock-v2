@@ -3,6 +3,7 @@ package com.erenium.snaplock.presentation
 import androidx.lifecycle.SavedStateHandle
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.passwords.PasswordStrength
 import com.erenium.snaplock.domain.passwords.PasswordStrengthEstimator
@@ -15,6 +16,7 @@ import com.erenium.snaplock.domain.usecase.UpdateEntryUseCase
 import com.erenium.snaplock.presentation.entryform.EntryFormViewModel
 import com.erenium.snaplock.testing.FakeKdbxRepository
 import com.erenium.snaplock.testing.MainDispatcherRule
+import java.time.Instant
 import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -82,6 +84,23 @@ class EntryFormViewModelTest {
 
         viewModel(uuid).apply { onRemoveOtp() }.onSave()
         assertEquals("", repository.savedForms.last().otpUri)
+    }
+
+    @Test
+    fun expiryIsOnlyWrittenWhenChanged() {
+        val uuid = UUID.randomUUID()
+        val date = Instant.parse("2027-03-01T00:00:00Z")
+        repository.entryDetails[uuid] = EntryDetail(
+            uuid, "VPN", "eren", "pw", null, null, FakeKdbxRepository.ROOT_GROUP_UUID, expires = date
+        )
+
+        val untouched = viewModel(uuid)
+        assertEquals(date, untouched.uiState.value.expires)
+        untouched.onSave()
+        assertNull(repository.savedForms.last().expiry)
+
+        viewModel(uuid).apply { onExpiryChange(null) }.onSave()
+        assertEquals(Expiry(null), repository.savedForms.last().expiry)
     }
 
     @Test

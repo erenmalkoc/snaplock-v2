@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
@@ -77,7 +78,9 @@ import com.erenium.snaplock.domain.otp.OtpParameters
 import com.erenium.snaplock.domain.otp.Totp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.UUID
@@ -274,6 +277,19 @@ fun EntryDetailScreen(
                                 otp = otp,
                                 label = stringResource(R.string.entry_otp_label),
                                 onCopy = viewModel::onCopyOtp
+                            )
+                        }
+
+                        entry.expires?.let { expires ->
+                            HorizontalDivider()
+                            val expired = expires.isBefore(Instant.now())
+                            DetailFieldRow(
+                                icon = Icons.Filled.Event,
+                                label = stringResource(if (expired) R.string.entry_expired else R.string.entry_form_expires),
+                                value = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+                                    .withZone(ZoneOffset.UTC)
+                                    .format(expires),
+                                valueColor = if (expired) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                             )
                         }
 

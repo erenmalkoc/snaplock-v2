@@ -189,5 +189,7 @@
     <string name="pwgen_capitalize">Capitalize words</string>
     <string name="pwgen_include_number">Add a number</string>
     <string name="entry_form_generate">Generate a strong password</string>
+    <string name="entry_form_expires">Expires</string>
+    <string name="entry_expired">Expired</string>
 
 </resources>

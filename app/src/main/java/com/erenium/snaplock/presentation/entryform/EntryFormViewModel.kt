@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.model.PasswordOptions
 import com.erenium.snaplock.domain.passwords.PasswordStrengthEstimator
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 
@@ -49,6 +51,8 @@ data class EntryFormUiState(
     /** What the user typed or scanned while adding two-factor settings. */
     val otpInput: String = "",
     val otpInputError: Boolean = false,
+    /** When the password should be replaced; null if it never expires. */
+    val expires: Instant? = null,
     val groups: List<Group> = emptyList(),
     val groupUuid: UUID? = null,
     val isEditMode: Boolean = false,
@@ -82,6 +86,7 @@ class EntryFormViewModel @Inject constructor(
     private var nextFieldKey = 0L
     /** Whether the user touched the two-factor settings; untouched ones keep their stored format. */
     private var otpChanged = false
+    private var expiryChanged = false
 
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
@@ -125,6 +130,7 @@ class EntryFormViewModel @Inject constructor(
                                 CustomFieldDraft(nextFieldKey++, field.name, field.value, field.isProtected)
                             },
                             otp = entry.otp,
+                            expires = entry.expires,
                             groupUuid = entry.groupUuid ?: it.groupUuid,
                             isLoading = false
                         )
@@ -159,6 +165,11 @@ class EntryFormViewModel @Inject constructor(
         _uiState.update { it.copy(otp = parsed, otpInput = "", otpInputError = false) }
     }
 
+    fun onExpiryChange(expires: Instant?) {
+        expiryChanged = true
+        _uiState.update { it.copy(expires = expires) }
+    }
+
     fun onRemoveOtp() {
         otpChanged = true
         _uiState.update { it.copy(otp = null) }
@@ -190,7 +201,8 @@ class EntryFormViewModel @Inject constructor(
             customFields = state.customFields
                 .filter { it.name.isNotBlank() }
                 .map { CustomField(it.name.trim(), it.value, it.isProtected) },
-            otpUri = if (otpChanged) state.otp?.let(OtpParser::toUri).orEmpty() else null
+            otpUri = if (otpChanged) state.otp?.let(OtpParser::toUri).orEmpty() else null,
+            expiry = if (expiryChanged) Expiry(state.expires) else null
         )
 
         viewModelScope.launch {

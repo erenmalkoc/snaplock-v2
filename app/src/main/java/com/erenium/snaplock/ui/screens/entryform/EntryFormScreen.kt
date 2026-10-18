@@ -3,6 +3,7 @@ package com.erenium.snaplock.ui.screens.entryform
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,17 +18,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +44,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.unit.dp
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -175,6 +188,8 @@ fun EntryFormScreen(
                     .fillMaxWidth()
                     .heightIn(min = Dimens.spaceXxl * 2)
             )
+
+            ExpiryEditor(expires = state.expires, onChange = viewModel::onExpiryChange)
 
             Text(
                 text = stringResource(R.string.entry_form_otp_title),
@@ -344,3 +359,52 @@ private fun CustomFieldEditor(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpiryEditor(expires: Instant?, onChange: (Instant?) -> Unit) {
+    var picking by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Filled.Event, contentDescription = null)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = Dimens.spaceMd)
+        ) {
+            Text(stringResource(R.string.entry_form_expires), style = MaterialTheme.typography.bodyLarge)
+            if (expires != null) {
+                TextButton(onClick = { picking = true }, contentPadding = PaddingValues(0.dp)) {
+                    Text(formatDate(expires))
+                }
+            }
+        }
+        Switch(
+            checked = expires != null,
+            onCheckedChange = { enabled ->
+                // A new expiry starts a year out, the usual rotation for important passwords.
+                onChange(if (enabled) LocalDate.now().plusYears(1).atStartOfDay(ZoneOffset.UTC).toInstant() else null)
+            }
+        )
+    }
+    if (picking && expires != null) {
+        val pickerState = rememberDatePickerState(initialSelectedDateMillis = expires.toEpochMilli())
+        DatePickerDialog(
+            onDismissRequest = { picking = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let { onChange(Instant.ofEpochMilli(it)) }
+                    picking = false
+                }) { Text(stringResource(R.string.entry_form_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel_button)) }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
+/** Expiry dates are whole days (the date picker works in UTC days). */
+private fun formatDate(instant: Instant): String =
+    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withZone(ZoneOffset.UTC).format(instant)

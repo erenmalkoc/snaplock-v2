@@ -189,5 +189,7 @@
     <string name="pwgen_capitalize">Kelimelerin baş harfi büyük</string>
     <string name="pwgen_include_number">Bir rakam ekle</string>
     <string name="entry_form_generate">Güçlü şifre üret</string>
+    <string name="entry_form_expires">Son kullanma tarihi</string>
+    <string name="entry_expired">Süresi doldu</string>
 
 </resources>
