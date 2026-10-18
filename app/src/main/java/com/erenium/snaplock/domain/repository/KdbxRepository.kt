@@ -49,6 +49,13 @@ interface KdbxRepository {
     /** Makes a version from the entry's history current again; the current one goes to history. */
     suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit>
 
+    /** Stores a file with the entry; a name already in use gets a " (1)" style suffix. */
+    suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit>
+
+    suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray>
+
+    suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit>
+
     /** Adds an empty group under [parentUuid] and returns its id. */
     suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID>
 

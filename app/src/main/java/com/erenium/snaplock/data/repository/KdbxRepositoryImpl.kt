@@ -5,6 +5,8 @@ import android.net.Uri
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntry
+import app.keemobile.kotpass.database.modifiers.binaries
+import app.keemobile.kotpass.database.modifiers.modifyBinaries
 import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.modifyMeta
@@ -15,6 +17,8 @@ import app.keemobile.kotpass.database.modifiers.removeGroup
 import app.keemobile.kotpass.database.modifiers.removeUnusedBinaries
 import app.keemobile.kotpass.database.modifiers.withHistory
 import app.keemobile.kotpass.database.modifiers.withRecycleBin
+import app.keemobile.kotpass.models.BinaryData
+import app.keemobile.kotpass.models.BinaryReference
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
@@ -23,6 +27,7 @@ import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
+import com.erenium.snaplock.domain.model.Attachment
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.Entry
@@ -36,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.ByteString
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -65,7 +71,7 @@ class KdbxRepositoryImpl @Inject constructor(
 
         return if (found != null) {
             val (group, entry) = found
-            Result.success(entry.toDomainEntryDetail(group.uuid))
+            Result.success(entry.toDomainEntryDetail(group.uuid, database.binaries))
         } else {
             Result.failure(EntryNotFoundException(uuid))
         }
@@ -131,7 +137,10 @@ class KdbxRepositoryImpl @Inject constructor(
         return listOf(current) + group.groups.flatMap { flattenGroups(it, excludedGroup, group.uuid) }
     }
 
-    private fun KotpassEntry.toDomainEntryDetail(groupUuid: UUID): EntryDetail {
+    private fun KotpassEntry.toDomainEntryDetail(
+        groupUuid: UUID,
+        storedFiles: Map<ByteString, BinaryData>
+    ): EntryDetail {
         return EntryDetail(
             uuid = this.uuid,
             title = this.fields[FIELD_TITLE]?.content ?: context.getString(R.string.untitled_entry),
@@ -151,7 +160,10 @@ class KdbxRepositoryImpl @Inject constructor(
                     username = version.fields[FIELD_USERNAME]?.content,
                     password = version.fields[FIELD_PASSWORD]?.content
                 )
-            }.asReversed()
+            }.asReversed(),
+            attachments = binaries.map { reference ->
+                Attachment(reference.name, storedFiles[reference.hash]?.getContent()?.size?.toLong() ?: 0L)
+            }
         )
     }
 
@@ -271,6 +283,60 @@ class KdbxRepositoryImpl @Inject constructor(
             .removeUnusedBinaries()
         persist(updated)
     }
+
+    override suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit> =
+        writeMutex.withLock {
+            val database = sessionCache.getDatabase()
+                ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+            val entry = database.getEntry { it.uuid == uuid }?.second
+                ?: return Result.failure(EntryNotFoundException(uuid))
+            val taken = entry.binaries.map { it.name }.toSet()
+            val uniqueName = uniqueName(name.ifBlank { "attachment" }, taken)
+            val data = BinaryData.Uncompressed(false, content)
+            val updated = database
+                .modifyBinaries { it + (data.hash to data) }
+                .modifyEntry(uuid) {
+                    withHistory {
+                        copy(binaries = binaries + BinaryReference(data.hash, uniqueName), times = times?.touched())
+                    }.trimmedHistory(database.content.meta.historyMaxItems)
+                }
+            persist(updated)
+        }
+
+    override suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray> {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val reference = database.getEntry { it.uuid == uuid }?.second?.binaries?.firstOrNull { it.name == name }
+            ?: return Result.failure(NoSuchElementException(name))
+        val data = database.binaries[reference.hash]
+            ?: return Result.failure(NoSuchElementException(name))
+        return Result.success(data.getContent())
+    }
+
+    override suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.getEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        if (entry.binaries.none { it.name == name }) return Result.failure(NoSuchElementException(name))
+        // The removed file stays reachable through the entry's history, as in KeePass.
+        val updated = database.modifyEntry(uuid) {
+            withHistory { copy(binaries = binaries.filterNot { it.name == name }, times = times?.touched()) }
+                .trimmedHistory(database.content.meta.historyMaxItems)
+        }.removeUnusedBinaries()
+        persist(updated)
+    }
+
+    private fun uniqueName(name: String, taken: Set<String>): String {
+        if (name !in taken) return name
+        val dot = name.lastIndexOf('.').takeIf { it > 0 } ?: name.length
+        val base = name.substring(0, dot)
+        val extension = name.substring(dot)
+        return generateSequence(1) { it + 1 }.map { "$base ($it)$extension" }.first { it !in taken }
+    }
+
+    private fun KotpassEntry.trimmedHistory(limit: Int): KotpassEntry =
+        if (limit >= 0) copy(history = history.takeLast(limit)) else this
 
     override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> = writeMutex.withLock {
         val database = sessionCache.getDatabase()

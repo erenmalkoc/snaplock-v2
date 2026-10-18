@@ -12,5 +12,6 @@ data class EntryDetail(
     val groupUuid: UUID?,
     val customFields: List<CustomField> = emptyList(),
     /** Previous versions, newest first. */
-    val history: List<EntryVersion> = emptyList()
+    val history: List<EntryVersion> = emptyList(),
+    val attachments: List<Attachment> = emptyList()
 )

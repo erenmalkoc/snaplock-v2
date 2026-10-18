@@ -18,6 +18,8 @@ class FakeKdbxRepository : KdbxRepository {
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
     val recycled = MutableStateFlow<List<Entry>>(emptyList())
+    /** Attachment contents by entry and file name. */
+    val attachments = mutableMapOf<UUID, MutableMap<String, ByteArray>>()
     val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
@@ -96,6 +98,20 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit> = Result.success(Unit)
+
+    override suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit> {
+        attachments.getOrPut(uuid) { mutableMapOf() }[name] = content
+        return Result.success(Unit)
+    }
+
+    override suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray> =
+        attachments[uuid]?.get(name)?.let { Result.success(it) }
+            ?: Result.failure(NoSuchElementException(name))
+
+    override suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit> {
+        attachments[uuid]?.remove(name)
+        return Result.success(Unit)
+    }
 
     override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> {
         val uuid = UUID.randomUUID()
