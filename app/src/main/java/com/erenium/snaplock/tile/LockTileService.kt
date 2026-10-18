@@ -39,15 +39,11 @@ class LockTileService : TileService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var listening: Job? = null
-    private var locked = true
 
     override fun onStartListening() {
         listening?.cancel()
         listening = scope.launch {
-            isDatabaseLocked().collect {
-                locked = it
-                render()
-            }
+            isDatabaseLocked().collect(::render)
         }
     }
 
@@ -57,7 +53,9 @@ class LockTileService : TileService() {
     }
 
     override fun onClick() {
-        if (!locked) {
+        // Read the state now: it may have changed while the panel was closed and the tile
+        // was not listening.
+        if (!isDatabaseLocked().value) {
             scope.launch { lockDatabase() }
         } else if (isLocked) {
             // The device is locked too: open Snaplock once the user has unlocked it.
@@ -72,7 +70,7 @@ class LockTileService : TileService() {
         super.onDestroy()
     }
 
-    private fun render() {
+    private fun render(locked: Boolean) {
         val tile = qsTile ?: return
         val look = lockTileLook(locked)
         tile.state = look.state
