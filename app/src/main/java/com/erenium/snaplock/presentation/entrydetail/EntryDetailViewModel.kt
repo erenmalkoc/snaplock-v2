@@ -17,6 +17,7 @@ import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -132,7 +133,7 @@ class EntryDetailViewModel @Inject constructor(
                     loadEntryDetails()
                     _restoredEvents.trySend(Unit)
                 }
-                .onFailure { _uiState.update { it.copy(errorStringId = R.string.entry_save_error) } }
+                .onFailure { error -> _uiState.update { it.copy(errorStringId = error.saveErrorMessage()) } }
         }
     }
 
@@ -149,7 +150,7 @@ class EntryDetailViewModel @Inject constructor(
                             loadEntryDetails()
                             message(R.string.attachment_added, document.name)
                         }
-                        .onFailure { message(R.string.attachment_error) }
+                        .onFailure { message(it.saveErrorMessage(R.string.attachment_error)) }
                 }
         }
     }
@@ -167,7 +168,7 @@ class EntryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             removeAttachmentUseCase(UUID.fromString(entryUuid), name)
                 .onSuccess { loadEntryDetails() }
-                .onFailure { message(R.string.attachment_error) }
+                .onFailure { message(it.saveErrorMessage(R.string.attachment_error)) }
         }
     }
 
@@ -179,8 +180,8 @@ class EntryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteEntryUseCase(UUID.fromString(entryUuid))
                 .onSuccess { _deletedEvents.trySend(Unit) }
-                .onFailure {
-                    _uiState.update { it.copy(errorStringId = R.string.entry_delete_error) }
+                .onFailure { error ->
+                    _uiState.update { it.copy(errorStringId = error.saveErrorMessage(R.string.entry_delete_error)) }
                 }
         }
     }

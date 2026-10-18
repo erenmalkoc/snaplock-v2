@@ -9,6 +9,7 @@ import com.erenium.snaplock.domain.usecase.DeleteGroupUseCase
 import com.erenium.snaplock.domain.usecase.GetEntriesUseCase
 import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
 import com.erenium.snaplock.domain.usecase.RenameGroupUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -85,7 +86,7 @@ class EntryListViewModel @Inject constructor(
         val parent = uiState.value.currentGroup?.uuid ?: return
         if (name.isBlank()) return
         viewModelScope.launch {
-            createGroupUseCase(parent, name).onFailure { _errorStringId.value = R.string.entry_save_error }
+            createGroupUseCase(parent, name).onFailure { _errorStringId.value = it.saveErrorMessage() }
         }
     }
 
@@ -93,7 +94,7 @@ class EntryListViewModel @Inject constructor(
         val current = uiState.value.currentGroup ?: return
         if (name.isBlank() || current.parentUuid == null) return
         viewModelScope.launch {
-            renameGroupUseCase(current.uuid, name).onFailure { _errorStringId.value = R.string.entry_save_error }
+            renameGroupUseCase(current.uuid, name).onFailure { _errorStringId.value = it.saveErrorMessage() }
         }
     }
 
@@ -103,7 +104,7 @@ class EntryListViewModel @Inject constructor(
         viewModelScope.launch {
             deleteGroupUseCase(current.uuid)
                 .onSuccess { _currentGroupUuid.value = parent }
-                .onFailure { _errorStringId.value = R.string.entry_delete_error }
+                .onFailure { _errorStringId.value = it.saveErrorMessage(R.string.entry_delete_error) }
         }
     }
 

@@ -9,6 +9,7 @@ import com.erenium.snaplock.data.datasource.prefs.EncryptedPrefs
 import com.erenium.snaplock.data.datasource.prefs.KeyFilePrefs
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.domain.usecase.ChangeCredentialsUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,7 +78,7 @@ class ChangeMasterPasswordViewModel @Inject constructor(
                     recentDatabasesPrefs.uris.value.firstOrNull()?.let { keyFilePrefs.set(it, state.keyFileUri) }
                     _done.trySend(Unit)
                 }
-                .onFailure { _uiState.update { it.copy(isSaving = false, errorStringId = R.string.entry_save_error) } }
+                .onFailure { error -> _uiState.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) } }
         }
     }
 

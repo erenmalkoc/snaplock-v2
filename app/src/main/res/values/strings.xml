@@ -83,6 +83,7 @@
     <string name="entry_delete_message">Are you sure you want to delete this entry?</string>
     <string name="entry_delete_confirm">Delete</string>
     <string name="entry_delete_error">Could not delete entry.</string>
+    <string name="vault_changed_elsewhere">The vault file was changed elsewhere and can\'t be merged; its password may have changed. Nothing was saved. Lock the vault and open it again.</string>
     <string name="default_root_group">Passwords</string>
     <string name="create_db_button">Create new database</string>
     <string name="create_db_title">New Database</string>

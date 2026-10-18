@@ -8,6 +8,7 @@ import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.EmptyRecycleBinUseCase
 import com.erenium.snaplock.domain.usecase.GetRecycledEntriesUseCase
 import com.erenium.snaplock.domain.usecase.RestoreEntryUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -78,7 +79,7 @@ class RecycleBinViewModel @Inject constructor(
 
     private fun run(action: suspend () -> Result<Unit>) {
         viewModelScope.launch {
-            action().onFailure { dialogs.update { it.copy(errorStringId = R.string.entry_save_error) } }
+            action().onFailure { error -> dialogs.update { it.copy(errorStringId = error.saveErrorMessage()) } }
         }
     }
 }

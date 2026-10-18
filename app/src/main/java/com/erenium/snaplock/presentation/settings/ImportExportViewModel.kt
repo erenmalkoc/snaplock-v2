@@ -9,6 +9,7 @@ import com.erenium.snaplock.domain.importer.CsvExporter
 import com.erenium.snaplock.domain.importer.CsvImport
 import com.erenium.snaplock.domain.importer.CsvImporter
 import com.erenium.snaplock.domain.repository.KdbxRepository
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -54,7 +55,7 @@ class ImportExportViewModel @Inject constructor(
         viewModelScope.launch {
             repository.importEntries(groupName, import.entries)
                 .onSuccess { _messages.send(ImportExportMessage(R.plurals.import_done, count = it)) }
-                .onFailure { _messages.send(ImportExportMessage(R.string.import_error)) }
+                .onFailure { _messages.send(ImportExportMessage(it.saveErrorMessage(R.string.import_error))) }
         }
     }
 

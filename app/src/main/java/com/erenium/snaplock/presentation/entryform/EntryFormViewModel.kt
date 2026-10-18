@@ -18,6 +18,7 @@ import com.erenium.snaplock.domain.usecase.AddEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
 import com.erenium.snaplock.domain.usecase.UpdateEntryUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -216,8 +217,8 @@ class EntryFormViewModel @Inject constructor(
 
             result
                 .onSuccess { _savedEvents.trySend(Unit) }
-                .onFailure {
-                    _uiState.update { it.copy(isSaving = false, errorStringId = R.string.entry_save_error) }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) }
                 }
         }
     }
