@@ -34,6 +34,10 @@ same bytes. Signing certificate SHA-256:
   web page inside another app cannot ask for your credentials.
 - **Works with your existing links.** Reads the app and URL links KeePassDX,
   Keepass2Android and KeePassXC store in entries.
+- **The whole KeePass vault.** Nested groups, custom fields (protected or plain), file
+  attachments, entry history you can restore from, and a recycle bin.
+- **Key files.** Unlock with a password, a key file or both, and change the master
+  password at any time.
 - **Biometric unlock** with a key kept in the Android Keystore.
 - **Recent databases** to reopen a vault in one tap.
 - **Password generator** with length and character-set options.
