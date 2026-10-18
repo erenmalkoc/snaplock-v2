@@ -43,6 +43,7 @@ private val AutoLockOptions = listOf(0, 30, 60, 300)
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChangePassword: () -> Unit,
+    onNavigateToDatabaseSettings: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.uiState.collectAsState()
@@ -77,6 +78,17 @@ fun SettingsScreen(
                     text = stringResource(R.string.change_password_title),
                     onClick = onNavigateToChangePassword,
                     modifier = Modifier.padding(top = Dimens.spaceMd)
+                )
+                Text(
+                    text = stringResource(R.string.settings_database_settings_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = Dimens.spaceLg)
+                )
+                SecondaryButton(
+                    text = stringResource(R.string.database_settings_title),
+                    onClick = onNavigateToDatabaseSettings,
+                    modifier = Modifier.padding(top = Dimens.spaceSm)
                 )
                 ImportExportSection(snackbarHostState = snackbarHostState)
                 BackupsSection(snackbarHostState = snackbarHostState)

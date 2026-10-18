@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.erenium.snaplock.ui.screens.changepassword.ChangeMasterPasswordScreen
 import com.erenium.snaplock.ui.screens.createdatabase.CreateDatabaseScreen
+import com.erenium.snaplock.ui.screens.databasesettings.DatabaseSettingsScreen
 import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -171,8 +172,20 @@ fun AppNavigation(
         composable(route = NavRoutes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) }
+                onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
+                onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
             )
+        }
+        composable(route = NavRoutes.DATABASE_SETTINGS) {
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.DATABASE_SETTINGS) { inclusive = true }
+                    }
+                }
+            } else {
+                DatabaseSettingsScreen(onNavigateBack = { navController.popBackStack() })
+            }
         }
         composable(route = NavRoutes.CHANGE_PASSWORD) {
             if (isLocked) {
