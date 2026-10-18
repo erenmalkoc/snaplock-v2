@@ -12,6 +12,7 @@ import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.model.VaultBackup
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 interface KdbxRepository {
@@ -45,7 +46,7 @@ interface KdbxRepository {
     /** The encrypted KDBX file of one of [getBackups]. */
     suspend fun getBackup(id: String): Result<ByteArray>
 
-    fun isLocked(): Flow<Boolean>
+    fun isLocked(): StateFlow<Boolean>
 
     fun getEntries(): Flow<List<Entry>>
 

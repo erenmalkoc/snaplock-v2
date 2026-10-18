@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,12 +37,14 @@ fun AppNavigation(
 ) {
     val navController = rememberNavController()
     val isLocked by mainViewModel.isLocked.collectAsState()
+    // A vault that is still open (the activity was recreated before auto-lock) opens on its entries.
+    val startDestination = remember { if (mainViewModel.isLocked.value) NavRoutes.SELECT_FILE else NavRoutes.ENTRY_LIST }
 
     val slideDuration = 300
 
     NavHost(
         navController = navController,
-        startDestination = NavRoutes.SELECT_FILE,
+        startDestination = startDestination,
         enterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left,

@@ -14,6 +14,7 @@ import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 /** In-memory [KdbxRepository] for tests; every entry lives in one root group. */
@@ -54,7 +55,7 @@ class FakeKdbxRepository : KdbxRepository {
         locked.value = true
     }
 
-    override fun isLocked(): Flow<Boolean> = locked
+    override fun isLocked(): StateFlow<Boolean> = locked
 
     override fun getEntries(): Flow<List<Entry>> = entries
 

@@ -56,6 +56,7 @@ import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -715,7 +716,7 @@ class KdbxRepositoryImpl @Inject constructor(
         Result.success(true)
     }
 
-    override fun isLocked(): Flow<Boolean> {
+    override fun isLocked(): StateFlow<Boolean> {
         return sessionCache.isLocked
     }
 
