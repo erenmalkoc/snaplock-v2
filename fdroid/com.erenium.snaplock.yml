@@ -22,9 +22,19 @@ Builds:
     gradle:
       - yes
 
+  - versionName: 1.1.0
+    versionCode: 3
+    commit: 4ff5c5cfee65dd00e95de120b362cdb386f2b767
+    subdir: app
+    gradle:
+      - yes
+    antifeatures:
+      NonFreeNet:
+        en-US: Optional breach check against Have I Been Pwned (off by default).
+
 AllowedAPKSigningKeys: e66b0d23e679d1d606573be6f705630f9f90e74be084ec4b59d1181ae608b8b7
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.1
-CurrentVersionCode: 2
+CurrentVersion: 1.1.0
+CurrentVersionCode: 3
