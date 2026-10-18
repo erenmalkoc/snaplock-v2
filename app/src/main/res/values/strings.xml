@@ -116,6 +116,9 @@
     <string name="settings_autofill_enabled">Snaplock fills logins in apps and browsers.</string>
     <string name="settings_autofill_disabled">Make Snaplock your autofill service to get your logins suggested on sign-in screens and new passwords saved.</string>
     <string name="settings_autofill_enable">Turn on autofill</string>
+    <string name="settings_autofill_passkeys_off">Autofill is on, but passkeys and Android\'s sign-in sheet still use another service. Make Snaplock the preferred service to use them.</string>
+    <string name="settings_autofill_make_preferred">Make Snaplock the preferred service</string>
+    <string name="settings_autofill_chrome_hint">Chrome uses its own password manager unless you also choose to autofill with another service under Autofill services in Chrome\'s settings.</string>
     <string name="credentials_unlock">Unlock Snaplock</string>
     <string name="recycle_bin_title">Recycle bin</string>
     <string name="recycle_bin_empty">The recycle bin is empty.</string>
@@ -225,6 +228,8 @@
         <item quantity="other">%d icons added</item>
     </plurals>
     <string name="site_icons_error">The icons could not be saved.</string>
+    <string name="settings_auto_site_icons">Download icons automatically</string>
+    <string name="settings_auto_site_icons_desc">Entries with a website get their icon as soon as they are added, imported or synced, without asking each time.</string>
     <string name="settings_breach_check">Check passwords against known breaches</string>
     <string name="settings_breach_check_desc">Uses Have I Been Pwned. Only the first 5 characters of each password\'s SHA-1 hash are sent; the password itself never leaves the device.</string>
     <string name="health_breached">Found in data breaches</string>

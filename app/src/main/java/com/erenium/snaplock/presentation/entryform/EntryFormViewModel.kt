@@ -189,6 +189,12 @@ class EntryFormViewModel @Inject constructor(
     }
 
     fun onSave() {
+        // A key typed without pressing its confirm button still counts; a bad one stops the
+        // save so the user sees the error instead of losing the 2FA silently.
+        if (_uiState.value.otpInput.isNotBlank()) {
+            onOtpEntered()
+            if (_uiState.value.otpInputError) return
+        }
         val state = _uiState.value
         if (!state.canSave) return
 

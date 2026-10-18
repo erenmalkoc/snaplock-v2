@@ -116,6 +116,9 @@
     <string name="settings_autofill_enabled">Snaplock, uygulamalarda ve tarayıcılarda giriş bilgilerini dolduruyor.</string>
     <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın; giriş ekranlarında kayıtlarınız önerilsin ve yeni şifreler kaydedilsin.</string>
     <string name="settings_autofill_enable">Otomatik doldurmayı aç</string>
+    <string name="settings_autofill_passkeys_off">Otomatik doldurma açık, ancak geçiş anahtarları ve Android\'in oturum açma ekranı başka bir hizmeti kullanıyor. Bunlar için Snaplock\'u tercih edilen hizmet yapın.</string>
+    <string name="settings_autofill_make_preferred">Snaplock\'u tercih edilen hizmet yap</string>
+    <string name="settings_autofill_chrome_hint">Chrome, ayarlarındaki Otomatik doldurma hizmetleri bölümünden başka bir hizmetle doldurmayı seçmezseniz kendi parola yöneticisini kullanır.</string>
     <string name="credentials_unlock">Snaplock\'un kilidini aç</string>
     <string name="recycle_bin_title">Geri dönüşüm kutusu</string>
     <string name="recycle_bin_empty">Geri dönüşüm kutusu boş.</string>
@@ -224,6 +227,8 @@
         <item quantity="other">%d simge eklendi</item>
     </plurals>
     <string name="site_icons_error">Simgeler kaydedilemedi.</string>
+    <string name="settings_auto_site_icons">Simgeleri otomatik indir</string>
+    <string name="settings_auto_site_icons_desc">Web sitesi olan kayıtlar eklendiğinde, içe aktarıldığında veya eşitlendiğinde her seferinde sormadan simgesini alır.</string>
     <string name="settings_online">İnternet (isteğe bağlı)</string>
     <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
     <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her şifrenin SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir; şifrenin kendisi cihazdan çıkmaz.</string>

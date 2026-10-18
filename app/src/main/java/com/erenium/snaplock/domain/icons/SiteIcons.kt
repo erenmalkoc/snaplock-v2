@@ -10,6 +10,9 @@ import java.net.URI
 import java.util.UUID
 import javax.inject.Inject
 
+/** How many entries got an icon, and which sites were asked but had none to give. */
+data class IconDownload(val added: Int, val failedHosts: Set<String>)
+
 /** Fetches a site's icon as a small PNG, or null when the site has none that decodes. */
 fun interface SiteIconSource {
     suspend fun iconFor(host: String): ByteArray?
@@ -47,21 +50,33 @@ class DownloadSiteIconsUseCase @Inject constructor(
     suspend fun pendingCount(): Int = targets().values.sumOf { it.size }
 
     /** Returns how many entries got an icon. */
-    suspend operator fun invoke(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Result<Int> {
-        val byHost = targets()
+    suspend operator fun invoke(onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }): Result<Int> =
+        download(onProgress = onProgress).map { it.added }
+
+    /**
+     * Looks up every site still missing an icon, except [skipHosts], and reports the sites
+     * that had none, so a caller running this repeatedly can leave them alone.
+     */
+    suspend fun download(
+        skipHosts: Set<String> = emptySet(),
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }
+    ): Result<IconDownload> {
+        val byHost = targets().filterKeys { it !in skipHosts }
         var done = 0
         val permits = Semaphore(PARALLEL_DOWNLOADS)
-        val found = coroutineScope {
+        val results = coroutineScope {
             byHost.map { (host, entries) ->
                 async {
                     val icon = permits.withPermit { runCatching { source.iconFor(host) }.getOrNull() }
                     synchronized(this@DownloadSiteIconsUseCase) { onProgress(++done, byHost.size) }
-                    icon?.let { png -> entries.map { it to png } }.orEmpty()
+                    host to icon?.let { png -> entries.map { it to png } }
                 }
-            }.awaitAll().flatten().toMap()
+            }.awaitAll()
         }
-        if (found.isEmpty()) return Result.success(0)
-        return repository.setEntryIcons(found).map { found.size }
+        val failed = results.filter { it.second == null }.map { it.first }.toSet()
+        val found = results.flatMap { it.second.orEmpty() }.toMap()
+        if (found.isEmpty()) return Result.success(IconDownload(0, failed))
+        return repository.setEntryIcons(found).map { IconDownload(found.size, failed) }
     }
 
     private suspend fun targets(): Map<String, List<UUID>> =

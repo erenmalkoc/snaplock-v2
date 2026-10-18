@@ -32,9 +32,11 @@ class SettingsPrefsTest {
             setDynamicColor(false)
             setThemeMode(ThemeMode.DARK)
             setAutoLockSeconds(60)
+            setAutoSiteIcons(true)
         }
 
         val settings = SettingsPrefs(context).settings.value
+        assertTrue(settings.autoSiteIcons)
 
         assertFalse(settings.dynamicColor)
         assertEquals(ThemeMode.DARK, settings.themeMode)

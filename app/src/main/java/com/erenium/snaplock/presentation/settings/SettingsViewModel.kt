@@ -26,4 +26,6 @@ class SettingsViewModel @Inject constructor(
     fun onAutoLockChange(seconds: Int) = settingsPrefs.setAutoLockSeconds(seconds)
 
     fun onBreachCheckChange(enabled: Boolean) = settingsPrefs.setBreachCheckEnabled(enabled)
+
+    fun onAutoSiteIconsChange(enabled: Boolean) = settingsPrefs.setAutoSiteIcons(enabled)
 }

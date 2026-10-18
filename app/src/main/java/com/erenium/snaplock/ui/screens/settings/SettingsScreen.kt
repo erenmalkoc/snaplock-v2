@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.erenium.snaplock.R
+import com.erenium.snaplock.autofill.AutofillSetup
 import com.erenium.snaplock.autofill.AutofillStatus
 import com.erenium.snaplock.domain.model.ThemeMode
 import com.erenium.snaplock.presentation.settings.SettingsViewModel
@@ -164,6 +165,12 @@ fun SettingsScreen(
                     onCheckedChange = viewModel::onBreachCheckChange
                 )
                 SiteIconsSection(snackbarHostState = snackbarHostState)
+                ToggleRow(
+                    label = stringResource(R.string.settings_auto_site_icons),
+                    description = stringResource(R.string.settings_auto_site_icons_desc),
+                    checked = settings.autoSiteIcons,
+                    onCheckedChange = viewModel::onAutoSiteIconsChange
+                )
             }
 
             SettingsSection(title = stringResource(R.string.settings_security)) {
@@ -198,26 +205,41 @@ fun SettingsScreen(
 @Composable
 private fun AutofillSection() {
     val context = LocalContext.current
-    var enabled by remember { mutableStateOf(AutofillStatus.isEnabled(context)) }
+    var setup by remember { mutableStateOf(AutofillStatus.setup(context)) }
     // The user changes this in system settings, so check again whenever the screen returns.
     LifecycleResumeEffect(Unit) {
-        enabled = AutofillStatus.isEnabled(context)
+        setup = AutofillStatus.setup(context)
         onPauseOrDispose { }
     }
 
     SettingsSection(title = stringResource(R.string.settings_autofill)) {
         Text(
             text = stringResource(
-                if (enabled) R.string.settings_autofill_enabled else R.string.settings_autofill_disabled
+                when (setup) {
+                    AutofillSetup.ENABLED -> R.string.settings_autofill_enabled
+                    AutofillSetup.PASSKEYS_OFF -> R.string.settings_autofill_passkeys_off
+                    AutofillSetup.DISABLED -> R.string.settings_autofill_disabled
+                }
             ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        if (!enabled) {
+        if (setup == AutofillSetup.ENABLED) {
+            Text(
+                text = stringResource(R.string.settings_autofill_chrome_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Dimens.spaceSm)
+            )
+        } else {
             PrimaryButton(
-                text = stringResource(R.string.settings_autofill_enable),
+                text = stringResource(
+                    if (setup == AutofillSetup.PASSKEYS_OFF) R.string.settings_autofill_make_preferred else R.string.settings_autofill_enable
+                ),
                 onClick = {
-                    runCatching { context.startActivity(AutofillStatus.enableIntent(context)) }
+                    AutofillStatus.enableIntents(context).firstOrNull { intent ->
+                        runCatching { context.startActivity(intent) }.isSuccess
+                    }
                 },
                 modifier = Modifier.padding(top = Dimens.spaceMd)
             )
