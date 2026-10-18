@@ -219,6 +219,9 @@
     <string name="settings_import">CSV\'den içe aktar</string>
     <string name="settings_import_desc">Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass veya KeePassXC dışa aktarımlarından kayıt alın ya da başka bir yöneticiye taşıyın.</string>
     <string name="settings_export">CSV olarak dışa aktar</string>
+    <string name="tile_label">Snaplock\'u kilitle</string>
+    <string name="tile_locked">Kilitli</string>
+    <string name="tile_unlocked">Açık, kilitlemek için dokunun</string>
     <string name="database_settings_title">Veritabanı ayarları</string>
     <string name="settings_database_settings_desc">Bu kasanın adı, çöp kutusu, kayıt geçmişi ve şifrelemesi. Dosyada saklanır, bu yüzden her KeePass uygulaması bunları kullanır.</string>
     <string name="database_name">Veritabanı adı</string>

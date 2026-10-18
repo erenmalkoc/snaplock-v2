@@ -219,6 +219,9 @@
     <string name="settings_import">Import from CSV</string>
     <string name="settings_import_desc">Move logins in from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass or KeePassXC exports, or out to another manager.</string>
     <string name="settings_export">Export as CSV</string>
+    <string name="tile_label">Lock Snaplock</string>
+    <string name="tile_locked">Locked</string>
+    <string name="tile_unlocked">Open, tap to lock</string>
     <string name="database_settings_title">Database settings</string>
     <string name="settings_database_settings_desc">Name, recycle bin, entry history and encryption of this vault. They are stored in the file, so every KeePass app uses them.</string>
     <string name="database_name">Database name</string>
