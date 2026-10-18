@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.util.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -41,11 +42,14 @@ fun EntryAvatar(
 ) {
     val bitmap = remember(icon) { icon?.decoded() }
     if (bitmap != null) {
+        // Site icons are drawn for light browser tabs, so many vanish on a dark disc: always
+        // show them on white, outlined so the disc still stands out on light cards.
         Box(
             modifier = modifier
                 .size(size)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                .background(Color.White)
+                .border(Dimens.hairline, MaterialTheme.colorScheme.outlineVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(size * ICON_SCALE))
@@ -69,4 +73,4 @@ fun EntryAvatar(
     }
 }
 
-private const val ICON_SCALE = 0.6f
+private const val ICON_SCALE = 0.62f

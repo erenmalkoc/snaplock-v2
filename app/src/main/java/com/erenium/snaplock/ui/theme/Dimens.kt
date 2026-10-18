@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.dp
 
 
 object Dimens {
+    val hairline = 1.dp
     val spaceXxs = 2.dp
     val spaceXs = 4.dp
     val spaceSm = 8.dp
