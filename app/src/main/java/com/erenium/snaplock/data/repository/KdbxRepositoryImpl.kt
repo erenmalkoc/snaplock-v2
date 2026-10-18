@@ -4,14 +4,18 @@ import android.content.Context
 import android.net.Uri
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.KeePassDatabase
-import app.keemobile.kotpass.database.findEntry
-import app.keemobile.kotpass.database.getEntries
+import app.keemobile.kotpass.database.getEntry
 import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
+import app.keemobile.kotpass.database.modifiers.modifyMeta
 import app.keemobile.kotpass.database.modifiers.moveEntry
 import app.keemobile.kotpass.database.modifiers.removeEntry
+import app.keemobile.kotpass.database.modifiers.removeUnusedBinaries
+import app.keemobile.kotpass.database.modifiers.withHistory
+import app.keemobile.kotpass.database.modifiers.withRecycleBin
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
+import app.keemobile.kotpass.models.TimeData
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
@@ -28,6 +32,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import app.keemobile.kotpass.models.Entry as KotpassEntry
@@ -52,7 +57,7 @@ class KdbxRepositoryImpl @Inject constructor(
             return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         }
 
-        val found = database.findEntry { it.uuid == uuid }
+        val found = database.getEntry { it.uuid == uuid }
 
         return if (found != null) {
             val (group, entry) = found
@@ -65,42 +70,59 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun getCredentials(): List<Credential> {
         val database = sessionCache.getDatabase() ?: return emptyList()
         val untitled = context.getString(R.string.untitled_entry)
-        val recycleBin = database.content.meta.recycleBinUuid
-        return database.content.group.entriesOutside(recycleBin).map { it.toCredential(untitled) }
+        return database.content.group.entriesOutside(database.recycleBin())
+            .map { (_, entry) -> entry.toCredential(untitled) }
     }
 
-    private fun KotpassGroup.entriesOutside(excludedGroup: UUID?): List<KotpassEntry> =
+    /** Entries with their group, skipping the [excludedGroup] subtree. */
+    private fun KotpassGroup.entriesOutside(excludedGroup: UUID?): List<Pair<KotpassGroup, KotpassEntry>> =
         if (uuid == excludedGroup) {
             emptyList()
         } else {
-            entries + groups.flatMap { it.entriesOutside(excludedGroup) }
+            entries.map { this to it } + groups.flatMap { it.entriesOutside(excludedGroup) }
         }
+
+    /** The recycle bin group, if the database has one that still exists. */
+    private fun KeePassDatabase.recycleBin(): UUID? =
+        content.meta.recycleBinUuid?.takeIf { content.group.findGroup(it) != null }
+
+    private fun KotpassGroup.findGroup(target: UUID): KotpassGroup? =
+        if (uuid == target) this else groups.firstNotNullOfOrNull { it.findGroup(target) }
 
     override fun getEntries(): Flow<List<Entry>> {
         return sessionCache.databaseFlow.map { database ->
             if (database == null) {
                 emptyList()
             } else {
-                database.getEntries { true }.flatMap { (group, entries) ->
-                    entries.map { it.toDomainEntry(group) }
-                }
+                database.content.group.entriesOutside(database.recycleBin())
+                    .map { (group, entry) -> entry.toDomainEntry(group) }
             }
         }
     }
 
     override fun getGroups(): Flow<List<Group>> {
         return sessionCache.databaseFlow.map { database ->
-            if (database == null) emptyList() else flattenGroups(database.content.group)
+            if (database == null) emptyList() else flattenGroups(database.content.group, database.recycleBin())
         }
     }
 
-    private fun flattenGroups(group: KotpassGroup): List<Group> {
+    override fun getRecycledEntries(): Flow<List<Entry>> {
+        return sessionCache.databaseFlow.map { database ->
+            val bin = database?.recycleBin()?.let { database.content.group.findGroup(it) }
+            bin?.entriesOutside(excludedGroup = null)
+                ?.map { (group, entry) -> entry.toDomainEntry(group) }
+                .orEmpty()
+        }
+    }
+
+    private fun flattenGroups(group: KotpassGroup, excludedGroup: UUID?): List<Group> {
+        if (group.uuid == excludedGroup) return emptyList()
         val current = Group(
             uuid = group.uuid,
             name = group.name,
             entryCount = group.entries.size
         )
-        return listOf(current) + group.groups.flatMap { flattenGroups(it) }
+        return listOf(current) + group.groups.flatMap { flattenGroups(it, excludedGroup) }
     }
 
     private fun KotpassEntry.toDomainEntryDetail(groupUuid: UUID): EntryDetail {
@@ -165,11 +187,14 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val historyLimit = database.content.meta.historyMaxItems
         val withUpdatedFields = database.modifyEntry(uuid) {
-            copy(fields = data.applyTo(fields))
+            // Keep the previous version, as KeePass does, so an edit can be undone.
+            withHistory { copy(fields = data.applyTo(fields), times = times?.touched()) }
+                .let { if (historyLimit >= 0) it.copy(history = it.history.takeLast(historyLimit)) else it }
         }
         val targetGroup = data.groupUuid
-        val currentGroup = withUpdatedFields.findEntry { it.uuid == uuid }?.first?.uuid
+        val currentGroup = withUpdatedFields.getEntry { it.uuid == uuid }?.first?.uuid
         val moved = if (targetGroup != null && currentGroup != null && targetGroup != currentGroup) {
             withUpdatedFields.moveEntry(uuid, targetGroup)
         } else {
@@ -181,14 +206,64 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun deleteEntry(uuid: UUID): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        val updated = database.removeEntry(uuid)
+        val group = database.getEntry { it.uuid == uuid }?.first
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        val bin = database.recycleBin()
+        val alreadyRecycled = bin != null &&
+            database.content.group.findGroup(bin)?.findGroup(group.uuid) != null
+        val updated = if (!database.content.meta.recycleBinEnabled || alreadyRecycled) {
+            database.removeEntry(uuid)
+        } else {
+            // A recycle bin id that points at a deleted group would swallow the entry.
+            val withValidBin = if (bin == null && database.content.meta.recycleBinUuid != null) {
+                database.modifyMeta { copy(recycleBinUuid = null) }
+            } else {
+                database
+            }
+            withValidBin.withRecycleBin { binUuid ->
+                // moveEntry records the previous group itself.
+                modifyEntry(uuid) { copy(times = times?.moved()) }
+                    .moveEntry(uuid, binUuid)
+            }
+        }
         persist(updated)
     }
+
+    override suspend fun restoreEntry(uuid: UUID): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.getEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        val binGroup = database.recycleBin()?.let { database.content.group.findGroup(it) }
+        val previous = entry.previousParentGroup?.takeIf { target ->
+            database.content.group.findGroup(target) != null && binGroup?.findGroup(target) == null
+        }
+        val updated = database
+            .modifyEntry(uuid) { copy(times = times?.moved()) }
+            .moveEntry(uuid, previous ?: database.content.group.uuid)
+        persist(updated)
+    }
+
+    override suspend fun emptyRecycleBin(): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val bin = database.recycleBin() ?: return Result.success(Unit)
+        val updated = database
+            .modifyGroup(bin) { copy(entries = emptyList(), groups = emptyList()) }
+            .removeUnusedBinaries()
+        persist(updated)
+    }
+
+    private fun TimeData.touched(): TimeData = Instant.now().let { now ->
+        copy(lastModificationTime = now, lastAccessTime = now)
+    }
+
+    private fun TimeData.moved(): TimeData = copy(locationChanged = Instant.now())
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        val entry = database.findEntry { it.uuid == uuid }?.second
+        val entry = database.getEntry { it.uuid == uuid }?.second
             ?: return Result.failure(EntryNotFoundException(uuid))
         if (packageName in entry.toCredential("").androidApps) return Result.success(Unit)
         val updated = database.modifyEntry(uuid) {
@@ -200,7 +275,7 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        val entry = database.findEntry { it.uuid == uuid }?.second
+        val entry = database.getEntry { it.uuid == uuid }?.second
             ?: return Result.failure(EntryNotFoundException(uuid))
         val url = "https://$domain"
         if (entry.toCredential("").urls.any { it.removeSuffix("/").endsWith("://$domain") }) {

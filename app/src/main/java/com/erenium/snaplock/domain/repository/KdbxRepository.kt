@@ -32,7 +32,19 @@ interface KdbxRepository {
 
     suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit>
 
+    /**
+     * Moves the entry to the recycle bin. Deletes it for good when it is already there or
+     * the database has the recycle bin turned off, like other KeePass clients.
+     */
     suspend fun deleteEntry(uuid: UUID): Result<Unit>
+
+    /** Entries in the recycle bin. [getEntries] and [getCredentials] leave them out. */
+    fun getRecycledEntries(): Flow<List<Entry>>
+
+    /** Moves an entry out of the recycle bin, back to its previous group if that still exists. */
+    suspend fun restoreEntry(uuid: UUID): Result<Unit>
+
+    suspend fun emptyRecycleBin(): Result<Unit>
 
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>

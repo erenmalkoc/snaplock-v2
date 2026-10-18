@@ -17,6 +17,7 @@ class FakeKdbxRepository : KdbxRepository {
     val locked = MutableStateFlow(true)
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
+    val recycled = MutableStateFlow<List<Entry>>(emptyList())
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
         locked.value = false
@@ -63,8 +64,30 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
-        entryDetails.remove(uuid)
-        entries.value = entries.value.filterNot { it.uuid == uuid }
+        val live = entries.value.firstOrNull { it.uuid == uuid }
+        if (live != null) {
+            entries.value = entries.value - live
+            recycled.value = recycled.value + live
+        } else {
+            entryDetails.remove(uuid)
+            recycled.value = recycled.value.filterNot { it.uuid == uuid }
+        }
+        return Result.success(Unit)
+    }
+
+    override fun getRecycledEntries(): Flow<List<Entry>> = recycled
+
+    override suspend fun restoreEntry(uuid: UUID): Result<Unit> {
+        val entry = recycled.value.firstOrNull { it.uuid == uuid }
+            ?: return Result.failure(NoSuchElementException(uuid.toString()))
+        recycled.value = recycled.value - entry
+        entries.value = entries.value + entry
+        return Result.success(Unit)
+    }
+
+    override suspend fun emptyRecycleBin(): Result<Unit> {
+        recycled.value.forEach { entryDetails.remove(it.uuid) }
+        recycled.value = emptyList()
         return Result.success(Unit)
     }
 
