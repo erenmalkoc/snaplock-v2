@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -91,6 +92,21 @@ class KdbxRepositorySyncTest {
         val entry = reopen().getEntry { it.uuid == github }!!.second
         assertEquals("v3", entry.fields["Password"]?.content)
         assertEquals(listOf("v1", "v2"), entry.history.map { it.fields["Password"]?.content })
+    }
+
+    @Test
+    fun reloadTakesInChangesMadeElsewhereWithoutWriting() = runTest {
+        openNewVault()
+        changeElsewhere {
+            modifyGroup(content.group.uuid) { copy(entries = entries + entry(UUID.randomUUID(), "Laptop")) }
+        }
+        val written = file.readBytes()
+
+        assertTrue(repository.reloadIfChanged().getOrThrow())
+
+        assertEquals(setOf("GitHub", "Laptop"), repository.getEntries().first().map { it.title }.toSet())
+        assertArrayEquals(written, file.readBytes())
+        assertFalse(repository.reloadIfChanged().getOrThrow())
     }
 
     @Test

@@ -24,6 +24,13 @@ interface KdbxRepository {
 
     suspend fun lockDatabase()
 
+    /**
+     * Takes in what another device or app (Syncthing, a cloud drive) wrote to the vault file
+     * since this session opened or saved it. Returns whether there was anything; false while
+     * locked.
+     */
+    suspend fun reloadIfChanged(): Result<Boolean>
+
     fun isLocked(): Flow<Boolean>
 
     fun getEntries(): Flow<List<Entry>>

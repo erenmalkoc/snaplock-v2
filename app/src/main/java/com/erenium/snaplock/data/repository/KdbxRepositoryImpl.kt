@@ -633,6 +633,20 @@ class KdbxRepositoryImpl @Inject constructor(
         sessionCache.lock()
     }
 
+    override suspend fun reloadIfChanged(): Result<Boolean> = writeMutex.withLock {
+        val database = sessionCache.getDatabase() ?: return Result.success(false)
+        val uri = sessionCache.getUri() ?: return Result.success(false)
+        val external = localDataSource.readIfChanged(uri, sessionCache.getFingerprint(), database.credentials)
+            .getOrElse { return Result.failure(it) }
+            ?: return Result.success(false)
+        val merged = runCatching { VaultMerger.merge(database, external.database) }
+            .getOrElse { return Result.failure(VaultChangedElsewhereException(it)) }
+        // Every change made here was saved before the file changed, so the merge only adds
+        // what came from elsewhere; the next edit writes the result.
+        sessionCache.setDatabase(merged, uri, external.fingerprint)
+        Result.success(true)
+    }
+
     override fun isLocked(): Flow<Boolean> {
         return sessionCache.isLocked
     }

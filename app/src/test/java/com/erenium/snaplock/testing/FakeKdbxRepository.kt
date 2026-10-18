@@ -28,6 +28,8 @@ class FakeKdbxRepository : KdbxRepository {
     val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
+    /** How many times reloadIfChanged was called. */
+    var reloads = 0
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         lastKeyFile = keyFile
@@ -152,6 +154,11 @@ class FakeKdbxRepository : KdbxRepository {
         if (uuid == ROOT_GROUP_UUID) return Result.failure(IllegalArgumentException("root"))
         groups.value = groups.value.filterNot { it.uuid == uuid }
         return Result.success(Unit)
+    }
+
+    override suspend fun reloadIfChanged(): Result<Boolean> {
+        reloads++
+        return Result.success(false)
     }
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
