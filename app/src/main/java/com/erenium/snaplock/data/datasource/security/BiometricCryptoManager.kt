@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 class BiometricCryptoManager @Inject constructor() {
 
-    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+    // Loaded on first use: only biometric unlock needs the Android Keystore.
+    private val keyStore by lazy { KeyStore.getInstance("AndroidKeyStore").apply { load(null) } }
     private val keyAlias = "snaplock-biometric-key"
 
     private fun getOrCreateSecretKey(): SecretKey {
