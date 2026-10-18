@@ -164,6 +164,12 @@ fun SettingsScreen(
                     onCheckedChange = viewModel::onBreachCheckChange
                 )
                 SiteIconsSection(snackbarHostState = snackbarHostState)
+                ToggleRow(
+                    label = stringResource(R.string.settings_auto_site_icons),
+                    description = stringResource(R.string.settings_auto_site_icons_desc),
+                    checked = settings.autoSiteIcons,
+                    onCheckedChange = viewModel::onAutoSiteIconsChange
+                )
             }
 
             SettingsSection(title = stringResource(R.string.settings_security)) {

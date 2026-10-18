@@ -224,6 +224,8 @@
         <item quantity="other">%d simge eklendi</item>
     </plurals>
     <string name="site_icons_error">Simgeler kaydedilemedi.</string>
+    <string name="settings_auto_site_icons">Simgeleri otomatik indir</string>
+    <string name="settings_auto_site_icons_desc">Web sitesi olan kayıtlar eklendiğinde, içe aktarıldığında veya eşitlendiğinde her seferinde sormadan simgesini alır.</string>
     <string name="settings_online">İnternet (isteğe bağlı)</string>
     <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
     <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her şifrenin SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir; şifrenin kendisi cihazdan çıkmaz.</string>

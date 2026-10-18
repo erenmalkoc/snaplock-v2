@@ -225,6 +225,8 @@
         <item quantity="other">%d icons added</item>
     </plurals>
     <string name="site_icons_error">The icons could not be saved.</string>
+    <string name="settings_auto_site_icons">Download icons automatically</string>
+    <string name="settings_auto_site_icons_desc">Entries with a website get their icon as soon as they are added, imported or synced, without asking each time.</string>
     <string name="settings_breach_check">Check passwords against known breaches</string>
     <string name="settings_breach_check_desc">Uses Have I Been Pwned. Only the first 5 characters of each password\'s SHA-1 hash are sent; the password itself never leaves the device.</string>
     <string name="health_breached">Found in data breaches</string>
