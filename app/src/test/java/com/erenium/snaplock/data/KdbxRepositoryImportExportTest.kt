@@ -10,6 +10,7 @@ import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.models.EntryValue
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
+import com.erenium.snaplock.data.datasource.local.VaultBackups
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.data.repository.KdbxRepositoryImpl
 import com.erenium.snaplock.domain.importer.CsvExporter
@@ -33,7 +34,7 @@ class KdbxRepositoryImportExportTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val repository = KdbxRepositoryImpl(
-        context, KdbxLocalDataSource(context), SessionCache(), RecentDatabasesPrefs(context)
+        context, KdbxLocalDataSource(context, VaultBackups(context)), SessionCache(), RecentDatabasesPrefs(context)
     )
     private lateinit var file: File
 

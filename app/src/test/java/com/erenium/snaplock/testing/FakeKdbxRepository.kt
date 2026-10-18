@@ -8,6 +8,7 @@ import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.VaultBackup
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,8 @@ class FakeKdbxRepository : KdbxRepository {
     val savedForms = mutableListOf<EntryFormData>()
     /** How many times reloadIfChanged was called. */
     var reloads = 0
+    /** Backup files by id; listed newest first by their creation time. */
+    val backups = mutableMapOf<VaultBackup, ByteArray>()
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         lastKeyFile = keyFile
@@ -160,6 +163,12 @@ class FakeKdbxRepository : KdbxRepository {
         reloads++
         return Result.success(false)
     }
+
+    override suspend fun getBackups(): List<VaultBackup> = backups.keys.sortedByDescending { it.created }
+
+    override suspend fun getBackup(id: String): Result<ByteArray> =
+        backups.entries.firstOrNull { it.key.id == id }?.value?.let { Result.success(it) }
+            ?: Result.failure(NoSuchElementException(id))
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
         updateCredential(uuid) { copy(androidApps = (androidApps + packageName).distinct()) }

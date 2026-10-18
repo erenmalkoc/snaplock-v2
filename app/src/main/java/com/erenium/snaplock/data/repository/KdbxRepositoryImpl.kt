@@ -44,6 +44,7 @@ import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.VaultBackup
 import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
@@ -643,6 +644,15 @@ class KdbxRepositoryImpl @Inject constructor(
 
     override suspend fun lockDatabase() {
         sessionCache.lock()
+    }
+
+    override suspend fun getBackups(): List<VaultBackup> =
+        sessionCache.getUri()?.let { localDataSource.listBackups(it) }.orEmpty()
+
+    override suspend fun getBackup(id: String): Result<ByteArray> {
+        val uri = sessionCache.getUri()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        return localDataSource.readBackup(uri, id)
     }
 
     override suspend fun reloadIfChanged(): Result<Boolean> = writeMutex.withLock {

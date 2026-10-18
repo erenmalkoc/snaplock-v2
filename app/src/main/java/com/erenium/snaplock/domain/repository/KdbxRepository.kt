@@ -9,6 +9,7 @@ import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.VaultBackup
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -30,6 +31,12 @@ interface KdbxRepository {
      * locked.
      */
     suspend fun reloadIfChanged(): Result<Boolean>
+
+    /** Copies of the open vault file from before earlier saves, newest first; empty while locked. */
+    suspend fun getBackups(): List<VaultBackup>
+
+    /** The encrypted KDBX file of one of [getBackups]. */
+    suspend fun getBackup(id: String): Result<ByteArray>
 
     fun isLocked(): Flow<Boolean>
 

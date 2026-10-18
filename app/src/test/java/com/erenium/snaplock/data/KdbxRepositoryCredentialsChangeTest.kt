@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
+import com.erenium.snaplock.data.datasource.local.VaultBackups
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.data.repository.KdbxRepositoryImpl
 import java.io.File
@@ -26,7 +27,7 @@ class KdbxRepositoryCredentialsChangeTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val sessionCache = SessionCache()
     private val repository = KdbxRepositoryImpl(
-        context, KdbxLocalDataSource(context), sessionCache, RecentDatabasesPrefs(context)
+        context, KdbxLocalDataSource(context, VaultBackups(context)), sessionCache, RecentDatabasesPrefs(context)
     )
     private val keyFile = Random(42).nextBytes(256)
 

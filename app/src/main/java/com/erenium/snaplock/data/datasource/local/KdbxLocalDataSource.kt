@@ -11,6 +11,7 @@ import app.keemobile.kotpass.database.encode
 import app.keemobile.kotpass.models.Meta
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.VaultChangedElsewhereException
+import com.erenium.snaplock.domain.model.VaultBackup
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class StoredVault(val database: KeePassDatabase, val fingerprint: ByteString)
 
 class KdbxLocalDataSource @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val backups: VaultBackups
 ) {
     companion object {
         private const val TAG = "KdbxLocalDataSource"
@@ -77,6 +79,7 @@ class KdbxLocalDataSource @Inject constructor(
                 // Encode first: opening with "wt" truncates the vault, so a failed
                 // encode must happen before the existing file is touched.
                 val bytes = database.encodeToByteArray()
+                keepBackup(uri)
                 writeBytes(uri, bytes)
                 Result.success(fingerprintOf(bytes))
             } catch (e: Exception) {
@@ -108,6 +111,20 @@ class KdbxLocalDataSource @Inject constructor(
                 Result.failure(e)
             }
         }
+    }
+
+    /** Copies of this vault file from before earlier saves, newest first. */
+    suspend fun listBackups(uri: Uri): List<VaultBackup> = withContext(Dispatchers.IO) { backups.list(uri) }
+
+    suspend fun readBackup(uri: Uri, id: String): Result<ByteArray> = withContext(Dispatchers.IO) {
+        runCatching { backups.read(uri, id) ?: throw NoSuchElementException(id) }
+    }
+
+    // A backup that cannot be made must not stop the save it was meant to protect.
+    private fun keepBackup(uri: Uri) {
+        if (!backups.isDue(uri)) return
+        runCatching { backups.keep(uri, readBytes(uri)) }
+            .onFailure { Log.w(TAG, "Yedek alınamadı.", it) }
     }
 
     private fun readBytes(uri: Uri): ByteArray =
