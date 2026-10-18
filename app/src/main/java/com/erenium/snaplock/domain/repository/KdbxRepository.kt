@@ -4,6 +4,7 @@ import android.net.Uri
 import com.erenium.snaplock.domain.importer.ExportedEntry
 import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.DatabaseSettings
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
@@ -22,6 +23,12 @@ interface KdbxRepository {
 
     /** Replaces the master password and key file of the open database. */
     suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit>
+
+    /** Settings stored in the open vault file; null while locked. */
+    suspend fun getDatabaseSettings(): DatabaseSettings?
+
+    /** Saves new vault settings; a changed cipher or key derivation applies from this save on. */
+    suspend fun updateDatabaseSettings(settings: DatabaseSettings): Result<Unit>
 
     suspend fun lockDatabase()
 

@@ -4,6 +4,7 @@ import android.net.Uri
 import com.erenium.snaplock.domain.importer.ExportedEntry
 import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.DatabaseSettings
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
@@ -31,6 +32,7 @@ class FakeKdbxRepository : KdbxRepository {
     val savedForms = mutableListOf<EntryFormData>()
     /** How many times reloadIfChanged was called. */
     var reloads = 0
+    var databaseSettings: DatabaseSettings? = DatabaseSettings("Passwords", true, 10, null)
     /** Backup files by id; listed newest first by their creation time. */
     val backups = mutableMapOf<VaultBackup, ByteArray>()
 
@@ -162,6 +164,13 @@ class FakeKdbxRepository : KdbxRepository {
     override suspend fun reloadIfChanged(): Result<Boolean> {
         reloads++
         return Result.success(false)
+    }
+
+    override suspend fun getDatabaseSettings(): DatabaseSettings? = databaseSettings
+
+    override suspend fun updateDatabaseSettings(settings: DatabaseSettings): Result<Unit> {
+        databaseSettings = settings
+        return Result.success(Unit)
     }
 
     override suspend fun getBackups(): List<VaultBackup> = backups.keys.sortedByDescending { it.created }
