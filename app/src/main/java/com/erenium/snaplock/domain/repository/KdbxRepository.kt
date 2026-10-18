@@ -46,6 +46,9 @@ interface KdbxRepository {
 
     suspend fun emptyRecycleBin(): Result<Unit>
 
+    /** Makes a version from the entry's history current again; the current one goes to history. */
+    suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit>
+
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
 

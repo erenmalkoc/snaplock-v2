@@ -22,9 +22,11 @@ import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -133,7 +135,19 @@ class KdbxRepositoryImpl @Inject constructor(
             password = this.fields[FIELD_PASSWORD]?.content,
             url = this.fields[FIELD_URL]?.content,
             notes = this.fields[FIELD_NOTES]?.content,
-            groupUuid = groupUuid
+            groupUuid = groupUuid,
+            customFields = fields
+                .filterKeys { it !in STANDARD_FIELDS && !it.isLinkField() }
+                .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) },
+            history = history.mapIndexed { index, version ->
+                EntryVersion(
+                    index = index,
+                    modified = version.times?.lastModificationTime,
+                    title = version.fields[FIELD_TITLE]?.content ?: context.getString(R.string.untitled_entry),
+                    username = version.fields[FIELD_USERNAME]?.content,
+                    password = version.fields[FIELD_PASSWORD]?.content
+                )
+            }.asReversed()
         )
     }
 
@@ -254,6 +268,21 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
+    override suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.getEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        val version = entry.history.getOrNull(index)
+            ?: return Result.failure(IndexOutOfBoundsException("No history version $index"))
+        val historyLimit = database.content.meta.historyMaxItems
+        val updated = database.modifyEntry(uuid) {
+            withHistory { copy(fields = version.fields, times = times?.touched()) }
+                .let { if (historyLimit >= 0) it.copy(history = it.history.takeLast(historyLimit)) else it }
+        }
+        persist(updated)
+    }
+
     private fun TimeData.touched(): TimeData = Instant.now().let { now ->
         copy(lastModificationTime = now, lastAccessTime = now)
     }
@@ -321,6 +350,17 @@ class KdbxRepositoryImpl @Inject constructor(
             .minus(FIELD_URL)
             .minus(FIELD_NOTES)
 
+        if (customFields != null) {
+            fields = fields.filterKeys { it in STANDARD_FIELDS || it.isLinkField() }
+            customFields.filter { it.name.isNotBlank() && it.name !in STANDARD_FIELDS }.forEach { field ->
+                val value = if (field.isProtected) {
+                    EntryValue.Encrypted(EncryptedValue.fromString(field.value))
+                } else {
+                    EntryValue.Plain(field.value)
+                }
+                fields = fields.plus(field.name.trim() to value)
+            }
+        }
         fields = fields.plus(FIELD_TITLE to EntryValue.Plain(title))
         if (!username.isNullOrEmpty()) {
             fields = fields.plus(FIELD_USERNAME to EntryValue.Plain(username))
@@ -351,6 +391,7 @@ class KdbxRepositoryImpl @Inject constructor(
         const val FIELD_PASSWORD = "Password"
         const val FIELD_URL = "URL"
         const val FIELD_NOTES = "Notes"
+        val STANDARD_FIELDS = setOf(FIELD_TITLE, FIELD_USERNAME, FIELD_PASSWORD, FIELD_URL, FIELD_NOTES)
     }
 
 }

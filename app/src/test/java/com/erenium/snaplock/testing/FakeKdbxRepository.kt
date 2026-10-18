@@ -91,6 +91,8 @@ class FakeKdbxRepository : KdbxRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit> = Result.success(Unit)
+
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
         updateCredential(uuid) { copy(androidApps = (androidApps + packageName).distinct()) }
 

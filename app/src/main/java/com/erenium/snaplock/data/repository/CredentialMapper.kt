@@ -33,6 +33,10 @@ internal fun KotpassEntry.toCredential(untitledTitle: String): Credential {
     )
 }
 
+/** Fields that link an entry to apps and extra sites; edited through autofill, not as custom fields. */
+internal fun String.isLinkField(): Boolean =
+    isNumberedField(FIELD_ANDROID_APP) || isNumberedField(FIELD_EXTRA_URL)
+
 /** True for [base] itself and for [base]_1, [base]_2, ... */
 private fun String.isNumberedField(base: String): Boolean =
     this == base || (startsWith("${base}_") && substring(base.length + 1).let { suffix ->
