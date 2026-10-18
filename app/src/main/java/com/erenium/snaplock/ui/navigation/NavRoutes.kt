@@ -11,4 +11,5 @@ object NavRoutes {
     const val CREATE_DATABASE = "create_database"
     const val RECYCLE_BIN = "recycle_bin"
     const val CHANGE_PASSWORD = "change_password"
+    const val PASSWORD_HEALTH = "password_health"
 }

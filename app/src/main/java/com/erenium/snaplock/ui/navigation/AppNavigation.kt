@@ -20,6 +20,7 @@ import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entryform.EntryFormScreen
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.generator.PasswordGeneratorScreen
+import com.erenium.snaplock.ui.screens.health.PasswordHealthScreen
 import com.erenium.snaplock.ui.screens.recyclebin.RecycleBinScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
@@ -130,6 +131,7 @@ fun AppNavigation(
                     },
                     onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
                     onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
+                    onNavigateToHealth = { navController.navigate(NavRoutes.PASSWORD_HEALTH) },
                     onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
                     onAddEntry = { groupUuid ->
                         val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
@@ -138,6 +140,20 @@ fun AppNavigation(
                     onEntryClick = { uuid ->
                         navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                     }
+                )
+            }
+        }
+        composable(route = NavRoutes.PASSWORD_HEALTH) {
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.PASSWORD_HEALTH) { inclusive = true }
+                    }
+                }
+            } else {
+                PasswordHealthScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onEntryClick = { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
                 )
             }
         }

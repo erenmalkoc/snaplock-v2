@@ -191,5 +191,21 @@
     <string name="entry_form_generate">Güçlü şifre üret</string>
     <string name="entry_form_expires">Son kullanma tarihi</string>
     <string name="entry_expired">Süresi doldu</string>
+    <string name="health_title">Şifre sağlığı</string>
+    <string name="health_score">Puan %1$d / 100</string>
+    <string name="health_all_good">%1$d şifrenin hepsi iyi görünüyor.</string>
+    <plurals name="health_affected">
+        <item quantity="one">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
+        <item quantity="other">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
+    </plurals>
+    <string name="health_offline_note">Bu cihazda kontrol edildi; hiçbir şifre Snaplock\'tan çıkmaz.</string>
+    <string name="health_weak">Zayıf</string>
+    <string name="health_weak_desc">Tahmin etmesi kolay. Üretilmiş şifrelerle değiştirin.</string>
+    <string name="health_reused">Tekrar kullanılan</string>
+    <string name="health_reused_desc">Tek bir sızıntı, bu şifreyi paylaşan tüm hesapları açığa çıkarır.</string>
+    <string name="health_old">Bir yıldır değişmemiş</string>
+    <string name="health_old_desc">Önemli olanları değiştirmeyi düşünün.</string>
+    <string name="health_expired">Süresi dolmuş</string>
+    <string name="health_expired_desc">Son kullanma tarihleri geçti.</string>
 
 </resources>

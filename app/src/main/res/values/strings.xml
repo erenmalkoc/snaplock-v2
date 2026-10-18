@@ -191,5 +191,21 @@
     <string name="entry_form_generate">Generate a strong password</string>
     <string name="entry_form_expires">Expires</string>
     <string name="entry_expired">Expired</string>
+    <string name="health_title">Password health</string>
+    <string name="health_score">Score %1$d / 100</string>
+    <string name="health_all_good">All %1$d passwords look fine.</string>
+    <plurals name="health_affected">
+        <item quantity="one">%1$d of %2$d passwords needs attention.</item>
+        <item quantity="other">%1$d of %2$d passwords need attention.</item>
+    </plurals>
+    <string name="health_offline_note">Checked on this device; no password leaves Snaplock.</string>
+    <string name="health_weak">Weak</string>
+    <string name="health_weak_desc">Easy to guess. Replace them with generated passwords.</string>
+    <string name="health_reused">Reused</string>
+    <string name="health_reused_desc">One leak exposes every account that shares the password.</string>
+    <string name="health_old">Not changed for over a year</string>
+    <string name="health_old_desc">Consider changing important ones.</string>
+    <string name="health_expired">Expired</string>
+    <string name="health_expired_desc">Their expiry date has passed.</string>
 
 </resources>

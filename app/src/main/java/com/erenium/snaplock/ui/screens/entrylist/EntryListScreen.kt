@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Password
@@ -70,6 +71,7 @@ fun EntryListScreen(
     onNavigateToLock: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToRecycleBin: () -> Unit,
+    onNavigateToHealth: () -> Unit,
     onNavigateToGenerator: () -> Unit,
     onAddEntry: (groupUuid: UUID?) -> Unit,
     onEntryClick: (UUID) -> Unit,
@@ -126,6 +128,7 @@ fun EntryListScreen(
                 onCreateGroup = { dialog = GroupDialog.CREATE },
                 onRenameGroup = { dialog = GroupDialog.RENAME },
                 onDeleteGroup = { dialog = GroupDialog.DELETE },
+                onNavigateToHealth = onNavigateToHealth,
                 onNavigateToRecycleBin = onNavigateToRecycleBin,
                 onNavigateToSettings = onNavigateToSettings
             )
@@ -235,6 +238,7 @@ private fun OverflowMenu(
     onCreateGroup: () -> Unit,
     onRenameGroup: () -> Unit,
     onDeleteGroup: () -> Unit,
+    onNavigateToHealth: () -> Unit,
     onNavigateToRecycleBin: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
@@ -266,6 +270,11 @@ private fun OverflowMenu(
                 )
             }
             HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.health_title)) },
+                leadingIcon = { Icon(Icons.Filled.HealthAndSafety, contentDescription = null) },
+                onClick = close(onNavigateToHealth)
+            )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.recycle_bin_title)) },
                 leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
