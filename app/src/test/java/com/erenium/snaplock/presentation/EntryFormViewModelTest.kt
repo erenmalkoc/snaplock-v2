@@ -121,6 +121,32 @@ class EntryFormViewModelTest {
     }
 
     @Test
+    fun aKeyTypedButNotConfirmedIsSavedToo() {
+        val viewModel = viewModel()
+        viewModel.onTitleChange("GitHub")
+        viewModel.onOtpInputChange(SECRET)
+
+        viewModel.onSave()
+
+        val saved = OtpParser.parse(repository.savedForms.single().otpUri!!)!!
+        val typed = OtpParser.parse(SECRET)!!
+        assertEquals(typed.secret.toList(), saved.secret.toList())
+        assertEquals(typed.period to typed.digits, saved.period to saved.digits)
+    }
+
+    @Test
+    fun anUnconfirmedBadKeyStopsTheSave() {
+        val viewModel = viewModel()
+        viewModel.onTitleChange("GitHub")
+        viewModel.onOtpInputChange("not a key!")
+
+        viewModel.onSave()
+
+        assertTrue(viewModel.uiState.value.otpInputError)
+        assertTrue(repository.savedForms.isEmpty())
+    }
+
+    @Test
     fun editingLoadsExistingFieldsAndCanRemoveThem() {
         val uuid = UUID.randomUUID()
         repository.entryDetails[uuid] = EntryDetail(
