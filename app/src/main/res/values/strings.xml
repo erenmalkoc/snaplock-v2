@@ -116,5 +116,13 @@
     <string name="settings_autofill_disabled">Make Snaplock your autofill service to get your logins suggested on sign-in screens and new passwords saved.</string>
     <string name="settings_autofill_enable">Turn on autofill</string>
     <string name="credentials_unlock">Unlock Snaplock</string>
+    <string name="recycle_bin_title">Recycle bin</string>
+    <string name="recycle_bin_empty">The recycle bin is empty.</string>
+    <string name="recycle_bin_restore">Restore</string>
+    <string name="recycle_bin_delete_forever">Delete permanently</string>
+    <string name="recycle_bin_delete_confirm">This entry will be deleted permanently.</string>
+    <string name="recycle_bin_empty_action">Empty recycle bin</string>
+    <string name="recycle_bin_empty_confirm">Everything in the recycle bin will be deleted permanently.</string>
+    <string name="menu_more">More options</string>
 
 </resources>

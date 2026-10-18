@@ -116,5 +116,13 @@
     <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın; giriş ekranlarında kayıtlarınız önerilsin ve yeni şifreler kaydedilsin.</string>
     <string name="settings_autofill_enable">Otomatik doldurmayı aç</string>
     <string name="credentials_unlock">Snaplock\'un kilidini aç</string>
+    <string name="recycle_bin_title">Geri dönüşüm kutusu</string>
+    <string name="recycle_bin_empty">Geri dönüşüm kutusu boş.</string>
+    <string name="recycle_bin_restore">Geri yükle</string>
+    <string name="recycle_bin_delete_forever">Kalıcı olarak sil</string>
+    <string name="recycle_bin_delete_confirm">Bu kayıt kalıcı olarak silinecek.</string>
+    <string name="recycle_bin_empty_action">Kutuyu boşalt</string>
+    <string name="recycle_bin_empty_confirm">Kutudaki her şey kalıcı olarak silinecek.</string>
+    <string name="menu_more">Diğer seçenekler</string>
 
 </resources>

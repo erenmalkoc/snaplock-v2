@@ -1,6 +1,7 @@
 package com.erenium.snaplock.ui.screens.entrylist
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,9 +18,13 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -30,6 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -49,6 +57,7 @@ import java.util.UUID
 fun EntryListScreen(
     onNavigateToLock: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToRecycleBin: () -> Unit,
     onNavigateToGenerator: () -> Unit,
     onAddEntry: () -> Unit,
     onEntryClick: (UUID) -> Unit,
@@ -74,18 +83,16 @@ fun EntryListScreen(
                     contentDescription = stringResource(R.string.pwgen_title)
                 )
             }
-            IconButton(onClick = onNavigateToSettings) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = stringResource(R.string.settings_title)
-                )
-            }
             IconButton(onClick = onNavigateToLock) {
                 Icon(
                     imageVector = Icons.Filled.Lock,
                     contentDescription = stringResource(R.string.entry_list_lock_button)
                 )
             }
+            OverflowMenu(
+                onNavigateToRecycleBin = onNavigateToRecycleBin,
+                onNavigateToSettings = onNavigateToSettings
+            )
         }
     ) { contentModifier ->
         if (state.isEmpty && !state.isSearching && !state.isFiltering) {
@@ -140,6 +147,37 @@ fun EntryListScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun OverflowMenu(
+    onNavigateToRecycleBin: () -> Unit,
+    onNavigateToSettings: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.menu_more))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.recycle_bin_title)) },
+                leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onNavigateToRecycleBin()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.settings_title)) },
+                leadingIcon = { Icon(Icons.Filled.Settings, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onNavigateToSettings()
+                }
+            )
         }
     }
 }

@@ -19,6 +19,7 @@ import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.screens.entryform.EntryFormScreen
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.generator.PasswordGeneratorScreen
+import com.erenium.snaplock.ui.screens.recyclebin.RecycleBinScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import java.net.URLDecoder
@@ -127,12 +128,24 @@ fun AppNavigation(
                         }
                     },
                     onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
+                    onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
                     onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
                     onAddEntry = { navController.navigate(NavRoutes.ENTRY_FORM) },
                     onEntryClick = { uuid ->
                         navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                     }
                 )
+            }
+        }
+        composable(route = NavRoutes.RECYCLE_BIN) {
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.RECYCLE_BIN) { inclusive = true }
+                    }
+                }
+            } else {
+                RecycleBinScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
         composable(route = NavRoutes.SETTINGS) {
