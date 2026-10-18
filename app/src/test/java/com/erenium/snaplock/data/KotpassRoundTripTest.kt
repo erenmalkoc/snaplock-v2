@@ -1,6 +1,7 @@
 package com.erenium.snaplock.data
 
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.cryptography.format.TwofishCipher
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
@@ -12,6 +13,7 @@ import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.Meta
+import com.erenium.snaplock.data.datasource.local.decodeFromByteArray
 import com.erenium.snaplock.data.datasource.local.encodeToByteArray
 import java.io.ByteArrayInputStream
 import java.util.UUID
@@ -62,6 +64,17 @@ class KotpassRoundTripTest {
 
         assertEntry(reopened, EMAIL_UUID, EMAIL_FIELDS + (PASSWORD to protectedValue("n3w-pässwörd")))
         assertEntry(reopened, BANK_UUID, BANK_FIELDS)
+    }
+
+    @Test
+    fun twofishVaultsOpenAndSaveAsTwofish() {
+        val database = newDatabase() as KeePassDatabase.Ver4x
+        val twofish = database.copy(header = database.header.copy(cipherId = TwofishCipher.uuid))
+
+        val reopened = decodeFromByteArray(twofish.encodeToByteArray(), credentials(MASTER_PASSWORD))
+
+        assertEquals(TwofishCipher.uuid, reopened.header.cipherId)
+        assertEntry(reopened, EMAIL_UUID, EMAIL_FIELDS)
     }
 
     private fun newDatabase(): KeePassDatabase {

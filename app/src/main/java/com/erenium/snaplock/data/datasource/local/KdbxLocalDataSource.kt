@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.cryptography.format.BaseCiphers
+import app.keemobile.kotpass.cryptography.format.CipherProvider
+import app.keemobile.kotpass.cryptography.format.TwofishCipher
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
@@ -138,7 +141,7 @@ class KdbxLocalDataSource @Inject constructor(
     }
 
     private fun decode(bytes: ByteArray, credentials: Credentials): KeePassDatabase =
-        KeePassDatabase.decode(ByteArrayInputStream(bytes), credentials)
+        decodeFromByteArray(bytes, credentials)
 
     private fun fingerprintOf(bytes: ByteArray): ByteString = bytes.toByteString().sha256()
 }
@@ -150,6 +153,16 @@ internal fun credentialsOf(password: CharSequence, keyFile: ByteArray?): Credent
     else -> Credentials.from(EncryptedValue.fromString(password.toString()), keyFile)
 }
 
+/**
+ * Every cipher kotpass implements. Its default leaves out Twofish, which KeePassXC and the
+ * KeePass Twofish plugin can write, so such vaults would not open without it.
+ */
+internal val SUPPORTED_CIPHERS: List<CipherProvider> = BaseCiphers.entries + TwofishCipher
+
 /** Encodes the database into a complete, encrypted KDBX file held in memory. */
 internal fun KeePassDatabase.encodeToByteArray(): ByteArray =
-    ByteArrayOutputStream().also { encode(it) }.toByteArray()
+    ByteArrayOutputStream().also { encode(it, cipherProviders = SUPPORTED_CIPHERS) }.toByteArray()
+
+/** Opens a complete, encrypted KDBX file held in memory. */
+internal fun decodeFromByteArray(bytes: ByteArray, credentials: Credentials): KeePassDatabase =
+    KeePassDatabase.decode(ByteArrayInputStream(bytes), credentials, cipherProviders = SUPPORTED_CIPHERS)
