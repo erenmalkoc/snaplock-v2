@@ -57,6 +57,8 @@ class EntryFormViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val entryUuid: UUID? = savedStateHandle.get<String>("uuid")?.let(UUID::fromString)
+    /** Group a new entry goes into: the one open in the list. */
+    private val initialGroupUuid: UUID? = savedStateHandle.get<String>("group")?.let(UUID::fromString)
 
     private val _uiState = MutableStateFlow(
         EntryFormUiState(isEditMode = entryUuid != null, isLoading = entryUuid != null)
@@ -81,7 +83,9 @@ class EntryFormViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(
                     groups = groups,
-                    groupUuid = state.groupUuid ?: groups.firstOrNull()?.uuid
+                    groupUuid = state.groupUuid
+                        ?: initialGroupUuid?.takeIf { uuid -> groups.any { it.uuid == uuid } }
+                        ?: groups.firstOrNull()?.uuid
                 )
             }
         }

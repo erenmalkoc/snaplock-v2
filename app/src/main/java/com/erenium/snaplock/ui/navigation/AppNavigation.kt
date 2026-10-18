@@ -130,7 +130,10 @@ fun AppNavigation(
                     onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
                     onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
                     onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
-                    onAddEntry = { navController.navigate(NavRoutes.ENTRY_FORM) },
+                    onAddEntry = { groupUuid ->
+                        val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
+                        navController.navigate(route)
+                    },
                     onEntryClick = { uuid ->
                         navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
                     }
@@ -175,9 +178,14 @@ fun AppNavigation(
 
         }
         composable(
-            route = "${NavRoutes.ENTRY_FORM}?uuid={uuid}",
+            route = "${NavRoutes.ENTRY_FORM}?uuid={uuid}&group={group}",
             arguments = listOf(
                 navArgument("uuid") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("group") {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null

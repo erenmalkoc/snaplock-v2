@@ -93,7 +93,6 @@
     <string name="create_db_submit">Oluştur</string>
     <string name="create_db_progress">Veritabanı oluşturuluyor...</string>
     <string name="create_db_error">Veritabanı oluşturulamadı.</string>
-    <string name="group_filter_all">Tümü</string>
     <string name="entry_form_group_label">Grup</string>
     <string name="recent_databases_title">Son kullanılanlar</string>
     <string name="recent_database_remove">Listeden kaldır</string>
@@ -135,5 +134,16 @@
     <string name="entry_form_field_protected">Korumalı (gizli ve bellekte şifreli)</string>
     <string name="entry_form_remove_field">Alanı kaldır</string>
     <string name="copy_field_hint">%1$s kopyala</string>
+
+    <string name="group_empty">Bu grup boş.</string>
+    <string name="group_create">Yeni grup</string>
+    <string name="group_rename">Grubu yeniden adlandır</string>
+    <string name="group_delete">Grubu sil</string>
+    <string name="group_delete_message">Grup ve içindeki her şey geri dönüşüm kutusuna taşınacak.</string>
+    <string name="group_name">Grup adı</string>
+    <plurals name="group_entry_count">
+        <item quantity="one">%1$d kayıt</item>
+        <item quantity="other">%1$d kayıt</item>
+    </plurals>
 
 </resources>
