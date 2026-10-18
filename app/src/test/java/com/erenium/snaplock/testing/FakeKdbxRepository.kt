@@ -180,6 +180,14 @@ class FakeKdbxRepository : KdbxRepository {
         backups.entries.firstOrNull { it.key.id == id }?.value?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(id))
 
+    /** Icons passed to setEntryIcons, by entry. */
+    val iconsSet = mutableMapOf<UUID, ByteArray>()
+
+    override suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit> {
+        iconsSet += icons
+        return Result.success(Unit)
+    }
+
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
         updateCredential(uuid) { copy(androidApps = (androidApps + packageName).distinct()) }
 

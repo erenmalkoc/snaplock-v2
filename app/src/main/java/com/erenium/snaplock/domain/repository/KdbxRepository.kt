@@ -108,6 +108,12 @@ interface KdbxRepository {
      */
     suspend fun deleteGroup(uuid: UUID): Result<Unit>
 
+    /**
+     * Gives entries custom icons (PNG data by entry) in one save. Identical images share one
+     * stored icon, as do images the vault already holds.
+     */
+    suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit>
+
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
 

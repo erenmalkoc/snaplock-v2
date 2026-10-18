@@ -9,6 +9,7 @@ import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.modifiers.modifyBinaries
 import app.keemobile.kotpass.database.modifiers.modifyContent
 import app.keemobile.kotpass.database.modifiers.modifyCredentials
+import app.keemobile.kotpass.database.modifiers.modifyCustomIcons
 import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.modifyMeta
@@ -585,6 +586,22 @@ class KdbxRepositoryImpl @Inject constructor(
     }
 
     private fun TimeData?.moved(): TimeData = (this ?: TimeData.create()).copy(locationChanged = Instant.now())
+
+    override suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val stored = database.content.meta.customIcons.toMutableMap()
+        val now = Instant.now()
+        val idFor = icons.values.associateWith { png ->
+            stored.entries.firstOrNull { it.value.data.contentEquals(png) }?.key
+                ?: UUID.randomUUID().also { stored[it] = CustomIcon(png, "", now) }
+        }
+        val updated = icons.entries.fold(database.modifyCustomIcons { stored }) { current, (uuid, png) ->
+            if (current.getEntry { it.uuid == uuid } == null) current
+            else current.modifyEntry(uuid) { copy(customIconUuid = idFor.getValue(png)) }
+        }
+        persist(updated)
+    }
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
