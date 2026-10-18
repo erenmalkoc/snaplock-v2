@@ -163,6 +163,7 @@ fun SettingsScreen(
                     checked = settings.breachCheckEnabled,
                     onCheckedChange = viewModel::onBreachCheckChange
                 )
+                SiteIconsSection(snackbarHostState = snackbarHostState)
             }
 
             SettingsSection(title = stringResource(R.string.settings_security)) {

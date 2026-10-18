@@ -209,6 +209,22 @@
     <string name="health_expired">Expired</string>
     <string name="health_expired_desc">Their expiry date has passed.</string>
     <string name="settings_online">Online (optional)</string>
+    <string name="settings_site_icons">Download site icons</string>
+    <string name="settings_site_icons_desc">Fetches each website\'s icon straight from the site and saves it in the vault, so other KeePass apps show it too. Each site only sees a request for its own icon.</string>
+    <string name="site_icons_confirm_title">Download site icons?</string>
+    <plurals name="site_icons_confirm_message">
+        <item quantity="one">Snaplock will connect to the website of %d entry without an icon.</item>
+        <item quantity="other">Snaplock will connect to the websites of %d entries without an icon.</item>
+    </plurals>
+    <string name="site_icons_download">Download</string>
+    <string name="site_icons_progress">Downloading… %1$d/%2$d</string>
+    <string name="site_icons_none_pending">Every entry with a website already has an icon.</string>
+    <string name="site_icons_none_found">No icons could be downloaded.</string>
+    <plurals name="site_icons_done">
+        <item quantity="one">%d icon added</item>
+        <item quantity="other">%d icons added</item>
+    </plurals>
+    <string name="site_icons_error">The icons could not be saved.</string>
     <string name="settings_breach_check">Check passwords against known breaches</string>
     <string name="settings_breach_check_desc">Uses Have I Been Pwned. Only the first 5 characters of each password\'s SHA-1 hash are sent; the password itself never leaves the device.</string>
     <string name="health_breached">Found in data breaches</string>

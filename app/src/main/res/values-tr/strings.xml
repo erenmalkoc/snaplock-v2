@@ -208,6 +208,22 @@
     <string name="health_old_desc">Önemli olanları değiştirmeyi düşünün.</string>
     <string name="health_expired">Süresi dolmuş</string>
     <string name="health_expired_desc">Son kullanma tarihleri geçti.</string>
+    <string name="settings_site_icons">Site simgelerini indir</string>
+    <string name="settings_site_icons_desc">Her web sitesinin simgesini doğrudan o siteden alır ve kasaya kaydeder; diğer KeePass uygulamaları da gösterir. Her site yalnızca kendi simgesi için bir istek görür.</string>
+    <string name="site_icons_confirm_title">Site simgeleri indirilsin mi?</string>
+    <plurals name="site_icons_confirm_message">
+        <item quantity="one">Snaplock simgesi olmayan %d kaydın web sitesine bağlanacak.</item>
+        <item quantity="other">Snaplock simgesi olmayan %d kaydın web sitelerine bağlanacak.</item>
+    </plurals>
+    <string name="site_icons_download">İndir</string>
+    <string name="site_icons_progress">İndiriliyor… %1$d/%2$d</string>
+    <string name="site_icons_none_pending">Web sitesi olan her kaydın zaten bir simgesi var.</string>
+    <string name="site_icons_none_found">Hiç simge indirilemedi.</string>
+    <plurals name="site_icons_done">
+        <item quantity="one">%d simge eklendi</item>
+        <item quantity="other">%d simge eklendi</item>
+    </plurals>
+    <string name="site_icons_error">Simgeler kaydedilemedi.</string>
     <string name="settings_online">İnternet (isteğe bağlı)</string>
     <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
     <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her şifrenin SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir; şifrenin kendisi cihazdan çıkmaz.</string>
