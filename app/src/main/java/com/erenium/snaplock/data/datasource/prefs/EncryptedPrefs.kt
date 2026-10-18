@@ -37,5 +37,13 @@ class EncryptedPrefs @Inject constructor(@ApplicationContext context: Context) {
         return base64String?.let { Base64.decode(it, Base64.DEFAULT) }
     }
 
+    /** Forgets the stored password, e.g. after the master password changed. */
+    fun clear() {
+        prefs.edit {
+            remove(KEY_BIOMETRIC_ENCRYPTED_PASSWORD)
+            remove(KEY_BIOMETRIC_ENCRYPTION_IV)
+        }
+    }
+
 
 }

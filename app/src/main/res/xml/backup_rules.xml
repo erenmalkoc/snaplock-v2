@@ -4,10 +4,11 @@
 
    The biometric-encrypted master password is only usable with its Android Keystore key,
    which never leaves the device. Restoring it elsewhere would break biometric unlock,
-   so it is kept out of backups. Recent database URIs only work on
+   so it is kept out of backups. Recent database and key file URIs only work on
    this device, so they are excluded too.
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="snaplock_secure_preferences.xml" />
     <exclude domain="sharedpref" path="snaplock_recent_databases.xml" />
+    <exclude domain="sharedpref" path="snaplock_key_files.xml" />
 </full-backup-content>

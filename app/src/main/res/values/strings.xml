@@ -8,7 +8,7 @@
     <string name="hide_password_hint">Hide Password</string>
     <string name="show_validation_error">Validation failed.</string>
     <string name="biometric_decode_error">Biometric decode error.</string>
-    <string name="wrong_password">Wrong Password</string>
+    <string name="wrong_password">Wrong password or key file</string>
     <string name="unlock_database_title">Unlock Database</string>
     <string name="database_password_label">Database Password</string>
     <string name="enter_password_placeholder">Enter your password</string>
@@ -154,5 +154,15 @@
     <string name="attachment_saved">%1$s saved</string>
     <string name="attachment_too_large">The file is too large (20 MB at most).</string>
     <string name="attachment_error">The file could not be processed.</string>
+    <string name="unlock_key_file">Key file</string>
+    <string name="unlock_key_file_choose">Use a key file</string>
+    <string name="unlock_key_file_clear">Stop using this key file</string>
+    <string name="unlock_key_file_error">The key file could not be read.</string>
+    <string name="settings_database">Database</string>
+    <string name="settings_change_password_desc">Set a new master password or key file for the open database.</string>
+    <string name="change_password_title">Change master password</string>
+    <string name="change_password_description">The database is saved with the new password and key file. Biometric unlock is turned off; turn it on again with the new password.</string>
+    <string name="change_password_new">New master password</string>
+    <string name="change_password_submit">Change</string>
 
 </resources>

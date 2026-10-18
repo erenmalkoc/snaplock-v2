@@ -20,11 +20,14 @@ class FakeKdbxRepository : KdbxRepository {
     val recycled = MutableStateFlow<List<Entry>>(emptyList())
     /** Attachment contents by entry and file name. */
     val attachments = mutableMapOf<UUID, MutableMap<String, ByteArray>>()
+    /** Key file passed to the last unlockDatabase call. */
+    var lastKeyFile: ByteArray? = null
     val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
+        lastKeyFile = keyFile
         locked.value = false
         return Result.success(Unit)
     }

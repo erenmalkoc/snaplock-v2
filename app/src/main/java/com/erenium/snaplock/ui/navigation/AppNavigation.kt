@@ -10,6 +10,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.erenium.snaplock.ui.screens.changepassword.ChangeMasterPasswordScreen
 import com.erenium.snaplock.ui.screens.createdatabase.CreateDatabaseScreen
 import com.erenium.snaplock.ui.screens.selectfile.SelectFileScreen
 import androidx.navigation.NavType
@@ -152,7 +153,21 @@ fun AppNavigation(
             }
         }
         composable(route = NavRoutes.SETTINGS) {
-            SettingsScreen(onNavigateBack = { navController.popBackStack() })
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) }
+            )
+        }
+        composable(route = NavRoutes.CHANGE_PASSWORD) {
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.CHANGE_PASSWORD) { inclusive = true }
+                    }
+                }
+            } else {
+                ChangeMasterPasswordScreen(onNavigateBack = { navController.popBackStack() })
+            }
         }
         composable(route = NavRoutes.PASSWORD_GENERATOR) {
             PasswordGeneratorScreen(onNavigateBack = { navController.popBackStack() })

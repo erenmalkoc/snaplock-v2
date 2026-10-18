@@ -38,6 +38,9 @@ class DocumentFiles @Inject constructor(
         }
     }
 
+    /** The name a provider shows for the file, or a name taken from the URI. */
+    fun displayName(uri: Uri): String = describe(uri).first ?: fallbackName(uri)
+
     private fun fallbackName(uri: Uri): String =
         uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast('\\')?.takeIf { it.isNotBlank() }
             ?: "attachment"

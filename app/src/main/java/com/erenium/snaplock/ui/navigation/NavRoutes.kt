@@ -10,4 +10,5 @@ object NavRoutes {
     const val ENTRY_FORM = "entry_form"
     const val CREATE_DATABASE = "create_database"
     const val RECYCLE_BIN = "recycle_bin"
+    const val CHANGE_PASSWORD = "change_password"
 }

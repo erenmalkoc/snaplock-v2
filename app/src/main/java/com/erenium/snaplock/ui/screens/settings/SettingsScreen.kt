@@ -32,6 +32,7 @@ import com.erenium.snaplock.presentation.settings.SettingsViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.SecondaryButton
 import com.erenium.snaplock.ui.theme.Dimens
 
 private val ClipboardTimeoutOptions = listOf(15, 30, 60, 120)
@@ -40,6 +41,7 @@ private val AutoLockOptions = listOf(0, 30, 60, 300)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToChangePassword: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.uiState.collectAsState()
@@ -56,6 +58,23 @@ fun SettingsScreen(
         ) {
             if (AutofillStatus.isSupported()) {
                 AutofillSection()
+            }
+
+            SettingsSection(title = stringResource(R.string.settings_database)) {
+                Text(
+                    text = stringResource(R.string.change_password_title),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.settings_change_password_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                SecondaryButton(
+                    text = stringResource(R.string.change_password_title),
+                    onClick = onNavigateToChangePassword,
+                    modifier = Modifier.padding(top = Dimens.spaceMd)
+                )
             }
 
             SettingsSection(title = stringResource(R.string.settings_appearance)) {
