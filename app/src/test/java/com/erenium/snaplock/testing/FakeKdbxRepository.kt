@@ -6,6 +6,7 @@ import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,10 @@ class FakeKdbxRepository : KdbxRepository {
         return entryDetails[uuid]?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(uuid.toString()))
     }
+
+    val auditEntries = MutableStateFlow<List<AuditEntry>>(emptyList())
+
+    override suspend fun getAuditEntries(): List<AuditEntry> = auditEntries.value
 
     override suspend fun getCredentials(): List<Credential> =
         if (locked.value) emptyList() else credentials.value

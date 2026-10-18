@@ -39,6 +39,7 @@ import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.otp.OtpParser
+import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -86,6 +87,21 @@ class KdbxRepositoryImpl @Inject constructor(
         val untitled = context.getString(R.string.untitled_entry)
         return database.content.group.entriesOutside(database.recycleBin())
             .map { (_, entry) -> entry.toCredential(untitled) }
+    }
+
+    override suspend fun getAuditEntries(): List<AuditEntry> {
+        val database = sessionCache.getDatabase() ?: return emptyList()
+        val untitled = context.getString(R.string.untitled_entry)
+        return database.content.group.entriesOutside(database.recycleBin()).map { (_, entry) ->
+            AuditEntry(
+                uuid = entry.uuid,
+                title = entry.fields[FIELD_TITLE]?.content?.takeIf { it.isNotBlank() } ?: untitled,
+                username = entry.fields[FIELD_USERNAME]?.content,
+                password = entry.fields[FIELD_PASSWORD]?.content,
+                modified = entry.times?.lastModificationTime,
+                expires = entry.times?.takeIf { it.expires }?.expiryTime
+            )
+        }
     }
 
     /** Entries with their group, skipping the [excludedGroup] subtree. */
