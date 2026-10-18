@@ -1,14 +1,20 @@
 package com.erenium.snaplock.presentation.entrydetail
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
+import com.erenium.snaplock.data.datasource.local.DocumentFiles
+import com.erenium.snaplock.data.datasource.local.FileTooLargeException
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
+import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
+import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +41,10 @@ class EntryDetailViewModel @Inject constructor(
     private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
     private val deleteEntryUseCase: DeleteEntryUseCase,
     private val restoreVersionUseCase: RestoreVersionUseCase,
+    private val addAttachmentUseCase: AddAttachmentUseCase,
+    private val getAttachmentUseCase: GetAttachmentUseCase,
+    private val removeAttachmentUseCase: RemoveAttachmentUseCase,
+    private val documentFiles: DocumentFiles,
     private val clipboardManager: ClipboardManagerHelper
 ) : ViewModel() {
 
@@ -47,6 +57,10 @@ class EntryDetailViewModel @Inject constructor(
 
     private val _restoredEvents = Channel<Unit>(Channel.BUFFERED)
     val restoredEvents = _restoredEvents.receiveAsFlow()
+
+    /** Short confirmations and errors: a string resource and its optional argument. */
+    private val _messages = Channel<Pair<Int, String?>>(Channel.BUFFERED)
+    val messages = _messages.receiveAsFlow()
 
     private val _deletedEvents = Channel<Unit>(Channel.BUFFERED)
     val deletedEvents = _deletedEvents.receiveAsFlow()
@@ -115,6 +129,45 @@ class EntryDetailViewModel @Inject constructor(
         }
     }
 
+    fun onAddAttachment(uri: Uri) {
+        val uuid = UUID.fromString(entryUuid)
+        viewModelScope.launch {
+            documentFiles.read(uri, MAX_ATTACHMENT_BYTES)
+                .onFailure { error ->
+                    message(if (error is FileTooLargeException) R.string.attachment_too_large else R.string.attachment_error)
+                }
+                .onSuccess { document ->
+                    addAttachmentUseCase(uuid, document.name, document.content)
+                        .onSuccess {
+                            loadEntryDetails()
+                            message(R.string.attachment_added, document.name)
+                        }
+                        .onFailure { message(R.string.attachment_error) }
+                }
+        }
+    }
+
+    fun onSaveAttachment(name: String, target: Uri) {
+        viewModelScope.launch {
+            getAttachmentUseCase(UUID.fromString(entryUuid), name)
+                .fold(onSuccess = { documentFiles.write(target, it) }, onFailure = { Result.failure(it) })
+                .onSuccess { message(R.string.attachment_saved, name) }
+                .onFailure { message(R.string.attachment_error) }
+        }
+    }
+
+    fun onRemoveAttachment(name: String) {
+        viewModelScope.launch {
+            removeAttachmentUseCase(UUID.fromString(entryUuid), name)
+                .onSuccess { loadEntryDetails() }
+                .onFailure { message(R.string.attachment_error) }
+        }
+    }
+
+    private fun message(resId: Int, argument: String? = null) {
+        _messages.trySend(resId to argument)
+    }
+
     fun onDelete() {
         viewModelScope.launch {
             deleteEntryUseCase(UUID.fromString(entryUuid))
@@ -123,5 +176,10 @@ class EntryDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(errorStringId = R.string.entry_delete_error) }
                 }
         }
+    }
+
+    private companion object {
+        // Attachments live inside the vault file, so a size cap keeps it quick to open and sync.
+        const val MAX_ATTACHMENT_BYTES = 20L * 1024 * 1024
     }
 }

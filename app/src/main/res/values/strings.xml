@@ -145,5 +145,14 @@
         <item quantity="one">%1$d entry</item>
         <item quantity="other">%1$d entries</item>
     </plurals>
+    <string name="entry_attachments">Attachments</string>
+    <string name="attachment_add">Add file</string>
+    <string name="attachment_save">Save to device</string>
+    <string name="attachment_remove">Remove attachment</string>
+    <string name="attachment_remove_message">Remove %1$s from this entry? The previous version keeps it in history.</string>
+    <string name="attachment_added">%1$s attached</string>
+    <string name="attachment_saved">%1$s saved</string>
+    <string name="attachment_too_large">The file is too large (20 MB at most).</string>
+    <string name="attachment_error">The file could not be processed.</string>
 
 </resources>

@@ -1,8 +1,12 @@
 package com.erenium.snaplock.ui.screens.entrydetail
 
+import android.text.format.Formatter
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,9 +16,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
@@ -42,6 +50,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,6 +99,43 @@ fun EntryDetailScreen(
     }
     LaunchedEffect(viewModel) {
         viewModel.restoredEvents.collect { snackbarHostState.showSnackbar(restoredMessage) }
+    }
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { (resId, argument) ->
+            snackbarHostState.showSnackbar(resources.getString(resId, argument))
+        }
+    }
+
+    var attachmentToSave by remember { mutableStateOf<String?>(null) }
+    var attachmentToRemove by remember { mutableStateOf<String?>(null) }
+    val addAttachmentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) viewModel.onAddAttachment(uri)
+    }
+    val saveAttachmentLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        val name = attachmentToSave
+        attachmentToSave = null
+        if (uri != null && name != null) viewModel.onSaveAttachment(name, uri)
+    }
+
+    attachmentToRemove?.let { name ->
+        AlertDialog(
+            onDismissRequest = { attachmentToRemove = null },
+            title = { Text(stringResource(R.string.attachment_remove)) },
+            text = { Text(stringResource(R.string.attachment_remove_message, name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    attachmentToRemove = null
+                    viewModel.onRemoveAttachment(name)
+                }) { Text(stringResource(R.string.attachment_remove)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { attachmentToRemove = null }) { Text(stringResource(R.string.cancel_button)) }
+            }
+        )
     }
     LaunchedEffect(viewModel) {
         viewModel.deletedEvents.collect { onNavigateBack() }
@@ -273,6 +320,45 @@ fun EntryDetailScreen(
                                     )
                                 }
                             }
+                        }
+                    }
+
+                    SectionTitle(stringResource(R.string.entry_attachments))
+                    AppCard(modifier = Modifier.fillMaxWidth(), contentPadding = false) {
+                        entry.attachments.forEach { attachment ->
+                            ListItem(
+                                leadingContent = { Icon(Icons.Filled.AttachFile, contentDescription = null) },
+                                headlineContent = {
+                                    Text(attachment.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                },
+                                supportingContent = {
+                                    Text(Formatter.formatShortFileSize(context, attachment.sizeBytes))
+                                },
+                                trailingContent = {
+                                    Row {
+                                        IconButton(onClick = {
+                                            attachmentToSave = attachment.name
+                                            saveAttachmentLauncher.launch(attachment.name)
+                                        }) {
+                                            Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.attachment_save))
+                                        }
+                                        IconButton(onClick = { attachmentToRemove = attachment.name }) {
+                                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.attachment_remove))
+                                        }
+                                    }
+                                }
+                            )
+                            HorizontalDivider()
+                        }
+                        TextButton(
+                            onClick = { addAttachmentLauncher.launch(arrayOf("*/*")) },
+                            modifier = Modifier.padding(horizontal = Dimens.spaceSm)
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.attachment_add),
+                                modifier = Modifier.padding(start = Dimens.spaceSm)
+                            )
                         }
                     }
 
