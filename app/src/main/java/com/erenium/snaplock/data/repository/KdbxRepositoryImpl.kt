@@ -7,6 +7,7 @@ import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntry
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.modifiers.modifyBinaries
+import app.keemobile.kotpass.database.modifiers.modifyCredentials
 import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.modifyMeta
@@ -24,6 +25,7 @@ import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
+import com.erenium.snaplock.data.datasource.local.credentialsOf
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
@@ -179,8 +181,8 @@ class KdbxRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
-        val result = localDataSource.openDatabase(uri, password)
+    override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
+        val result = localDataSource.openDatabase(uri, password, keyFile)
         return if (result.isSuccess) {
             val database = result.getOrNull()
             if (database != null) {
@@ -195,8 +197,8 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit> {
-        return localDataSource.createDatabase(uri, password, context.getString(R.string.default_root_group))
+    override suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
+        return localDataSource.createDatabase(uri, password, context.getString(R.string.default_root_group), keyFile)
             .map { database ->
                 sessionCache.setDatabase(database, uri)
                 recentDatabasesPrefs.add(uri)
@@ -283,6 +285,19 @@ class KdbxRepositoryImpl @Inject constructor(
             .removeUnusedBinaries()
         persist(updated)
     }
+
+    override suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit> =
+        writeMutex.withLock {
+            val database = sessionCache.getDatabase()
+                ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+            if (password.isEmpty() && keyFile == null) {
+                return Result.failure(IllegalArgumentException("A password or a key file is required"))
+            }
+            val updated = database
+                .modifyCredentials { credentialsOf(password, keyFile) }
+                .modifyMeta { copy(masterKeyChanged = Instant.now()) }
+            persist(updated)
+        }
 
     override suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit> =
         writeMutex.withLock {

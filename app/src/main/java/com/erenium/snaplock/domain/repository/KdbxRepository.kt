@@ -11,9 +11,13 @@ import java.util.UUID
 
 interface KdbxRepository {
 
-    suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit>
+    /** Opens the database with a password, a key file, or both. */
+    suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<Unit>
 
-    suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit>
+    suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<Unit>
+
+    /** Replaces the master password and key file of the open database. */
+    suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit>
 
     suspend fun lockDatabase()
 

@@ -24,15 +24,18 @@ class FakeKdbxRepository : KdbxRepository {
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
 
-    override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
+    override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         locked.value = false
         return Result.success(Unit)
     }
 
-    override suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit> {
+    override suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         locked.value = false
         return Result.success(Unit)
     }
+
+    override suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit> =
+        Result.success(Unit)
 
     override suspend fun lockDatabase() {
         locked.value = true

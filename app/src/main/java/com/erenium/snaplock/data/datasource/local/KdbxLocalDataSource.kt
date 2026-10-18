@@ -24,10 +24,10 @@ class KdbxLocalDataSource @Inject constructor(
         private const val GENERATOR_NAME = "Snaplock"
     }
 
-    suspend fun openDatabase(uri: Uri, password: CharSequence): Result<KeePassDatabase> {
+    suspend fun openDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<KeePassDatabase> {
         return withContext(Dispatchers.IO) {
             try {
-                val credentials = Credentials.from(EncryptedValue.fromString(password.toString()))
+                val credentials = credentialsOf(password, keyFile)
                 val inputStream = context.contentResolver.openInputStream(uri)
                 val database = inputStream.use {
                     if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
@@ -44,11 +44,12 @@ class KdbxLocalDataSource @Inject constructor(
     suspend fun createDatabase(
         uri: Uri,
         password: CharSequence,
-        rootName: String
+        rootName: String,
+        keyFile: ByteArray? = null
     ): Result<KeePassDatabase> {
         return withContext(Dispatchers.IO) {
             try {
-                val credentials = Credentials.from(EncryptedValue.fromString(password.toString()))
+                val credentials = credentialsOf(password, keyFile)
                 val database = KeePassDatabase.Ver4x.create(
                     rootName = rootName,
                     // kotpass leaves the recycle bin off; KeePass turns it on for new databases.
@@ -86,6 +87,13 @@ class KdbxLocalDataSource @Inject constructor(
             }
         }
     }
+}
+
+/** KeePass composite key: password, key file or both; an empty password with a key file means key file only. */
+internal fun credentialsOf(password: CharSequence, keyFile: ByteArray?): Credentials = when {
+    keyFile == null -> Credentials.from(EncryptedValue.fromString(password.toString()))
+    password.isEmpty() -> Credentials.from(keyFile)
+    else -> Credentials.from(EncryptedValue.fromString(password.toString()), keyFile)
 }
 
 /** Encodes the database into a complete, encrypted KDBX file held in memory. */
