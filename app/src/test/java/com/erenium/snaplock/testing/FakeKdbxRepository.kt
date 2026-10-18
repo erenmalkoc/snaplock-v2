@@ -18,6 +18,7 @@ class FakeKdbxRepository : KdbxRepository {
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
     val recycled = MutableStateFlow<List<Entry>>(emptyList())
+    val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
 
@@ -39,8 +40,7 @@ class FakeKdbxRepository : KdbxRepository {
 
     override fun getEntries(): Flow<List<Entry>> = entries
 
-    override fun getGroups(): Flow<List<Group>> =
-        MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", entries.value.size)))
+    override fun getGroups(): Flow<List<Group>> = groups
 
     override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
         return entryDetails[uuid]?.let { Result.success(it) }
@@ -96,6 +96,23 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit> = Result.success(Unit)
+
+    override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> {
+        val uuid = UUID.randomUUID()
+        groups.value = groups.value + Group(uuid, name, 0, parentUuid)
+        return Result.success(uuid)
+    }
+
+    override suspend fun renameGroup(uuid: UUID, name: String): Result<Unit> {
+        groups.value = groups.value.map { if (it.uuid == uuid) it.copy(name = name) else it }
+        return Result.success(Unit)
+    }
+
+    override suspend fun deleteGroup(uuid: UUID): Result<Unit> {
+        if (uuid == ROOT_GROUP_UUID) return Result.failure(IllegalArgumentException("root"))
+        groups.value = groups.value.filterNot { it.uuid == uuid }
+        return Result.success(Unit)
+    }
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> =
         updateCredential(uuid) { copy(androidApps = (androidApps + packageName).distinct()) }

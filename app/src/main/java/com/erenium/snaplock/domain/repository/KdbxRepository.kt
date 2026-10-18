@@ -49,6 +49,17 @@ interface KdbxRepository {
     /** Makes a version from the entry's history current again; the current one goes to history. */
     suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit>
 
+    /** Adds an empty group under [parentUuid] and returns its id. */
+    suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID>
+
+    suspend fun renameGroup(uuid: UUID, name: String): Result<Unit>
+
+    /**
+     * Moves the group and everything in it to the recycle bin, or deletes it for good when
+     * it is already there or the recycle bin is off. The root group cannot be deleted.
+     */
+    suspend fun deleteGroup(uuid: UUID): Result<Unit>
+
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
 

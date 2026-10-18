@@ -9,7 +9,9 @@ import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.modifyMeta
 import app.keemobile.kotpass.database.modifiers.moveEntry
+import app.keemobile.kotpass.database.modifiers.moveGroup
 import app.keemobile.kotpass.database.modifiers.removeEntry
+import app.keemobile.kotpass.database.modifiers.removeGroup
 import app.keemobile.kotpass.database.modifiers.removeUnusedBinaries
 import app.keemobile.kotpass.database.modifiers.withHistory
 import app.keemobile.kotpass.database.modifiers.withRecycleBin
@@ -117,14 +119,16 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun flattenGroups(group: KotpassGroup, excludedGroup: UUID?): List<Group> {
+    private fun flattenGroups(group: KotpassGroup, excludedGroup: UUID?, parent: UUID? = null): List<Group> {
         if (group.uuid == excludedGroup) return emptyList()
         val current = Group(
             uuid = group.uuid,
             name = group.name,
-            entryCount = group.entries.size
+            entryCount = group.entries.size,
+            parentUuid = parent,
+            groupCount = group.groups.count { it.uuid != excludedGroup }
         )
-        return listOf(current) + group.groups.flatMap { flattenGroups(it, excludedGroup) }
+        return listOf(current) + group.groups.flatMap { flattenGroups(it, excludedGroup, group.uuid) }
     }
 
     private fun KotpassEntry.toDomainEntryDetail(groupUuid: UUID): EntryDetail {
@@ -265,6 +269,49 @@ class KdbxRepositoryImpl @Inject constructor(
         val updated = database
             .modifyGroup(bin) { copy(entries = emptyList(), groups = emptyList()) }
             .removeUnusedBinaries()
+        persist(updated)
+    }
+
+    override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        if (database.content.group.findGroup(parentUuid) == null) {
+            return Result.failure(NoSuchElementException("No group $parentUuid"))
+        }
+        val uuid = UUID.randomUUID()
+        val updated = database.modifyGroup(parentUuid) {
+            copy(groups = groups + KotpassGroup(uuid = uuid, name = name.trim()))
+        }
+        persist(updated).map { uuid }
+    }
+
+    override suspend fun renameGroup(uuid: UUID, name: String): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        if (database.content.group.findGroup(uuid) == null) {
+            return Result.failure(NoSuchElementException("No group $uuid"))
+        }
+        persist(database.modifyGroup(uuid) { copy(name = name.trim()) })
+    }
+
+    override suspend fun deleteGroup(uuid: UUID): Result<Unit> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val root = database.content.group
+        if (uuid == root.uuid) return Result.failure(IllegalArgumentException("The root group cannot be deleted"))
+        if (root.findGroup(uuid) == null) return Result.failure(NoSuchElementException("No group $uuid"))
+        val bin = database.recycleBin()
+        val alreadyRecycled = bin != null && root.findGroup(bin)?.findGroup(uuid) != null
+        val updated = if (!database.content.meta.recycleBinEnabled || alreadyRecycled) {
+            database.removeGroup(uuid).removeUnusedBinaries()
+        } else {
+            val withValidBin = if (bin == null && database.content.meta.recycleBinUuid != null) {
+                database.modifyMeta { copy(recycleBinUuid = null) }
+            } else {
+                database
+            }
+            withValidBin.withRecycleBin { binUuid -> moveGroup(uuid, binUuid) }
+        }
         persist(updated)
     }
 
