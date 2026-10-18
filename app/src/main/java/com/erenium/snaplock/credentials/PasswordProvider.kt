@@ -9,9 +9,11 @@ import androidx.credentials.provider.AuthenticationAction
 import androidx.credentials.provider.BeginCreateCredentialRequest
 import androidx.credentials.provider.BeginCreateCredentialResponse
 import androidx.credentials.provider.BeginCreatePasswordCredentialRequest
+import androidx.credentials.provider.BeginCreatePublicKeyCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.BeginGetPasswordOption
+import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import androidx.credentials.provider.CreateEntry
 import androidx.credentials.provider.PasswordCredentialEntry
 import com.erenium.snaplock.R
@@ -20,9 +22,9 @@ import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.first
 
 /**
- * Answers Android 14+ Credential Manager queries. Only names and usernames are shown in
- * the system sheet; the password leaves Snaplock once the user picks an entry, through
- * [CredentialActivity].
+ * Answers Android 14+ Credential Manager queries for passwords, and for passkeys through
+ * [PasskeyProvider]. Only names and usernames are shown in the system sheet; secrets leave
+ * Snaplock once the user picks an entry, through [CredentialActivity].
  */
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasswordProvider(
@@ -32,7 +34,8 @@ class PasswordProvider(
 
     suspend fun beginGet(request: BeginGetCredentialRequest): BeginGetCredentialResponse {
         val options = request.beginGetCredentialOptions.filterIsInstance<BeginGetPasswordOption>()
-        if (options.isEmpty()) return BeginGetCredentialResponse()
+        val passkeyOptions = request.beginGetCredentialOptions.filterIsInstance<BeginGetPublicKeyCredentialOption>()
+        if (options.isEmpty() && passkeyOptions.isEmpty()) return BeginGetCredentialResponse()
         if (repository.isLocked().first()) {
             return BeginGetCredentialResponse(
                 authenticationActions = listOf(
@@ -63,20 +66,25 @@ class PasswordProvider(
                     .build()
             }
         }
-        val search = Action(
-            context.getString(R.string.autofill_search_title),
-            CredentialActivity.searchIntent(context),
-            null
-        )
-        return BeginGetCredentialResponse(credentialEntries = entries, actions = listOf(search))
+        val passkeys = PasskeyProvider(context, repository).entries(passkeyOptions)
+        // Searching links a password entry to the app, which only means something for passwords.
+        val actions = if (options.isEmpty()) {
+            emptyList()
+        } else {
+            listOf(Action(context.getString(R.string.autofill_search_title), CredentialActivity.searchIntent(context), null))
+        }
+        return BeginGetCredentialResponse(credentialEntries = entries + passkeys, actions = actions)
     }
 
     fun beginCreate(request: BeginCreateCredentialRequest): BeginCreateCredentialResponse {
-        if (request !is BeginCreatePasswordCredentialRequest) return BeginCreateCredentialResponse()
-        val entry = CreateEntry.Builder(
-            context.getString(R.string.app_name),
-            CredentialActivity.createIntent(context)
-        ).build()
+        val entry = when (request) {
+            is BeginCreatePasswordCredentialRequest -> CreateEntry.Builder(
+                context.getString(R.string.app_name),
+                CredentialActivity.createIntent(context)
+            ).build()
+            is BeginCreatePublicKeyCredentialRequest -> PasskeyProvider(context, repository).createEntry(request)
+            else -> return BeginCreateCredentialResponse()
+        }
         return BeginCreateCredentialResponse(createEntries = listOf(entry))
     }
 }

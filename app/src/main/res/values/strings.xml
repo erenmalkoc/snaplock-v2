@@ -237,6 +237,10 @@
     <string name="settings_export">Export as CSV</string>
     <string name="tile_label">Lock Snaplock</string>
     <string name="entry_passkey_label">Passkey</string>
+    <string name="credentials_passkey_create_description">Saved in your Snaplock vault</string>
+    <string name="credentials_passkey_verify_title">Use your passkey</string>
+    <string name="credentials_passkey_exists">This vault already has a passkey for this account.</string>
+    <string name="credentials_passkey_error">Snaplock could not use the passkey.</string>
     <string name="entry_pick_one">Pick an entry to see it here.</string>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_search_long">Search entries</string>

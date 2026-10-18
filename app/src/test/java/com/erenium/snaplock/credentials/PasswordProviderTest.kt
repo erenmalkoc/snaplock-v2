@@ -10,8 +10,11 @@ import androidx.credentials.provider.BeginGetPasswordOption
 import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.PasswordCredentialEntry
+import androidx.credentials.provider.PublicKeyCredentialEntry
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import com.erenium.snaplock.testing.FakeKdbxRepository
 import java.util.UUID
 import kotlinx.coroutines.test.runTest
@@ -58,8 +61,10 @@ class PasswordProviderTest {
     }
 
     @Test
-    fun ignoresRequestsForOtherCredentialTypes() = runTest {
+    fun passkeyRequestsListThePasskeysForTheSite() = runTest {
         repository.locked.value = false
+        repository.passkeys += StoredPasskey(UUID.randomUUID(), "Bank", Passkey("Y3JlZA", "pem", "bank.example", "client", "dXNlcg"))
+        repository.passkeys += StoredPasskey(UUID.randomUUID(), "Shop", Passkey("b3RoZXI", "pem", "shop.example", "me", "dXNlcg"))
         val passkeyOnly = BeginGetCredentialRequest(
             listOf(BeginGetPublicKeyCredentialOption(Bundle(), "passkey-option", PASSKEY_REQUEST_JSON)),
             CallingAppInfo(BANK_APP, SigningInfo())
@@ -67,20 +72,33 @@ class PasswordProviderTest {
 
         val response = provider.beginGet(passkeyOnly)
 
-        assertTrue(response.credentialEntries.isEmpty())
+        val entries = response.credentialEntries.filterIsInstance<PublicKeyCredentialEntry>()
+        assertEquals(listOf("client"), entries.map { it.username.toString() })
+        assertEquals(listOf("Bank"), entries.map { it.displayName.toString() })
         assertTrue(response.actions.isEmpty())
-        assertTrue(response.authenticationActions.isEmpty())
     }
 
     @Test
-    fun offersToSavePasswordsButNotPasskeys() {
+    fun aLockedVaultOffersUnlockForPasskeysToo() = runTest {
+        repository.locked.value = true
+        val passkeyOnly = BeginGetCredentialRequest(
+            listOf(BeginGetPublicKeyCredentialOption(Bundle(), "passkey-option", PASSKEY_REQUEST_JSON)),
+            CallingAppInfo(BANK_APP, SigningInfo())
+        )
+
+        assertEquals(1, provider.beginGet(passkeyOnly).authenticationActions.size)
+    }
+
+    @Test
+    fun offersToSavePasswordsAndPasskeys() {
         val callingApp = CallingAppInfo(BANK_APP, SigningInfo())
 
         assertEquals(1, provider.beginCreate(BeginCreatePasswordCredentialRequest(callingApp, Bundle())).createEntries.size)
-        assertTrue(
+        assertEquals(
+            1,
             provider.beginCreate(
                 BeginCreatePublicKeyCredentialRequest(PASSKEY_CREATE_JSON, callingApp, Bundle())
-            ).createEntries.isEmpty()
+            ).createEntries.size
         )
     }
 

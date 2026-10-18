@@ -237,6 +237,10 @@
     <string name="settings_export">CSV olarak dışa aktar</string>
     <string name="tile_label">Snaplock\'u kilitle</string>
     <string name="entry_passkey_label">Geçiş anahtarı</string>
+    <string name="credentials_passkey_create_description">Snaplock kasanıza kaydedilir</string>
+    <string name="credentials_passkey_verify_title">Geçiş anahtarınızı kullanın</string>
+    <string name="credentials_passkey_exists">Bu kasada bu hesap için zaten bir geçiş anahtarı var.</string>
+    <string name="credentials_passkey_error">Snaplock geçiş anahtarını kullanamadı.</string>
     <string name="entry_pick_one">Burada görmek için bir kayıt seçin.</string>
     <string name="shortcut_search">Ara</string>
     <string name="shortcut_search_long">Kayıtlarda ara</string>
