@@ -37,6 +37,7 @@ import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -152,7 +153,7 @@ class KdbxRepositoryImpl @Inject constructor(
             notes = this.fields[FIELD_NOTES]?.content,
             groupUuid = groupUuid,
             customFields = fields
-                .filterKeys { it !in STANDARD_FIELDS && !it.isLinkField() }
+                .filterKeys { it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) }
                 .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) },
             history = history.mapIndexed { index, version ->
                 EntryVersion(
@@ -163,6 +164,7 @@ class KdbxRepositoryImpl @Inject constructor(
                     password = version.fields[FIELD_PASSWORD]?.content
                 )
             }.asReversed(),
+            otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content }),
             attachments = binaries.map { reference ->
                 Attachment(reference.name, storedFiles[reference.hash]?.getContent()?.size?.toLong() ?: 0L)
             }
@@ -479,7 +481,7 @@ class KdbxRepositoryImpl @Inject constructor(
             .minus(FIELD_NOTES)
 
         if (customFields != null) {
-            fields = fields.filterKeys { it in STANDARD_FIELDS || it.isLinkField() }
+            fields = fields.filterKeys { it in STANDARD_FIELDS || it.isLinkField() || OtpParser.isOtpField(it) }
             customFields.filter { it.name.isNotBlank() && it.name !in STANDARD_FIELDS }.forEach { field ->
                 val value = if (field.isProtected) {
                     EntryValue.Encrypted(EncryptedValue.fromString(field.value))
@@ -487,6 +489,12 @@ class KdbxRepositoryImpl @Inject constructor(
                     EntryValue.Plain(field.value)
                 }
                 fields = fields.plus(field.name.trim() to value)
+            }
+        }
+        if (otpUri != null) {
+            fields = fields.filterKeys { !OtpParser.isOtpField(it) }
+            if (otpUri.isNotBlank()) {
+                fields = fields.plus(OtpParser.FIELD_OTP to EntryValue.Encrypted(EncryptedValue.fromString(otpUri)))
             }
         }
         fields = fields.plus(FIELD_TITLE to EntryValue.Plain(title))
