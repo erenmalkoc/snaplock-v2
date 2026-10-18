@@ -79,3 +79,7 @@ described in [fdroid/PUBLISHING.md](fdroid/PUBLISHING.md).
 
 Snaplock is free software licensed under the GNU General Public License v3.0 or later.
 See [LICENSE](LICENSE).
+
+The passphrase generator uses the [EFF large wordlist](https://www.eff.org/dice) by the
+Electronic Frontier Foundation, licensed under
+[CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
