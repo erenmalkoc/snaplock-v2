@@ -161,8 +161,11 @@ class KdbxRepositoryRecycleBinTest {
 
         repository.emptyRecycleBin().getOrThrow()
 
-        assertNull(reopen().getEntry { it.uuid == entryUuid })
+        val saved = reopen()
+        assertNull(saved.getEntry { it.uuid == entryUuid })
         assertTrue(repository.getRecycledEntries().first().isEmpty())
+        // Recorded so a sync with an older copy of the vault does not bring it back.
+        assertTrue(saved.content.deletedObjects.any { it.id == entryUuid })
     }
 
     @Test

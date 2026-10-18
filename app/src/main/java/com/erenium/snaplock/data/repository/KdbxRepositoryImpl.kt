@@ -7,6 +7,7 @@ import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntry
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.modifiers.modifyBinaries
+import app.keemobile.kotpass.database.modifiers.modifyContent
 import app.keemobile.kotpass.database.modifiers.modifyCredentials
 import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
@@ -20,6 +21,7 @@ import app.keemobile.kotpass.database.modifiers.withHistory
 import app.keemobile.kotpass.database.modifiers.withRecycleBin
 import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.BinaryReference
+import app.keemobile.kotpass.models.DeletedObject
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
@@ -120,6 +122,10 @@ class KdbxRepositoryImpl @Inject constructor(
 
     private fun KotpassGroup.findGroup(target: UUID): KotpassGroup? =
         if (uuid == target) this else groups.firstNotNullOfOrNull { it.findGroup(target) }
+
+    /** This group's id and the ids of every group and entry below it. */
+    private fun KotpassGroup.descendantIds(): List<UUID> =
+        listOf(uuid) + entries.map { it.uuid } + groups.flatMap { it.descendantIds() }
 
     override fun getEntries(): Flow<List<Entry>> {
         return sessionCache.databaseFlow.map { database ->
@@ -302,8 +308,15 @@ class KdbxRepositoryImpl @Inject constructor(
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val bin = database.recycleBin() ?: return Result.success(Unit)
+        val binGroup = database.content.group.findGroup(bin) ?: return Result.success(Unit)
+        // Record the removals, as removeEntry does, so syncing with another copy
+        // of the vault does not bring the emptied items back.
+        val now = Instant.now()
+        val removed = (binGroup.entries.map { it.uuid } + binGroup.groups.flatMap { it.descendantIds() })
+            .map { DeletedObject(it, now) }
         val updated = database
             .modifyGroup(bin) { copy(entries = emptyList(), groups = emptyList()) }
+            .modifyContent { copy(deletedObjects = deletedObjects + removed) }
             .removeUnusedBinaries()
         persist(updated)
     }
