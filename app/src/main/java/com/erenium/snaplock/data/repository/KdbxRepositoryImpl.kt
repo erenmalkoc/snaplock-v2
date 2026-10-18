@@ -36,6 +36,7 @@ import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.EntryVersion
+import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.repository.KdbxRepository
@@ -165,6 +166,7 @@ class KdbxRepositoryImpl @Inject constructor(
                 )
             }.asReversed(),
             otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content }),
+            expires = times?.takeIf { it.expires }?.expiryTime,
             attachments = binaries.map { reference ->
                 Attachment(reference.name, storedFiles[reference.hash]?.getContent()?.size?.toLong() ?: 0L)
             }
@@ -211,6 +213,7 @@ class KdbxRepositoryImpl @Inject constructor(
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val newEntry = KotpassEntry(uuid = UUID.randomUUID(), fields = data.toFields())
+            .let { entry -> data.expiry?.let { entry.copy(times = entry.times.withExpiry(it)) } ?: entry }
         val targetGroup = data.groupUuid ?: database.content.group.uuid
         val updated = database.modifyGroup(targetGroup) {
             copy(entries = entries + newEntry)
@@ -224,9 +227,9 @@ class KdbxRepositoryImpl @Inject constructor(
         val historyLimit = database.content.meta.historyMaxItems
         val withUpdatedFields = database.modifyEntry(uuid) {
             // Keep the previous version, as KeePass does, so an edit can be undone.
-            withHistory { copy(fields = data.applyTo(fields), times = times?.touched()) }
+            withHistory { copy(fields = data.applyTo(fields)) }
                 .let { if (historyLimit >= 0) it.copy(history = it.history.takeLast(historyLimit)) else it }
-        }
+        }.let { updated -> data.expiry?.let { expiry -> updated.withEntryTimes(uuid) { it.withExpiry(expiry) } } ?: updated }
         val targetGroup = data.groupUuid
         val currentGroup = withUpdatedFields.getEntry { it.uuid == uuid }?.first?.uuid
         val moved = if (targetGroup != null && currentGroup != null && targetGroup != currentGroup) {
@@ -256,8 +259,7 @@ class KdbxRepositoryImpl @Inject constructor(
             }
             withValidBin.withRecycleBin { binUuid ->
                 // moveEntry records the previous group itself.
-                modifyEntry(uuid) { copy(times = times?.moved()) }
-                    .moveEntry(uuid, binUuid)
+                moveEntry(uuid, binUuid).withEntryTimes(uuid) { it.moved() }
             }
         }
         persist(updated)
@@ -273,8 +275,8 @@ class KdbxRepositoryImpl @Inject constructor(
             database.content.group.findGroup(target) != null && binGroup?.findGroup(target) == null
         }
         val updated = database
-            .modifyEntry(uuid) { copy(times = times?.moved()) }
             .moveEntry(uuid, previous ?: database.content.group.uuid)
+            .withEntryTimes(uuid) { it.moved() }
         persist(updated)
     }
 
@@ -314,7 +316,7 @@ class KdbxRepositoryImpl @Inject constructor(
                 .modifyBinaries { it + (data.hash to data) }
                 .modifyEntry(uuid) {
                     withHistory {
-                        copy(binaries = binaries + BinaryReference(data.hash, uniqueName), times = times?.touched())
+                        copy(binaries = binaries + BinaryReference(data.hash, uniqueName))
                     }.trimmedHistory(database.content.meta.historyMaxItems)
                 }
             persist(updated)
@@ -338,7 +340,7 @@ class KdbxRepositoryImpl @Inject constructor(
         if (entry.binaries.none { it.name == name }) return Result.failure(NoSuchElementException(name))
         // The removed file stays reachable through the entry's history, as in KeePass.
         val updated = database.modifyEntry(uuid) {
-            withHistory { copy(binaries = binaries.filterNot { it.name == name }, times = times?.touched()) }
+            withHistory { copy(binaries = binaries.filterNot { it.name == name }) }
                 .trimmedHistory(database.content.meta.historyMaxItems)
         }.removeUnusedBinaries()
         persist(updated)
@@ -407,17 +409,29 @@ class KdbxRepositoryImpl @Inject constructor(
             ?: return Result.failure(IndexOutOfBoundsException("No history version $index"))
         val historyLimit = database.content.meta.historyMaxItems
         val updated = database.modifyEntry(uuid) {
-            withHistory { copy(fields = version.fields, times = times?.touched()) }
+            withHistory { copy(fields = version.fields) }
                 .let { if (historyLimit >= 0) it.copy(history = it.history.takeLast(historyLimit)) else it }
         }
         persist(updated)
     }
 
-    private fun TimeData.touched(): TimeData = Instant.now().let { now ->
-        copy(lastModificationTime = now, lastAccessTime = now)
+    /**
+     * Changes an entry's times. kotpass' modifyEntry keeps the old times (it only bumps the
+     * modification time), so this replaces the entry inside its group instead.
+     */
+    private fun KeePassDatabase.withEntryTimes(uuid: UUID, change: (TimeData?) -> TimeData): KeePassDatabase {
+        val group = getEntry { it.uuid == uuid }?.first ?: return this
+        return modifyGroup(group.uuid) {
+            copy(entries = entries.map { if (it.uuid == uuid) it.copy(times = change(it.times)) else it })
+        }
     }
 
-    private fun TimeData.moved(): TimeData = copy(locationChanged = Instant.now())
+    private fun TimeData?.withExpiry(expiry: Expiry): TimeData {
+        val base = this ?: TimeData.create()
+        return base.copy(expires = expiry.at != null, expiryTime = expiry.at ?: base.expiryTime)
+    }
+
+    private fun TimeData?.moved(): TimeData = (this ?: TimeData.create()).copy(locationChanged = Instant.now())
 
     override suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit> = writeMutex.withLock {
         val database = sessionCache.getDatabase()

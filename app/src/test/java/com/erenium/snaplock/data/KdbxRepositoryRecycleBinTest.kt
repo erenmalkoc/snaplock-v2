@@ -110,6 +110,9 @@ class KdbxRepositoryRecycleBinTest {
         val (group, entry) = reopen().getEntry { it.uuid == entryUuid }!!
         assertEquals(webGroup, group.uuid)
         assertNotNull(entry.times)
+        // The move time is recorded (checked in memory: KDBX 4 stores whole seconds only).
+        val times = sessionCache.getDatabase()!!.getEntry { it.uuid == entryUuid }!!.second.times!!
+        assertTrue(times.locationChanged!!.isAfter(times.creationTime))
         assertEquals(listOf("GitHub"), repository.getEntries().first().map { it.title })
     }
 

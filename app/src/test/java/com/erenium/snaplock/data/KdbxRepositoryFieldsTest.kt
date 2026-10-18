@@ -19,8 +19,11 @@ import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.data.repository.KdbxRepositoryImpl
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryFormData
+import com.erenium.snaplock.domain.model.Expiry
 import java.io.File
+import java.time.Instant
 import java.util.UUID
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -130,6 +133,36 @@ class KdbxRepositoryFieldsTest {
         val saved = savedEntry()
         assertEquals("v1", saved.fields["Password"]?.content)
         assertEquals(listOf("v1", "v2", "v3"), saved.history.map { it.fields["Password"]?.content })
+    }
+
+    @Test
+    fun expirySetsClearsAndStaysWhenUntouched() = runTest {
+        open(mapOf("Title" to EntryValue.Plain("Bank")))
+        val date = Instant.parse("2027-01-31T00:00:00Z")
+
+        repository.updateEntry(entryUuid, form("pw", null).copy(expiry = Expiry(date))).getOrThrow()
+        assertEquals(date, repository.getEntryByUuid(entryUuid).getOrThrow().expires)
+        val saved = savedEntry().times!!
+        assertTrue(saved.expires)
+        assertEquals(date, saved.expiryTime)
+
+        repository.updateEntry(entryUuid, form("pw2", null)).getOrThrow()
+        assertEquals(date, repository.getEntryByUuid(entryUuid).getOrThrow().expires)
+
+        repository.updateEntry(entryUuid, form("pw3", null).copy(expiry = Expiry(null))).getOrThrow()
+        assertEquals(null, repository.getEntryByUuid(entryUuid).getOrThrow().expires)
+        assertTrue(!savedEntry().times!!.expires)
+    }
+
+    @Test
+    fun newEntriesCanExpire() = runTest {
+        open(mapOf("Title" to EntryValue.Plain("Bank")))
+        val date = Instant.parse("2027-06-01T00:00:00Z")
+
+        repository.addEntry(EntryFormData("VPN", null, "pw", null, null, null, expiry = Expiry(date))).getOrThrow()
+
+        val vpn = repository.getEntries().first().single { it.title == "VPN" }
+        assertEquals(date, repository.getEntryByUuid(vpn.uuid).getOrThrow().expires)
     }
 
     private companion object {

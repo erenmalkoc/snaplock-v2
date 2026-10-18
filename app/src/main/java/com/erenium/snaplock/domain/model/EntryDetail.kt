@@ -1,6 +1,7 @@
 package com.erenium.snaplock.domain.model
 
 import com.erenium.snaplock.domain.otp.OtpParameters
+import java.time.Instant
 import java.util.UUID
 
 data class EntryDetail(
@@ -16,5 +17,7 @@ data class EntryDetail(
     val history: List<EntryVersion> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
     /** Two-factor code settings, whichever KeePass field style they are stored in. */
-    val otp: OtpParameters? = null
+    val otp: OtpParameters? = null,
+    /** When the password should be replaced; null if it never expires. */
+    val expires: Instant? = null
 )
