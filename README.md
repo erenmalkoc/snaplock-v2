@@ -61,7 +61,8 @@ same bytes. Signing certificate SHA-256:
 - **Password health.** Finds weak, reused, old and expired passwords on the device, and
   optionally checks them against known breaches.
 - **Site icons.** Shows the custom icons KeePassXC and other clients store, and can
-  download icons for your sites into the vault when you ask it to.
+  download sharp icons for your sites into the vault, once or automatically for new
+  entries.
 - **Clipboard clearing** after a configurable delay.
 - **Auto-lock** when Snaplock leaves the screen, immediately or after a delay.
 - **Part of Android.** Material You colours, light and dark themes, per-app language
@@ -74,8 +75,8 @@ same bytes. Signing certificate SHA-256:
 - Snaplock goes online only for two optional features, and only after you turn them on:
   - The breach check sends the first 5 characters of each password's SHA-1 hash to Have
     I Been Pwned (k-anonymity), never a password or a full hash.
-  - Site icon downloads ask each website directly for its own icon; no other service
-    sees which sites you use.
+  - Site icon downloads ask each website directly for its own icon (or the server its
+    page names for it); no icon service sees the list of sites you use.
 - Passkeys answer for a website only when the request comes from a browser on Google's
   list of privileged browsers. Any other app gets signatures bound to its own signing
   certificate, which websites reject unless they trust that app.
