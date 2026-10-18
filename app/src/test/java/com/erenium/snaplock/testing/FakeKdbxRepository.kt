@@ -1,6 +1,8 @@
 package com.erenium.snaplock.testing
 
 import android.net.Uri
+import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
@@ -123,6 +125,17 @@ class FakeKdbxRepository : KdbxRepository {
         attachments[uuid]?.remove(name)
         return Result.success(Unit)
     }
+
+    val imported = mutableListOf<Pair<String, List<ImportedEntry>>>()
+
+    override suspend fun importEntries(groupName: String, entries: List<ImportedEntry>): Result<Int> {
+        imported += groupName to entries
+        return Result.success(entries.size)
+    }
+
+    var exportEntries = emptyList<ExportedEntry>()
+
+    override suspend fun getExportEntries(): List<ExportedEntry> = exportEntries
 
     override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> {
         val uuid = UUID.randomUUID()

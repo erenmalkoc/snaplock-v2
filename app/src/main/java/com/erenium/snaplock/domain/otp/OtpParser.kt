@@ -58,7 +58,9 @@ object OtpParser {
     }
 
     fun toUri(parameters: OtpParameters): String {
-        val label = listOfNotNull(parameters.issuer, parameters.account).joinToString(":").ifEmpty { "Snaplock" }
+        // Issuer and account are encoded on their own; the colon between them stays literal.
+        val label = listOfNotNull(parameters.issuer, parameters.account).joinToString(":") { encode(it) }
+            .ifEmpty { "Snaplock" }
         val query = buildList {
             add("secret=${Base32.encode(parameters.secret)}")
             parameters.issuer?.let { add("issuer=${encode(it)}") }
@@ -67,7 +69,7 @@ object OtpParser {
             add("algorithm=${parameters.algorithm.uriName}")
             if (parameters.isSteam) add("encoder=steam")
         }
-        return "otpauth://totp/${encode(label)}?${query.joinToString("&")}"
+        return "otpauth://totp/$label?${query.joinToString("&")}"
     }
 
     private fun parseOtpAuth(uri: String): OtpParameters? {

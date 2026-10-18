@@ -1,6 +1,8 @@
 package com.erenium.snaplock.domain.repository
 
 import android.net.Uri
+import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.model.Entry
@@ -63,6 +65,15 @@ interface KdbxRepository {
     suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray>
 
     suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit>
+
+    /**
+     * Adds [entries] in one save under a new group called [groupName] below the root;
+     * each entry's folder becomes a subgroup. Returns how many entries were added.
+     */
+    suspend fun importEntries(groupName: String, entries: List<ImportedEntry>): Result<Int>
+
+    /** Every entry outside the recycle bin, for a CSV export. */
+    suspend fun getExportEntries(): List<ExportedEntry>
 
     /** Adds an empty group under [parentUuid] and returns its id. */
     suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID>

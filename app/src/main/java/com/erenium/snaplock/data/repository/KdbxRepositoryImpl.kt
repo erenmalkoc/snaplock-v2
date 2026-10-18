@@ -29,6 +29,8 @@ import com.erenium.snaplock.data.datasource.local.credentialsOf
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.error.EntryNotFoundException
+import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Attachment
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.CustomField
@@ -372,6 +374,64 @@ class KdbxRepositoryImpl @Inject constructor(
 
     private fun KotpassEntry.trimmedHistory(limit: Int): KotpassEntry =
         if (limit >= 0) copy(history = history.takeLast(limit)) else this
+
+    override suspend fun importEntries(groupName: String, entries: List<ImportedEntry>): Result<Int> =
+        writeMutex.withLock {
+            val database = sessionCache.getDatabase()
+                ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+            val untitled = context.getString(R.string.untitled_entry)
+            val importGroup = entries.fold(KotpassGroup(uuid = UUID.randomUUID(), name = groupName)) { group, entry ->
+                val path = entry.folder?.split('/')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+                group.withEntryAt(path, entry.toKotpassEntry(untitled))
+            }
+            val updated = database.modifyGroup(database.content.group.uuid) { copy(groups = groups + importGroup) }
+            persist(updated).map { entries.size }
+        }
+
+    override suspend fun getExportEntries(): List<ExportedEntry> {
+        val database = sessionCache.getDatabase() ?: return emptyList()
+        val untitled = context.getString(R.string.untitled_entry)
+        fun walk(group: KotpassGroup, path: String, excluded: UUID?): List<ExportedEntry> {
+            if (group.uuid == excluded) return emptyList()
+            val own = group.entries.map { entry ->
+                val values = entry.fields.entries.associate { it.key to it.value.content }
+                ExportedEntry(
+                    group = path,
+                    title = values[FIELD_TITLE]?.takeIf { it.isNotBlank() } ?: untitled,
+                    username = values[FIELD_USERNAME],
+                    password = values[FIELD_PASSWORD],
+                    url = values[FIELD_URL],
+                    notes = values[FIELD_NOTES],
+                    otpUri = OtpParser.fromFields(values)?.let(OtpParser::toUri)
+                )
+            }
+            return own + group.groups.flatMap { child ->
+                walk(child, if (path.isEmpty()) child.name else "$path/${child.name}", excluded)
+            }
+        }
+        return walk(database.content.group, "", database.recycleBin())
+    }
+
+    /** Adds [entry] under the subgroup [path] (created as needed) of this group. */
+    private fun KotpassGroup.withEntryAt(path: List<String>, entry: KotpassEntry): KotpassGroup {
+        if (path.isEmpty()) return copy(entries = entries + entry)
+        val name = path.first()
+        val existing = groups.firstOrNull { it.name == name }
+        val child = (existing ?: KotpassGroup(uuid = UUID.randomUUID(), name = name)).withEntryAt(path.drop(1), entry)
+        return copy(groups = if (existing == null) groups + child else groups.map { if (it === existing) child else it })
+    }
+
+    private fun ImportedEntry.toKotpassEntry(untitled: String): KotpassEntry {
+        val fields = buildList {
+            add(FIELD_TITLE to EntryValue.Plain(title.ifBlank { untitled }))
+            username?.let { add(FIELD_USERNAME to EntryValue.Plain(it)) }
+            password?.let { add(FIELD_PASSWORD to EntryValue.Encrypted(EncryptedValue.fromString(it))) }
+            url?.let { add(FIELD_URL to EntryValue.Plain(it)) }
+            notes?.let { add(FIELD_NOTES to EntryValue.Plain(it)) }
+            otpUri?.let { add(OtpParser.FIELD_OTP to EntryValue.Encrypted(EncryptedValue.fromString(it))) }
+        }
+        return KotpassEntry(uuid = UUID.randomUUID(), fields = EntryFields(fields.toMap()))
+    }
 
     override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
