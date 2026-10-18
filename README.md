@@ -25,6 +25,15 @@ Every release is built reproducibly from its tag: anyone can rebuild the APK and
 same bytes. Signing certificate SHA-256:
 `e66b0d23e679d1d606573be6f705630f9f90e74be084ec4b59d1181ae608b8b7`
 
+## Screenshots
+
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_entries.png" width="200" alt="Entry list with site icons">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_detail.png" width="200" alt="Entry details with a 2FA code">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_autofill.png" width="200" alt="Autofill suggestions in the keyboard">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_health.png" width="200" alt="Password health">
+</p>
+
 ## Features
 
 - **KeePass compatible.** Opens and saves KDBX 4 databases from KeePassXC, KeePass,
