@@ -10,11 +10,19 @@ import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encode
 import app.keemobile.kotpass.models.Meta
 import com.erenium.snaplock.R
+import com.erenium.snaplock.domain.error.VaultChangedElsewhereException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okio.ByteString
+import okio.ByteString.Companion.toByteString
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import javax.inject.Inject
+
+/** A vault as read from or written to its file; [fingerprint] identifies those exact bytes. */
+class StoredVault(val database: KeePassDatabase, val fingerprint: ByteString)
 
 class KdbxLocalDataSource @Inject constructor(
     @param:ApplicationContext private val context: Context
@@ -24,16 +32,12 @@ class KdbxLocalDataSource @Inject constructor(
         private const val GENERATOR_NAME = "Snaplock"
     }
 
-    suspend fun openDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<KeePassDatabase> {
+    suspend fun openDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<StoredVault> {
         return withContext(Dispatchers.IO) {
             try {
                 val credentials = credentialsOf(password, keyFile)
-                val inputStream = context.contentResolver.openInputStream(uri)
-                val database = inputStream.use {
-                    if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
-                    KeePassDatabase.decode(it, credentials)
-                }
-                Result.success(database)
+                val bytes = readBytes(uri)
+                Result.success(StoredVault(decode(bytes, credentials), fingerprintOf(bytes)))
             } catch (e: Exception) {
                 Log.e(TAG, "Veritabanı açılamadı.", e)
                 Result.failure(e)
@@ -46,7 +50,7 @@ class KdbxLocalDataSource @Inject constructor(
         password: CharSequence,
         rootName: String,
         keyFile: ByteArray? = null
-    ): Result<KeePassDatabase> {
+    ): Result<StoredVault> {
         return withContext(Dispatchers.IO) {
             try {
                 val credentials = credentialsOf(password, keyFile)
@@ -56,12 +60,9 @@ class KdbxLocalDataSource @Inject constructor(
                     meta = Meta(generator = GENERATOR_NAME, name = rootName, recycleBinEnabled = true),
                     credentials = credentials
                 )
-                val outputStream = context.contentResolver.openOutputStream(uri, "wt")
-                outputStream.use {
-                    if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
-                    database.encode(it)
-                }
-                Result.success(database)
+                val bytes = database.encodeToByteArray()
+                writeBytes(uri, bytes)
+                Result.success(StoredVault(database, fingerprintOf(bytes)))
             } catch (e: Exception) {
                 Log.e(TAG, "Veritabanı oluşturulamadı.", e)
                 Result.failure(e)
@@ -69,24 +70,60 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 
-    suspend fun saveDatabase(uri: Uri, database: KeePassDatabase): Result<Unit> {
+    /** Writes [database] over the vault file and returns the fingerprint of what was written. */
+    suspend fun saveDatabase(uri: Uri, database: KeePassDatabase): Result<ByteString> {
         return withContext(Dispatchers.IO) {
             try {
                 // Encode first: opening with "wt" truncates the vault, so a failed
                 // encode must happen before the existing file is touched.
                 val bytes = database.encodeToByteArray()
-                val outputStream = context.contentResolver.openOutputStream(uri, "wt")
-                outputStream.use {
-                    if (it == null) throw Exception(context.getString(R.string.error_kdbx_file))
-                    it.write(bytes)
-                }
-                Result.success(Unit)
+                writeBytes(uri, bytes)
+                Result.success(fingerprintOf(bytes))
             } catch (e: Exception) {
                 Log.e(TAG, "Veritabanı kaydedilemedi.", e)
                 Result.failure(e)
             }
         }
     }
+
+    /**
+     * The vault as its file holds it now, when another app or device (Syncthing, a cloud
+     * drive) wrote to it after [fingerprint] was taken; null when it is unchanged or empty.
+     * A file that no longer opens with [credentials] fails with [VaultChangedElsewhereException].
+     */
+    suspend fun readIfChanged(uri: Uri, fingerprint: ByteString?, credentials: Credentials): Result<StoredVault?> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val bytes = readBytes(uri)
+                val current = fingerprintOf(bytes)
+                if (bytes.isEmpty() || current == fingerprint) return@withContext Result.success(null)
+                val database = try {
+                    decode(bytes, credentials)
+                } catch (e: Exception) {
+                    throw VaultChangedElsewhereException(e)
+                }
+                Result.success(StoredVault(database, current))
+            } catch (e: Exception) {
+                Log.e(TAG, "Veritabanı dosyası okunamadı.", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    private fun readBytes(uri: Uri): ByteArray =
+        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: throw IOException(context.getString(R.string.error_kdbx_file))
+
+    private fun writeBytes(uri: Uri, bytes: ByteArray) {
+        val outputStream = context.contentResolver.openOutputStream(uri, "wt")
+            ?: throw IOException(context.getString(R.string.error_kdbx_file))
+        outputStream.use { it.write(bytes) }
+    }
+
+    private fun decode(bytes: ByteArray, credentials: Credentials): KeePassDatabase =
+        KeePassDatabase.decode(ByteArrayInputStream(bytes), credentials)
+
+    private fun fingerprintOf(bytes: ByteArray): ByteString = bytes.toByteString().sha256()
 }
 
 /** KeePass composite key: password, key file or both; an empty password with a key file means key file only. */

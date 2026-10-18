@@ -30,7 +30,9 @@ import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.data.datasource.local.credentialsOf
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.R
+import com.erenium.snaplock.data.sync.VaultMerger
 import com.erenium.snaplock.domain.error.EntryNotFoundException
+import com.erenium.snaplock.domain.error.VaultChangedElsewhereException
 import com.erenium.snaplock.domain.importer.ExportedEntry
 import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Attachment
@@ -212,9 +214,9 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         val result = localDataSource.openDatabase(uri, password, keyFile)
         return if (result.isSuccess) {
-            val database = result.getOrNull()
-            if (database != null) {
-                sessionCache.setDatabase(database, uri)
+            val stored = result.getOrNull()
+            if (stored != null) {
+                sessionCache.setDatabase(stored.database, uri, stored.fingerprint)
                 recentDatabasesPrefs.add(uri)
                 Result.success(Unit)
             } else {
@@ -227,8 +229,8 @@ class KdbxRepositoryImpl @Inject constructor(
 
     override suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         return localDataSource.createDatabase(uri, password, context.getString(R.string.default_root_group), keyFile)
-            .map { database ->
-                sessionCache.setDatabase(database, uri)
+            .map { stored ->
+                sessionCache.setDatabase(stored.database, uri, stored.fingerprint)
                 recentDatabasesPrefs.add(uri)
             }
     }
@@ -565,9 +567,20 @@ class KdbxRepositoryImpl @Inject constructor(
     private suspend fun persist(database: KeePassDatabase): Result<Unit> {
         val uri = sessionCache.getUri()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        val saveResult = localDataSource.saveDatabase(uri, database)
-        return saveResult.onSuccess {
-            sessionCache.setDatabase(database, uri)
+        // Another device or app may have written the file since this session last read or
+        // saved it (Syncthing, a cloud drive): merge those changes instead of overwriting
+        // them. The file is still encrypted with the credentials the session opened it with.
+        val opened = sessionCache.getDatabase() ?: database
+        val external = localDataSource.readIfChanged(uri, sessionCache.getFingerprint(), opened.credentials)
+            .getOrElse { return Result.failure(it) }
+        val merged = if (external == null) {
+            database
+        } else {
+            runCatching { VaultMerger.merge(database, external.database) }
+                .getOrElse { return Result.failure(VaultChangedElsewhereException(it)) }
+        }
+        return localDataSource.saveDatabase(uri, merged).map { fingerprint ->
+            sessionCache.setDatabase(merged, uri, fingerprint)
         }
     }
 
