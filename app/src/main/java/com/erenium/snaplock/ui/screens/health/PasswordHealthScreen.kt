@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.GppBad
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.SyncProblem
 import androidx.compose.material.icons.filled.Warning
@@ -31,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.passwords.AuditEntry
+import com.erenium.snaplock.domain.passwords.BreachCheck
 import com.erenium.snaplock.presentation.health.PasswordHealthViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
@@ -93,13 +95,20 @@ fun PasswordHealthScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = stringResource(R.string.health_offline_note),
+                        text = stringResource(
+                            when (current.breachCheck) {
+                                BreachCheck.OFF -> R.string.health_breach_off
+                                BreachCheck.DONE -> R.string.health_breach_done
+                                BreachCheck.FAILED -> R.string.health_breach_failed
+                            }
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = Dimens.spaceSm)
                     )
                 }
             }
+            section(R.string.health_breached, R.string.health_breached_desc, Icons.Filled.GppBad, current.breached, onEntryClick)
             section(R.string.health_weak, R.string.health_weak_desc, Icons.Filled.Warning, current.weak, onEntryClick)
             section(
                 R.string.health_reused,

@@ -2,6 +2,7 @@ package com.erenium.snaplock.presentation.health
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.domain.passwords.HealthReport
 import com.erenium.snaplock.domain.usecase.CheckPasswordHealthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PasswordHealthViewModel @Inject constructor(
-    private val checkPasswordHealth: CheckPasswordHealthUseCase
+    private val checkPasswordHealth: CheckPasswordHealthUseCase,
+    private val settingsPrefs: SettingsPrefs
 ) : ViewModel() {
 
     /** Null while the check runs. */
@@ -25,7 +27,8 @@ class PasswordHealthViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             // Strength estimates for large vaults are worth keeping off the main thread.
-            _report.value = withContext(Dispatchers.Default) { checkPasswordHealth() }
+            val checkBreaches = settingsPrefs.settings.value.breachCheckEnabled
+            _report.value = withContext(Dispatchers.Default) { checkPasswordHealth(checkBreaches) }
         }
     }
 }

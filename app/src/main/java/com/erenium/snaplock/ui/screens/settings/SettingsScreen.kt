@@ -139,6 +139,15 @@ fun SettingsScreen(
                 }
             }
 
+            SettingsSection(title = stringResource(R.string.settings_online)) {
+                ToggleRow(
+                    label = stringResource(R.string.settings_breach_check),
+                    description = stringResource(R.string.settings_breach_check_desc),
+                    checked = settings.breachCheckEnabled,
+                    onCheckedChange = viewModel::onBreachCheckChange
+                )
+            }
+
             SettingsSection(title = stringResource(R.string.settings_security)) {
                 Text(
                     text = stringResource(R.string.settings_auto_lock),

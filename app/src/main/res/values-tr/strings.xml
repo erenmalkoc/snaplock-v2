@@ -198,7 +198,6 @@
         <item quantity="one">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
         <item quantity="other">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
     </plurals>
-    <string name="health_offline_note">Bu cihazda kontrol edildi; hiçbir şifre Snaplock\'tan çıkmaz.</string>
     <string name="health_weak">Zayıf</string>
     <string name="health_weak_desc">Tahmin etmesi kolay. Üretilmiş şifrelerle değiştirin.</string>
     <string name="health_reused">Tekrar kullanılan</string>
@@ -207,5 +206,13 @@
     <string name="health_old_desc">Önemli olanları değiştirmeyi düşünün.</string>
     <string name="health_expired">Süresi dolmuş</string>
     <string name="health_expired_desc">Son kullanma tarihleri geçti.</string>
+    <string name="settings_online">İnternet (isteğe bağlı)</string>
+    <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
+    <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her şifrenin SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir; şifrenin kendisi cihazdan çıkmaz.</string>
+    <string name="health_breached">Sızıntılarda bulunan</string>
+    <string name="health_breached_desc">Saldırganlar önce bunları dener. Hemen değiştirin.</string>
+    <string name="health_breach_off">Bu cihazda kontrol edildi. Sızıntı kontrolü kapalı; ayarlardan açabilirsiniz.</string>
+    <string name="health_breach_done">Bu cihazda ve Have I Been Pwned üzerinden (yalnızca özet önekleri) kontrol edildi.</string>
+    <string name="health_breach_failed">Bu cihazda kontrol edildi. Sızıntı kontrolü için Have I Been Pwned\'e ulaşılamadı.</string>
 
 </resources>

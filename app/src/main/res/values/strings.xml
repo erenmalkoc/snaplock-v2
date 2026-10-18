@@ -198,7 +198,6 @@
         <item quantity="one">%1$d of %2$d passwords needs attention.</item>
         <item quantity="other">%1$d of %2$d passwords need attention.</item>
     </plurals>
-    <string name="health_offline_note">Checked on this device; no password leaves Snaplock.</string>
     <string name="health_weak">Weak</string>
     <string name="health_weak_desc">Easy to guess. Replace them with generated passwords.</string>
     <string name="health_reused">Reused</string>
@@ -207,5 +206,13 @@
     <string name="health_old_desc">Consider changing important ones.</string>
     <string name="health_expired">Expired</string>
     <string name="health_expired_desc">Their expiry date has passed.</string>
+    <string name="settings_online">Online (optional)</string>
+    <string name="settings_breach_check">Check passwords against known breaches</string>
+    <string name="settings_breach_check_desc">Uses Have I Been Pwned. Only the first 5 characters of each password\'s SHA-1 hash are sent; the password itself never leaves the device.</string>
+    <string name="health_breached">Found in data breaches</string>
+    <string name="health_breached_desc">Attackers try these first. Change them now.</string>
+    <string name="health_breach_off">Checked on this device. Breach checking is off; turn it on in settings.</string>
+    <string name="health_breach_done">Checked on this device and against Have I Been Pwned (hash prefixes only).</string>
+    <string name="health_breach_failed">Checked on this device. The breach check could not reach Have I Been Pwned.</string>
 
 </resources>

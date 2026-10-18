@@ -15,16 +15,21 @@ data class AuditEntry(
     val expires: Instant?
 )
 
+enum class BreachCheck { OFF, DONE, FAILED }
+
 data class HealthReport(
     val checked: Int,
     val weak: List<AuditEntry>,
     /** Entries sharing a password, one list per shared password. */
     val reused: List<List<AuditEntry>>,
     val old: List<AuditEntry>,
-    val expired: List<AuditEntry>
+    val expired: List<AuditEntry>,
+    /** Entries whose password appears in known breaches; only filled when the user opted in. */
+    val breached: List<AuditEntry> = emptyList(),
+    val breachCheck: BreachCheck = BreachCheck.OFF
 ) {
     val affected: Set<UUID> =
-        (weak + reused.flatten() + old + expired).map { it.uuid }.toSet()
+        (weak + reused.flatten() + old + expired + breached).map { it.uuid }.toSet()
 
     /** Share of checked entries with no issue, 0..100. */
     val score: Int = if (checked == 0) 100 else (100 * (checked - affected.size) / checked)

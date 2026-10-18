@@ -24,4 +24,6 @@ class SettingsViewModel @Inject constructor(
     fun onClipboardTimeoutChange(seconds: Int) = settingsPrefs.setClipboardTimeoutSeconds(seconds)
 
     fun onAutoLockChange(seconds: Int) = settingsPrefs.setAutoLockSeconds(seconds)
+
+    fun onBreachCheckChange(enabled: Boolean) = settingsPrefs.setBreachCheckEnabled(enabled)
 }

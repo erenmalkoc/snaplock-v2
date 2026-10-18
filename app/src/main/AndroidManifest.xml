@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Only for the opt-in breach check (off by default); vault files never go online. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Only for scanning two-factor QR codes; Snaplock works without a camera. -->
     <uses-feature
         android:name="android.hardware.camera"
