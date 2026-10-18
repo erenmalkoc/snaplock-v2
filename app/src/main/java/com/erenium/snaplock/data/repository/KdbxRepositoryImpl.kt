@@ -3,12 +3,8 @@ package com.erenium.snaplock.data.repository
 import android.content.Context
 import android.net.Uri
 import app.keemobile.kotpass.cryptography.EncryptedValue
-import app.keemobile.kotpass.cryptography.format.BaseCiphers
-import app.keemobile.kotpass.cryptography.format.TwofishCipher
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntry
-import app.keemobile.kotpass.database.header.DatabaseHeader
-import app.keemobile.kotpass.database.header.KdfParameters
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.modifiers.modifyBinaries
 import app.keemobile.kotpass.database.modifiers.modifyContent
@@ -29,6 +25,9 @@ import app.keemobile.kotpass.models.DeletedObject
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
+import com.erenium.snaplock.data.crypto.encryptionSettings
+import com.erenium.snaplock.data.crypto.kdfParameters
+import com.erenium.snaplock.data.crypto.uuid
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
 import com.erenium.snaplock.data.datasource.local.credentialsOf
@@ -50,8 +49,6 @@ import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.model.Expiry
 import com.erenium.snaplock.domain.model.Group
-import com.erenium.snaplock.domain.model.KdfAlgorithm
-import com.erenium.snaplock.domain.model.VaultCipher
 import com.erenium.snaplock.domain.model.problem
 import com.erenium.snaplock.domain.model.VaultBackup
 import com.erenium.snaplock.domain.otp.OtpParser
@@ -63,8 +60,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.ByteString
-import okio.ByteString.Companion.toByteString
-import java.security.SecureRandom
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -381,52 +376,12 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(settings.encryption?.let { withMeta.withEncryption(it) } ?: withMeta)
     }
 
-    private fun DatabaseHeader.Ver4x.encryptionSettings(): EncryptionSettings? {
-        val cipher = VaultCipher.entries.firstOrNull { it.uuid == cipherId } ?: return null
-        return when (val kdf = kdfParameters) {
-            is KdfParameters.Argon2 -> EncryptionSettings(
-                cipher = cipher,
-                kdf = if (kdf.variant == KdfParameters.Argon2.Variant.Argon2id) KdfAlgorithm.ARGON2ID else KdfAlgorithm.ARGON2D,
-                iterations = kdf.iterations.toLong(),
-                memoryBytes = kdf.memory.toLong(),
-                parallelism = kdf.parallelism.toInt()
-            )
-            is KdfParameters.Aes -> EncryptionSettings(cipher, KdfAlgorithm.AES_KDF, kdf.rounds.toLong(), 0, 0)
-        }
-    }
-
     /** KDBX 3 files keep their encryption; KDBX 4 headers take the new cipher and key derivation. */
     private fun KeePassDatabase.withEncryption(settings: EncryptionSettings): KeePassDatabase {
         val ver4 = this as? KeePassDatabase.Ver4x ?: return this
         if (ver4.header.encryptionSettings() == settings) return this
-        // The salt and seed are replaced again on every save; these only fill the fields.
-        val salt = ByteArray(KDF_SALT_BYTES).also { SecureRandom().nextBytes(it) }.toByteString()
-        val kdf = when (settings.kdf) {
-            KdfAlgorithm.AES_KDF -> KdfParameters.Aes(rounds = settings.iterations.toULong(), seed = salt)
-            KdfAlgorithm.ARGON2D, KdfAlgorithm.ARGON2ID -> KdfParameters.Argon2(
-                variant = if (settings.kdf == KdfAlgorithm.ARGON2ID) {
-                    KdfParameters.Argon2.Variant.Argon2id
-                } else {
-                    KdfParameters.Argon2.Variant.Argon2d
-                },
-                salt = salt,
-                parallelism = settings.parallelism.toUInt(),
-                memory = settings.memoryBytes.toULong(),
-                iterations = settings.iterations.toULong(),
-                version = ARGON2_VERSION,
-                secretKey = null,
-                associatedData = null
-            )
-        }
-        return ver4.copy(header = ver4.header.copy(cipherId = settings.cipher.uuid, kdfParameters = kdf))
+        return ver4.copy(header = ver4.header.copy(cipherId = settings.cipher.uuid, kdfParameters = settings.kdfParameters()))
     }
-
-    private val VaultCipher.uuid: UUID
-        get() = when (this) {
-            VaultCipher.AES_256 -> BaseCiphers.Aes.uuid
-            VaultCipher.CHACHA20 -> BaseCiphers.ChaCha20.uuid
-            VaultCipher.TWOFISH -> TwofishCipher.uuid
-        }
 
     override suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit> =
         writeMutex.withLock {
@@ -771,9 +726,6 @@ class KdbxRepositoryImpl @Inject constructor(
         const val FIELD_URL = "URL"
         const val FIELD_NOTES = "Notes"
         val STANDARD_FIELDS = setOf(FIELD_TITLE, FIELD_USERNAME, FIELD_PASSWORD, FIELD_URL, FIELD_NOTES)
-        const val KDF_SALT_BYTES = 32
-        /** Argon2 1.3, the only version KeePass writes. */
-        const val ARGON2_VERSION = 0x13u
     }
 
 }
