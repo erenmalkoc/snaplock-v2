@@ -14,11 +14,17 @@ import com.erenium.snaplock.ui.theme.Dimens
 fun AppCard(
     modifier: Modifier = Modifier,
     contentPadding: Boolean = true,
+    selected: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
+        colors = if (selected) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        } else {
+            CardDefaults.cardColors()
+        },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimens.cardElevation)
     ) {
         Column(

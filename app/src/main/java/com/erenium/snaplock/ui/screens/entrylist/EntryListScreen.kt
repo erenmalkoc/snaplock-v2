@@ -84,6 +84,8 @@ fun EntryListScreen(
     onEntryClick: (UUID) -> Unit,
     focusSearch: Boolean = false,
     onSearchFocused: () -> Unit = {},
+    /** The entry open beside the list on wide screens, highlighted. */
+    selectedEntry: UUID? = null,
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -207,6 +209,7 @@ fun EntryListScreen(
                         EntryListItem(
                             entry = entry,
                             showGroup = state.isSearching,
+                            selected = entry.uuid == selectedEntry,
                             onClick = { onEntryClick(entry.uuid) }
                         )
                     }
@@ -401,13 +404,15 @@ private fun SearchBar(
 private fun EntryListItem(
     entry: Entry,
     showGroup: Boolean,
+    selected: Boolean,
     onClick: () -> Unit
 ) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Dimens.spaceXs),
-        contentPadding = false
+        contentPadding = false,
+        selected = selected
     ) {
         Row(
             modifier = Modifier

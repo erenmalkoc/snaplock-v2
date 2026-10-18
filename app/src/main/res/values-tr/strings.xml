@@ -236,6 +236,7 @@
     <string name="settings_import_desc">Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass veya KeePassXC dışa aktarımlarından kayıt alın ya da başka bir yöneticiye taşıyın.</string>
     <string name="settings_export">CSV olarak dışa aktar</string>
     <string name="tile_label">Snaplock\'u kilitle</string>
+    <string name="entry_pick_one">Burada görmek için bir kayıt seçin.</string>
     <string name="shortcut_search">Ara</string>
     <string name="shortcut_search_long">Kayıtlarda ara</string>
     <string name="shortcut_new_entry">Yeni kayıt</string>

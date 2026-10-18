@@ -19,6 +19,7 @@ import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
 import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,7 +68,12 @@ class EntryDetailViewModel @Inject constructor(
     private val _deletedEvents = Channel<Unit>(Channel.BUFFERED)
     val deletedEvents = _deletedEvents.receiveAsFlow()
 
-    private val entryUuid: String = checkNotNull(savedStateHandle["uuid"])
+    // The navigation argument on phones; the pane beside the list on wide screens has none
+    // and picks its entry with show().
+    private var entryUuid: String? = savedStateHandle["uuid"]
+    private var loadJob: Job? = null
+
+    private val currentUuid: UUID get() = UUID.fromString(checkNotNull(entryUuid))
 
     init {
         loadEntryDetails()
@@ -75,11 +81,22 @@ class EntryDetailViewModel @Inject constructor(
 
     fun reload() = loadEntryDetails()
 
+    /** Switches to another entry, starting from a clean state. */
+    fun show(uuid: UUID) {
+        if (entryUuid == uuid.toString()) return
+        entryUuid = uuid.toString()
+        _uiState.value = EntryDetailUiState()
+        loadEntryDetails()
+    }
+
     private fun loadEntryDetails() {
-        viewModelScope.launch {
+        val uuid = entryUuid?.let(UUID::fromString) ?: return
+        // A slower load for the previous entry must not overwrite this one.
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val result = getEntryDetailsUseCase(UUID.fromString(entryUuid))
+            val result = getEntryDetailsUseCase(uuid)
 
             result.onSuccess { entry ->
                 _uiState.update { it.copy(isLoading = false, entry = entry) }
@@ -128,7 +145,7 @@ class EntryDetailViewModel @Inject constructor(
 
     fun onRestoreVersion(index: Int) {
         viewModelScope.launch {
-            restoreVersionUseCase(UUID.fromString(entryUuid), index)
+            restoreVersionUseCase(currentUuid, index)
                 .onSuccess {
                     loadEntryDetails()
                     _restoredEvents.trySend(Unit)
@@ -138,7 +155,7 @@ class EntryDetailViewModel @Inject constructor(
     }
 
     fun onAddAttachment(uri: Uri) {
-        val uuid = UUID.fromString(entryUuid)
+        val uuid = currentUuid
         viewModelScope.launch {
             documentFiles.read(uri, MAX_ATTACHMENT_BYTES)
                 .onFailure { error ->
@@ -157,7 +174,7 @@ class EntryDetailViewModel @Inject constructor(
 
     fun onSaveAttachment(name: String, target: Uri) {
         viewModelScope.launch {
-            getAttachmentUseCase(UUID.fromString(entryUuid), name)
+            getAttachmentUseCase(currentUuid, name)
                 .fold(onSuccess = { documentFiles.write(target, it) }, onFailure = { Result.failure(it) })
                 .onSuccess { message(R.string.attachment_saved, name) }
                 .onFailure { message(R.string.attachment_error) }
@@ -166,7 +183,7 @@ class EntryDetailViewModel @Inject constructor(
 
     fun onRemoveAttachment(name: String) {
         viewModelScope.launch {
-            removeAttachmentUseCase(UUID.fromString(entryUuid), name)
+            removeAttachmentUseCase(currentUuid, name)
                 .onSuccess { loadEntryDetails() }
                 .onFailure { message(it.saveErrorMessage(R.string.attachment_error)) }
         }
@@ -178,7 +195,7 @@ class EntryDetailViewModel @Inject constructor(
 
     fun onDelete() {
         viewModelScope.launch {
-            deleteEntryUseCase(UUID.fromString(entryUuid))
+            deleteEntryUseCase(currentUuid)
                 .onSuccess { _deletedEvents.trySend(Unit) }
                 .onFailure { error ->
                     _uiState.update { it.copy(errorStringId = error.saveErrorMessage(R.string.entry_delete_error)) }

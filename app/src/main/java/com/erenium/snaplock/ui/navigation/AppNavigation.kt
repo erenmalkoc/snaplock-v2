@@ -30,6 +30,10 @@ import com.erenium.snaplock.ui.screens.recyclebin.RecycleBinScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import java.net.URLDecoder
+import java.util.UUID
+import com.erenium.snaplock.ui.screens.entrylist.isTwoPaneWidth
+import com.erenium.snaplock.ui.screens.entrylist.EntryListDetailLayout
+import androidx.compose.runtime.saveable.rememberSaveable
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import androidx.core.net.toUri
@@ -42,6 +46,11 @@ fun AppNavigation(
     val isLocked by mainViewModel.isLocked.collectAsState()
     val shortcut by mainViewModel.pendingShortcut.collectAsState()
     var focusSearch by remember { mutableStateOf(false) }
+    // The entry shown beside the list on wide screens; kept across rotation and folding.
+    var selectedEntry by rememberSaveable { mutableStateOf<UUID?>(null) }
+    LaunchedEffect(isLocked) {
+        if (isLocked) selectedEntry = null
+    }
     // A vault that is still open (the activity was recreated before auto-lock) opens on its entries.
     val startDestination = remember { if (mainViewModel.isLocked.value) NavRoutes.SELECT_FILE else NavRoutes.ENTRY_LIST }
 
@@ -159,26 +168,37 @@ fun AppNavigation(
                     }
                 }
             } else {
-                EntryListScreen(
-                    focusSearch = focusSearch,
-                    onSearchFocused = { focusSearch = false },
-                    onNavigateToLock = {
-                        navController.navigate(NavRoutes.SELECT_FILE) {
-                            popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
-                        }
-                    },
-                    onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
-                    onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
-                    onNavigateToHealth = { navController.navigate(NavRoutes.PASSWORD_HEALTH) },
-                    onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
-                    onAddEntry = { groupUuid ->
-                        val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
-                        navController.navigate(route)
-                    },
-                    onEntryClick = { uuid ->
-                        navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid")
-                    }
-                )
+                val twoPane = isTwoPaneWidth()
+                val entryList: @Composable (onEntryClick: (UUID) -> Unit) -> Unit = { onEntryClick ->
+                    EntryListScreen(
+                        focusSearch = focusSearch,
+                        onSearchFocused = { focusSearch = false },
+                        onNavigateToLock = {
+                            navController.navigate(NavRoutes.SELECT_FILE) {
+                                popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
+                            }
+                        },
+                        onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
+                        onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
+                        onNavigateToHealth = { navController.navigate(NavRoutes.PASSWORD_HEALTH) },
+                        onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
+                        onAddEntry = { groupUuid ->
+                            val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
+                            navController.navigate(route)
+                        },
+                        onEntryClick = onEntryClick,
+                        selectedEntry = selectedEntry.takeIf { twoPane }
+                    )
+                }
+                if (twoPane) {
+                    EntryListDetailLayout(
+                        selectedEntry = selectedEntry,
+                        onSelectEntry = { selectedEntry = it },
+                        onNavigateToEdit = { uuid -> navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid") }
+                    ) { onEntryClick -> entryList(onEntryClick) }
+                } else {
+                    entryList { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
+                }
             }
         }
         composable(route = NavRoutes.PASSWORD_HEALTH) {
