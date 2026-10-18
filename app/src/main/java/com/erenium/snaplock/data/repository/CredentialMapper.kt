@@ -1,7 +1,10 @@
 package com.erenium.snaplock.data.repository
 
+import app.keemobile.kotpass.models.CustomIcon
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.EntryIcon
 import com.erenium.snaplock.domain.otp.OtpParser
+import java.util.UUID
 import app.keemobile.kotpass.models.Entry as KotpassEntry
 
 // Field names other KeePass clients use to link entries to apps and extra sites:
@@ -13,7 +16,10 @@ internal const val FIELD_ANDROID_APP = "AndroidApp"
 internal const val FIELD_EXTRA_URL = "KP2A_URL"
 internal const val ANDROID_APP_SCHEME = "androidapp://"
 
-internal fun KotpassEntry.toCredential(untitledTitle: String): Credential {
+internal fun KotpassEntry.toCredential(
+    untitledTitle: String,
+    icons: Map<UUID, CustomIcon> = emptyMap()
+): Credential {
     val urlValues = fields
         .filterKeys { it == FIELD_URL || it.isNumberedField(FIELD_EXTRA_URL) }
         .values.map { it.content.trim() }
@@ -31,9 +37,14 @@ internal fun KotpassEntry.toCredential(untitledTitle: String): Credential {
         password = fields.password?.content?.takeIf { it.isNotEmpty() },
         urls = urlValues.filterNot { it.startsWith(ANDROID_APP_SCHEME, ignoreCase = true) },
         androidApps = (appsFromFields + appsFromUrls).filter { it.isNotEmpty() }.distinct(),
-        otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content })
+        otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content }),
+        icon = iconFrom(icons)
     )
 }
+
+/** The entry's custom icon, if it has one the vault still holds. */
+internal fun KotpassEntry.iconFrom(icons: Map<UUID, CustomIcon>): EntryIcon? =
+    customIconUuid?.let { id -> icons[id]?.let { EntryIcon(id, it.data) } }
 
 /** Fields that link an entry to apps and extra sites; edited through autofill, not as custom fields. */
 internal fun String.isLinkField(): Boolean =

@@ -9,5 +9,6 @@ data class Entry(
     val groupUuid: UUID,
     val groupName: String,
     val url: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
+    val icon: EntryIcon? = null
 )

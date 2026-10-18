@@ -416,7 +416,7 @@ private fun EntryListItem(
                 .padding(Dimens.spaceMd),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            EntryAvatar(title = entry.title)
+            EntryAvatar(title = entry.title, icon = entry.icon)
             Column(
                 modifier = Modifier
                     .weight(1f)

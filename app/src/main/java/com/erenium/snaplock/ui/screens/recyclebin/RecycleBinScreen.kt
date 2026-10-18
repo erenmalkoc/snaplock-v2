@@ -76,7 +76,7 @@ fun RecycleBinScreen(
             ) {
                 items(items = state.entries, key = { it.uuid }) { entry ->
                     ListItem(
-                        leadingContent = { EntryAvatar(title = entry.title) },
+                        leadingContent = { EntryAvatar(title = entry.title, icon = entry.icon) },
                         headlineContent = { Text(entry.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         supportingContent = entry.username?.takeIf { it.isNotBlank() }?.let { username ->
                             { Text(username, maxLines = 1, overflow = TextOverflow.Ellipsis) }

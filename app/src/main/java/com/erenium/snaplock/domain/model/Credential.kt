@@ -13,5 +13,6 @@ data class Credential(
     val urls: List<String>,
     /** Android package names linked to the entry. */
     val androidApps: List<String>,
-    val otp: OtpParameters? = null
+    val otp: OtpParameters? = null,
+    val icon: EntryIcon? = null
 )

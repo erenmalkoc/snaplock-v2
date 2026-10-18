@@ -21,6 +21,7 @@ import app.keemobile.kotpass.database.modifiers.withHistory
 import app.keemobile.kotpass.database.modifiers.withRecycleBin
 import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.BinaryReference
+import app.keemobile.kotpass.models.CustomIcon
 import app.keemobile.kotpass.models.DeletedObject
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
@@ -100,7 +101,7 @@ class KdbxRepositoryImpl @Inject constructor(
         val database = sessionCache.getDatabase() ?: return emptyList()
         val untitled = context.getString(R.string.untitled_entry)
         return database.content.group.entriesOutside(database.recycleBin())
-            .map { (_, entry) -> entry.toCredential(untitled) }
+            .map { (_, entry) -> entry.toCredential(untitled, database.content.meta.customIcons) }
     }
 
     override suspend fun getAuditEntries(): List<AuditEntry> {
@@ -143,7 +144,7 @@ class KdbxRepositoryImpl @Inject constructor(
                 emptyList()
             } else {
                 database.content.group.entriesOutside(database.recycleBin())
-                    .map { (group, entry) -> entry.toDomainEntry(group) }
+                    .map { (group, entry) -> entry.toDomainEntry(group, database.content.meta.customIcons) }
             }
         }
     }
@@ -158,7 +159,7 @@ class KdbxRepositoryImpl @Inject constructor(
         return sessionCache.databaseFlow.map { database ->
             val bin = database?.recycleBin()?.let { database.content.group.findGroup(it) }
             bin?.entriesOutside(excludedGroup = null)
-                ?.map { (group, entry) -> entry.toDomainEntry(group) }
+                ?.map { (group, entry) -> entry.toDomainEntry(group, database.content.meta.customIcons) }
                 .orEmpty()
         }
     }
@@ -207,7 +208,7 @@ class KdbxRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun KotpassEntry.toDomainEntry(group: KotpassGroup): Entry {
+    private fun KotpassEntry.toDomainEntry(group: KotpassGroup, icons: Map<UUID, CustomIcon>): Entry {
         return Entry(
             uuid = this.uuid,
             title = this.fields[FIELD_TITLE]?.content ?: context.getString(R.string.untitled_entry),
@@ -215,7 +216,8 @@ class KdbxRepositoryImpl @Inject constructor(
             groupUuid = group.uuid,
             groupName = group.name,
             url = this.fields[FIELD_URL]?.content?.takeIf { it.isNotBlank() },
-            notes = this.fields[FIELD_NOTES]?.content?.takeIf { it.isNotBlank() }
+            notes = this.fields[FIELD_NOTES]?.content?.takeIf { it.isNotBlank() },
+            icon = iconFrom(icons)
         )
     }
 
