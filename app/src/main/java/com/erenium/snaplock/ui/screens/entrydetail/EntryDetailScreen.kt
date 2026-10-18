@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.entrydetail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +10,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -23,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,11 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.erenium.snaplock.R
-import com.erenium.snaplock.presentation.entrydetail.CopiedField
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
@@ -52,7 +56,11 @@ import com.erenium.snaplock.ui.components.DetailFieldRow
 import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.theme.Dimens
+import com.erenium.snaplock.domain.model.EntryVersion
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.UUID
 
 @Composable
@@ -72,14 +80,15 @@ fun EntryDetailScreen(
     val passwordLabel = stringResource(R.string.entry_password_label)
     val copiedTemplate = stringResource(R.string.copied_to_clipboard)
     val openUrlError = stringResource(R.string.open_url_error)
+    val restoredMessage = stringResource(R.string.entry_history_restored)
+    var selectedVersion by remember { mutableStateOf<EntryVersion?>(null) }
     LaunchedEffect(viewModel) {
-        viewModel.copyEvents.collect { field ->
-            val fieldName = when (field) {
-                CopiedField.USERNAME -> usernameLabel
-                CopiedField.PASSWORD -> passwordLabel
-            }
+        viewModel.copyEvents.collect { fieldName ->
             snackbarHostState.showSnackbar(String.format(copiedTemplate, fieldName))
         }
+    }
+    LaunchedEffect(viewModel) {
+        viewModel.restoredEvents.collect { snackbarHostState.showSnackbar(restoredMessage) }
     }
     LaunchedEffect(viewModel) {
         viewModel.deletedEvents.collect { onNavigateBack() }
@@ -94,6 +103,17 @@ fun EntryDetailScreen(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    selectedVersion?.let { version ->
+        VersionDialog(
+            version = version,
+            onRestore = {
+                selectedVersion = null
+                viewModel.onRestoreVersion(version.index)
+            },
+            onDismiss = { selectedVersion = null }
+        )
     }
 
     if (showDeleteDialog) {
@@ -224,9 +244,113 @@ fun EntryDetailScreen(
                             )
                         }
                     }
+
+                    if (entry.customFields.isNotEmpty()) {
+                        SectionTitle(stringResource(R.string.entry_custom_fields))
+                        AppCard(modifier = Modifier.fillMaxWidth()) {
+                            entry.customFields.forEachIndexed { index, field ->
+                                if (index > 0) HorizontalDivider()
+                                val visible = !field.isProtected || field.name in state.revealedFields
+                                DetailFieldRow(
+                                    icon = if (field.isProtected) Icons.Filled.Lock else Icons.AutoMirrored.Filled.Label,
+                                    label = field.name,
+                                    value = if (visible) field.value else passwordDisplay(field.value, false),
+                                    singleLineValue = !visible
+                                ) {
+                                    if (field.isProtected) {
+                                        IconButton(onClick = { viewModel.toggleFieldVisibility(field.name) }) {
+                                            Icon(
+                                                imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                                contentDescription = stringResource(
+                                                    if (visible) R.string.hide_password_hint else R.string.show_password_hint
+                                                )
+                                            )
+                                        }
+                                    }
+                                    CopyButton(
+                                        contentDescription = stringResource(R.string.copy_field_hint, field.name),
+                                        onClick = { viewModel.onCopyCustomField(field) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (entry.history.isNotEmpty()) {
+                        SectionTitle(stringResource(R.string.entry_history))
+                        AppCard(modifier = Modifier.fillMaxWidth(), contentPadding = false) {
+                            entry.history.forEachIndexed { index, version ->
+                                if (index > 0) HorizontalDivider()
+                                ListItem(
+                                    modifier = Modifier.clickable { selectedVersion = version },
+                                    leadingContent = { Icon(Icons.Filled.History, contentDescription = null) },
+                                    headlineContent = { Text(formatModified(version)) },
+                                    supportingContent = {
+                                        Text(
+                                            text = version.username?.takeIf { it.isNotBlank() } ?: version.title,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = Dimens.spaceXs, top = Dimens.spaceLg, bottom = Dimens.spaceSm)
+    )
+}
+
+@Composable
+private fun VersionDialog(
+    version: EntryVersion,
+    onRestore: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(formatModified(version)) },
+        text = {
+            Column {
+                Text(version.title, style = MaterialTheme.typography.titleMedium)
+                if (!version.username.isNullOrBlank()) {
+                    Text(version.username, style = MaterialTheme.typography.bodyMedium)
+                }
+                if (!version.password.isNullOrEmpty()) {
+                    Text(
+                        text = passwordDisplay(version.password, passwordVisible),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .padding(top = Dimens.spaceXs)
+                            .clickable { passwordVisible = !passwordVisible }
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onRestore) { Text(stringResource(R.string.entry_history_restore)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) } }
+    )
+}
+
+@Composable
+private fun formatModified(version: EntryVersion): String {
+    val modified = version.modified ?: return stringResource(R.string.entry_history_unknown_date)
+    return remember(modified) {
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withZone(ZoneId.systemDefault())
+            .format(modified)
     }
 }
 

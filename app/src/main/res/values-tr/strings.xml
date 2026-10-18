@@ -124,5 +124,16 @@
     <string name="recycle_bin_empty_action">Kutuyu boşalt</string>
     <string name="recycle_bin_empty_confirm">Kutudaki her şey kalıcı olarak silinecek.</string>
     <string name="menu_more">Diğer seçenekler</string>
+    <string name="entry_custom_fields">Özel alanlar</string>
+    <string name="entry_history">Geçmiş</string>
+    <string name="entry_history_restore">Bu sürümü geri yükle</string>
+    <string name="entry_history_restored">Önceki sürüm geri yüklendi</string>
+    <string name="entry_history_unknown_date">Tarih bilinmiyor</string>
+    <string name="entry_form_add_field">Alan ekle</string>
+    <string name="entry_form_field_name">Alan adı</string>
+    <string name="entry_form_field_value">Değer</string>
+    <string name="entry_form_field_protected">Korumalı (gizli ve bellekte şifreli)</string>
+    <string name="entry_form_remove_field">Alanı kaldır</string>
+    <string name="copy_field_hint">%1$s kopyala</string>
 
 </resources>

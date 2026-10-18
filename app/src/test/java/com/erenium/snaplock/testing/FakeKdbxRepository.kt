@@ -18,6 +18,8 @@ class FakeKdbxRepository : KdbxRepository {
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
     val recycled = MutableStateFlow<List<Entry>>(emptyList())
+    /** Every form passed to addEntry or updateEntry, in order. */
+    val savedForms = mutableListOf<EntryFormData>()
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
         locked.value = false
@@ -49,6 +51,7 @@ class FakeKdbxRepository : KdbxRepository {
         if (locked.value) emptyList() else credentials.value
 
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+        savedForms += data
         val uuid = UUID.randomUUID()
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value + Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords")
@@ -56,6 +59,7 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+        savedForms += data
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value.map {
             if (it.uuid == uuid) Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords") else it

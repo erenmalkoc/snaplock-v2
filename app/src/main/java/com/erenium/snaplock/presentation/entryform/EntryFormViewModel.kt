@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
+import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
@@ -21,12 +22,21 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+/** A custom field being edited; [key] keeps rows stable while names change. */
+data class CustomFieldDraft(
+    val key: Long,
+    val name: String = "",
+    val value: String = "",
+    val isProtected: Boolean = false
+)
+
 data class EntryFormUiState(
     val title: String = "",
     val username: String = "",
     val password: String = "",
     val url: String = "",
     val notes: String = "",
+    val customFields: List<CustomFieldDraft> = emptyList(),
     val groups: List<Group> = emptyList(),
     val groupUuid: UUID? = null,
     val isEditMode: Boolean = false,
@@ -52,6 +62,8 @@ class EntryFormViewModel @Inject constructor(
         EntryFormUiState(isEditMode = entryUuid != null, isLoading = entryUuid != null)
     )
     val uiState = _uiState.asStateFlow()
+
+    private var nextFieldKey = 0L
 
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
@@ -88,6 +100,9 @@ class EntryFormViewModel @Inject constructor(
                             password = entry.password.orEmpty(),
                             url = entry.url.orEmpty(),
                             notes = entry.notes.orEmpty(),
+                            customFields = entry.customFields.map { field ->
+                                CustomFieldDraft(nextFieldKey++, field.name, field.value, field.isProtected)
+                            },
                             groupUuid = entry.groupUuid ?: it.groupUuid,
                             isLoading = false
                         )
@@ -105,6 +120,18 @@ class EntryFormViewModel @Inject constructor(
     fun onUrlChange(value: String) = _uiState.update { it.copy(url = value) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
 
+    fun onAddCustomField() = _uiState.update {
+        it.copy(customFields = it.customFields + CustomFieldDraft(key = nextFieldKey++))
+    }
+
+    fun onCustomFieldChange(field: CustomFieldDraft) = _uiState.update { state ->
+        state.copy(customFields = state.customFields.map { if (it.key == field.key) field else it })
+    }
+
+    fun onRemoveCustomField(key: Long) = _uiState.update { state ->
+        state.copy(customFields = state.customFields.filterNot { it.key == key })
+    }
+
     fun onSave() {
         val state = _uiState.value
         if (!state.canSave) return
@@ -115,7 +142,10 @@ class EntryFormViewModel @Inject constructor(
             password = state.password.ifBlank { null },
             url = state.url.trim().ifBlank { null },
             notes = state.notes.ifBlank { null },
-            groupUuid = state.groupUuid
+            groupUuid = state.groupUuid,
+            customFields = state.customFields
+                .filter { it.name.isNotBlank() }
+                .map { CustomField(it.name.trim(), it.value, it.isProtected) }
         )
 
         viewModelScope.launch {

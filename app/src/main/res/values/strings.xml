@@ -124,5 +124,16 @@
     <string name="recycle_bin_empty_action">Empty recycle bin</string>
     <string name="recycle_bin_empty_confirm">Everything in the recycle bin will be deleted permanently.</string>
     <string name="menu_more">More options</string>
+    <string name="entry_custom_fields">Custom fields</string>
+    <string name="entry_history">History</string>
+    <string name="entry_history_restore">Restore this version</string>
+    <string name="entry_history_restored">Previous version restored</string>
+    <string name="entry_history_unknown_date">Unknown date</string>
+    <string name="entry_form_add_field">Add field</string>
+    <string name="entry_form_field_name">Field name</string>
+    <string name="entry_form_field_value">Value</string>
+    <string name="entry_form_field_protected">Protected (hidden and encrypted in memory)</string>
+    <string name="entry_form_remove_field">Remove field</string>
+    <string name="copy_field_hint">Copy %1$s</string>
 
 </resources>
