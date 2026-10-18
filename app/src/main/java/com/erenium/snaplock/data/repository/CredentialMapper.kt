@@ -1,6 +1,7 @@
 package com.erenium.snaplock.data.repository
 
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.otp.OtpParser
 import app.keemobile.kotpass.models.Entry as KotpassEntry
 
 // Field names other KeePass clients use to link entries to apps and extra sites:
@@ -29,7 +30,8 @@ internal fun KotpassEntry.toCredential(untitledTitle: String): Credential {
         username = fields.userName?.content?.takeIf { it.isNotEmpty() },
         password = fields.password?.content?.takeIf { it.isNotEmpty() },
         urls = urlValues.filterNot { it.startsWith(ANDROID_APP_SCHEME, ignoreCase = true) },
-        androidApps = (appsFromFields + appsFromUrls).filter { it.isNotEmpty() }.distinct()
+        androidApps = (appsFromFields + appsFromUrls).filter { it.isNotEmpty() }.distinct(),
+        otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content })
     )
 }
 
