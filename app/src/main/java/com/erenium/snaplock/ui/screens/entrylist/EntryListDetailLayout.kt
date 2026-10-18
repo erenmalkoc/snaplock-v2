@@ -10,8 +10,10 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
@@ -20,10 +22,13 @@ import com.erenium.snaplock.ui.screens.entrydetail.EntryDetailScreen
 import java.util.UUID
 
 /** Wide enough for the list and an entry side by side: tablets and unfolded foldables. */
-private const val TWO_PANE_MIN_WIDTH_DP = 720
+private val TwoPaneMinWidth = 720.dp
 
 @Composable
-fun isTwoPaneWidth(): Boolean = LocalConfiguration.current.screenWidthDp >= TWO_PANE_MIN_WIDTH_DP
+fun isTwoPaneWidth(): Boolean {
+    val width = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+    return width >= TwoPaneMinWidth
+}
 
 /**
  * The entry list with the selected entry beside it. Phones keep opening entries as their
