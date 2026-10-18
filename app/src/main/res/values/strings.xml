@@ -220,6 +220,12 @@
     <string name="settings_import_desc">Move logins in from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass or KeePassXC exports, or out to another manager.</string>
     <string name="settings_export">Export as CSV</string>
     <string name="tile_label">Lock Snaplock</string>
+    <string name="shortcut_search">Search</string>
+    <string name="shortcut_search_long">Search entries</string>
+    <string name="shortcut_new_entry">New entry</string>
+    <string name="shortcut_generator">Generate password</string>
+    <string name="shortcut_lock">Lock</string>
+    <string name="shortcut_lock_long">Lock the vault</string>
     <string name="tile_locked">Locked</string>
     <string name="tile_unlocked">Open, tap to lock</string>
     <string name="database_settings_title">Database settings</string>

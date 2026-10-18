@@ -52,7 +52,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,9 +82,21 @@ fun EntryListScreen(
     onNavigateToGenerator: () -> Unit,
     onAddEntry: (groupUuid: UUID?) -> Unit,
     onEntryClick: (UUID) -> Unit,
+    focusSearch: Boolean = false,
+    onSearchFocused: () -> Unit = {},
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val searchFocus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(focusSearch) {
+        if (focusSearch) {
+            runCatching { searchFocus.requestFocus() }
+            keyboard?.show()
+            onSearchFocused()
+        }
+    }
     var dialog by remember { mutableStateOf<GroupDialog?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage = state.errorStringId?.let { stringResource(it) }
@@ -142,6 +157,7 @@ fun EntryListScreen(
             SearchBar(
                 query = state.query,
                 onQueryChange = viewModel::onQueryChange,
+                focusRequester = searchFocus,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -342,6 +358,7 @@ private fun GroupListItem(group: Group, onClick: () -> Unit) {
 private fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
+    focusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -356,7 +373,9 @@ private fun SearchBar(
             onSearch = { focusManager.clearFocus() },
             expanded = false,
             onExpandedChange = {},
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             placeholder = { Text(stringResource(R.string.entry_search_hint)) },
             leadingIcon = {
                 Icon(

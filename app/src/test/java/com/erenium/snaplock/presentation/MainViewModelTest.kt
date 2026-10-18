@@ -7,6 +7,7 @@ import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.models.Meta
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.domain.usecase.IsDatabaseLockedUseCase
+import com.erenium.snaplock.domain.usecase.LockDatabaseUseCase
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.testing.FakeKdbxRepository
 import org.junit.Assert.assertFalse
@@ -22,7 +23,7 @@ class MainViewModelTest {
     fun anOpenVaultIsKnownBeforeAnythingCollects() {
         val repository = FakeKdbxRepository().apply { locked.value = false }
 
-        val viewModel = MainViewModel(IsDatabaseLockedUseCase(repository))
+        val viewModel = MainViewModel(IsDatabaseLockedUseCase(repository), LockDatabaseUseCase(repository))
 
         assertFalse(viewModel.isLocked.value)
     }

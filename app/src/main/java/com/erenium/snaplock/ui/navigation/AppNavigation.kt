@@ -7,6 +7,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import com.erenium.snaplock.presentation.main.AppShortcut
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,10 +40,25 @@ fun AppNavigation(
 ) {
     val navController = rememberNavController()
     val isLocked by mainViewModel.isLocked.collectAsState()
+    val shortcut by mainViewModel.pendingShortcut.collectAsState()
+    var focusSearch by remember { mutableStateOf(false) }
     // A vault that is still open (the activity was recreated before auto-lock) opens on its entries.
     val startDestination = remember { if (mainViewModel.isLocked.value) NavRoutes.SELECT_FILE else NavRoutes.ENTRY_LIST }
 
     val slideDuration = 300
+
+    LaunchedEffect(shortcut) {
+        when (shortcut) {
+            AppShortcut.GENERATOR -> {
+                mainViewModel.onShortcutHandled()
+                navController.navigate(NavRoutes.PASSWORD_GENERATOR) { launchSingleTop = true }
+            }
+            // While unlocked, return to the entry list, which finishes the shortcut; while
+            // locked it waits there until the user has unlocked.
+            AppShortcut.SEARCH, AppShortcut.NEW_ENTRY -> navController.popBackStack(NavRoutes.ENTRY_LIST, inclusive = false)
+            else -> Unit
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -119,7 +137,21 @@ fun AppNavigation(
             }
         }
         composable(route = NavRoutes.ENTRY_LIST) {
-
+            // Shortcuts that need an open vault are carried out here, once the entries show.
+            LaunchedEffect(shortcut, isLocked) {
+                if (isLocked) return@LaunchedEffect
+                when (shortcut) {
+                    AppShortcut.NEW_ENTRY -> {
+                        mainViewModel.onShortcutHandled()
+                        navController.navigate(NavRoutes.ENTRY_FORM)
+                    }
+                    AppShortcut.SEARCH -> {
+                        mainViewModel.onShortcutHandled()
+                        focusSearch = true
+                    }
+                    else -> Unit
+                }
+            }
             if (isLocked) {
                 LaunchedEffect(Unit) {
                     navController.navigate(NavRoutes.SELECT_FILE) {
@@ -128,6 +160,8 @@ fun AppNavigation(
                 }
             } else {
                 EntryListScreen(
+                    focusSearch = focusSearch,
+                    onSearchFocused = { focusSearch = false },
                     onNavigateToLock = {
                         navController.navigate(NavRoutes.SELECT_FILE) {
                             popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
