@@ -79,6 +79,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(top = Dimens.spaceMd)
                 )
                 ImportExportSection(snackbarHostState = snackbarHostState)
+                BackupsSection(snackbarHostState = snackbarHostState)
             }
 
             SettingsSection(title = stringResource(R.string.settings_appearance)) {

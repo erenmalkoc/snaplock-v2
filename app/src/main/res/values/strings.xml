@@ -19,6 +19,7 @@
     <string name="biometric_login_title">Sign In</string>
     <string name="biometric_login_subtitle">Verify your identity to sign in</string>
     <string name="cancel_button">Cancel</string>
+    <string name="close_button">Close</string>
     <string name="copy_password_hint">Copy Password</string>
     <string name="clipboard_label_password">Password</string>
     <string name="loading_message">Loading...</string>
@@ -218,6 +219,11 @@
     <string name="settings_import">Import from CSV</string>
     <string name="settings_import_desc">Move logins in from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass or KeePassXC exports, or out to another manager.</string>
     <string name="settings_export">Export as CSV</string>
+    <string name="settings_backups">Backups</string>
+    <string name="settings_backups_desc">Before the first save of each day, Snaplock keeps a copy of the vault file on this device for 7 days. Copies are encrypted and open with the password they were saved with.</string>
+    <string name="backups_empty">No backups yet. The first one is made before your next change is saved.</string>
+    <string name="backup_saved">Backup saved</string>
+    <string name="backup_error">The backup could not be saved.</string>
     <string name="import_confirm_title">%1$s export</string>
     <plurals name="import_confirm_message">
         <item quantity="one">%1$d login will be added to the group \"%2$s\".</item>

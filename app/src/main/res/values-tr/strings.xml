@@ -19,6 +19,7 @@
     <string name="biometric_login_title">Oturum Aç</string>
     <string name="biometric_login_subtitle">Oturum açmak için kimliğinizi doğrulayın</string>
     <string name="cancel_button">İptal</string>
+    <string name="close_button">Kapat</string>
     <string name="copy_password_hint">Şifreyi Kopyala</string>
     <string name="clipboard_label_password">Şifre</string>
     <string name="loading_message">Yükleniyor...</string>
@@ -218,6 +219,11 @@
     <string name="settings_import">CSV\'den içe aktar</string>
     <string name="settings_import_desc">Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass veya KeePassXC dışa aktarımlarından kayıt alın ya da başka bir yöneticiye taşıyın.</string>
     <string name="settings_export">CSV olarak dışa aktar</string>
+    <string name="settings_backups">Yedekler</string>
+    <string name="settings_backups_desc">Snaplock her gün ilk kayıttan önce kasa dosyasının bir kopyasını bu cihazda 7 gün saklar. Kopyalar şifrelidir ve kaydedildikleri parolayla açılır.</string>
+    <string name="backups_empty">Henüz yedek yok. İlk yedek, bir sonraki değişiklik kaydedilmeden önce alınır.</string>
+    <string name="backup_saved">Yedek kaydedildi</string>
+    <string name="backup_error">Yedek kaydedilemedi.</string>
     <string name="import_confirm_title">%1$s dışa aktarımı</string>
     <plurals name="import_confirm_message">
         <item quantity="one">%1$d kayıt \"%2$s\" grubuna eklenecek.</item>
