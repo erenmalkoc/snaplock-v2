@@ -51,7 +51,8 @@ class KdbxLocalDataSource @Inject constructor(
                 val credentials = Credentials.from(EncryptedValue.fromString(password.toString()))
                 val database = KeePassDatabase.Ver4x.create(
                     rootName = rootName,
-                    meta = Meta(generator = GENERATOR_NAME, name = rootName),
+                    // kotpass leaves the recycle bin off; KeePass turns it on for new databases.
+                    meta = Meta(generator = GENERATOR_NAME, name = rootName, recycleBinEnabled = true),
                     credentials = credentials
                 )
                 val outputStream = context.contentResolver.openOutputStream(uri, "wt")
