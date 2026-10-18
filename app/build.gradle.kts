@@ -94,6 +94,8 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.autofill)
     implementation(libs.androidx.credentials)
+    implementation(libs.zxing.android.embedded)
+    implementation(libs.zxing.core)
 
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)

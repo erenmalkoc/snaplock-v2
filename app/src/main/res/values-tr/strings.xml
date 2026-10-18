@@ -164,5 +164,16 @@
     <string name="change_password_description">Veritabanı yeni parola ve anahtar dosyasıyla kaydedilir. Biyometrik giriş kapatılır; yeni parolayla yeniden açabilirsiniz.</string>
     <string name="change_password_new">Yeni ana parola</string>
     <string name="change_password_submit">Değiştir</string>
+    <string name="entry_otp_label">Tek kullanımlık kod</string>
+    <string name="entry_form_otp_title">İki adımlı doğrulama (2FA)</string>
+    <string name="entry_form_otp_set">Kurulu</string>
+    <string name="entry_form_otp_input">Kurulum anahtarı veya otpauth bağlantısı</string>
+    <string name="entry_form_otp_add">Ekle</string>
+    <string name="entry_form_otp_scan">QR tara</string>
+    <string name="entry_form_otp_image">Görüntüden</string>
+    <string name="entry_form_otp_invalid">Bu geçerli bir kurulum anahtarı değil.</string>
+    <string name="entry_form_otp_qr_not_found">Görüntüde QR kod bulunamadı.</string>
+    <string name="entry_form_otp_remove">2FA\'yı kaldır</string>
+    <string name="scan_prompt">Kamerayı 2FA QR koduna doğrultun</string>
 
 </resources>

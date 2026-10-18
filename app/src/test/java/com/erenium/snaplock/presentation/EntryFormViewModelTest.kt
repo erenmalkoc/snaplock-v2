@@ -3,6 +3,7 @@ package com.erenium.snaplock.presentation
 import androidx.lifecycle.SavedStateHandle
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
@@ -12,6 +13,8 @@ import com.erenium.snaplock.testing.FakeKdbxRepository
 import com.erenium.snaplock.testing.MainDispatcherRule
 import java.util.UUID
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -46,6 +49,38 @@ class EntryFormViewModelTest {
     }
 
     @Test
+    fun twoFactorIsOnlyWrittenWhenTheUserChangesIt() {
+        val uuid = UUID.randomUUID()
+        repository.entryDetails[uuid] = EntryDetail(
+            uuid, "GitHub", "octocat", "pw", null, null, FakeKdbxRepository.ROOT_GROUP_UUID,
+            otp = OtpParser.parse(SECRET)
+        )
+
+        viewModel(uuid).onSave()
+        assertNull(repository.savedForms.last().otpUri)
+
+        viewModel(uuid).apply { onRemoveOtp() }.onSave()
+        assertEquals("", repository.savedForms.last().otpUri)
+    }
+
+    @Test
+    fun scannedOrTypedKeysAreValidated() {
+        val viewModel = viewModel()
+        viewModel.onTitleChange("GitHub")
+
+        viewModel.onOtpEntered("not a key!")
+        assertTrue(viewModel.uiState.value.otpInputError)
+        assertNull(viewModel.uiState.value.otp)
+
+        viewModel.onOtpEntered("otpauth://totp/GitHub:octocat?secret=$SECRET&issuer=GitHub")
+        assertEquals("GitHub", viewModel.uiState.value.otp?.issuer)
+        viewModel.onSave()
+
+        val saved = OtpParser.parse(repository.savedForms.single().otpUri!!)
+        assertEquals(viewModel.uiState.value.otp, saved)
+    }
+
+    @Test
     fun editingLoadsExistingFieldsAndCanRemoveThem() {
         val uuid = UUID.randomUUID()
         repository.entryDetails[uuid] = EntryDetail(
@@ -60,5 +95,9 @@ class EntryFormViewModelTest {
         viewModel.onSave()
 
         assertEquals(listOf(CustomField("Branch", "Manisa", false)), repository.savedForms.single().customFields)
+    }
+
+    private companion object {
+        const val SECRET = "JBSWY3DPEHPK3PXP"
     }
 }

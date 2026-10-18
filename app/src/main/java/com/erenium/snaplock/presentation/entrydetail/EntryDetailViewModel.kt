@@ -10,6 +10,7 @@ import com.erenium.snaplock.data.datasource.local.FileTooLargeException
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.otp.Totp
 import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
@@ -102,6 +103,12 @@ class EntryDetailViewModel @Inject constructor(
         val username = _uiState.value.entry?.username
         if (username.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = username, sensitive = false)
+        _copyEvents.trySend(label)
+    }
+
+    fun onCopyOtp(label: String) {
+        val otp = _uiState.value.entry?.otp ?: return
+        clipboardManager.copyToClipboard(label = label, text = Totp.code(otp, System.currentTimeMillis()))
         _copyEvents.trySend(label)
     }
 

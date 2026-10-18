@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.entryform
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -27,11 +32,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
+import com.erenium.snaplock.data.datasource.local.QrImageDecoder
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.launch
 import com.erenium.snaplock.presentation.entryform.CustomFieldDraft
 import com.erenium.snaplock.presentation.entryform.EntryFormViewModel
 import com.erenium.snaplock.ui.components.AppCard
@@ -46,6 +60,23 @@ fun EntryFormScreen(
     viewModel: EntryFormViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val qrDecoder = remember { QrImageDecoder(context.applicationContext) }
+    val scanPrompt = stringResource(R.string.scan_prompt)
+    var qrNotFound by remember { mutableStateOf(false) }
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+        result.contents?.let(viewModel::onOtpEntered)
+    }
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val text = qrDecoder.decode(uri)
+                qrNotFound = text == null
+                if (text != null) viewModel.onOtpEntered(text)
+            }
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.savedEvents.collect { onNavigateBack() }
@@ -129,6 +160,77 @@ fun EntryFormScreen(
                     .fillMaxWidth()
                     .heightIn(min = Dimens.spaceXxl * 2)
             )
+
+            Text(
+                text = stringResource(R.string.entry_form_otp_title),
+                style = MaterialTheme.typography.titleSmall
+            )
+            val otp = state.otp
+            if (otp != null) {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.VerifiedUser, contentDescription = null)
+                        Text(
+                            text = listOfNotNull(otp.issuer, otp.account).joinToString(" · ")
+                                .ifEmpty { stringResource(R.string.entry_form_otp_set) },
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = Dimens.spaceMd)
+                        )
+                        IconButton(onClick = viewModel::onRemoveOtp) {
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.entry_form_otp_remove))
+                        }
+                    }
+                }
+            } else {
+                OutlinedTextField(
+                    value = state.otpInput,
+                    onValueChange = viewModel::onOtpInputChange,
+                    label = { Text(stringResource(R.string.entry_form_otp_input)) },
+                    singleLine = true,
+                    isError = state.otpInputError || qrNotFound,
+                    supportingText = when {
+                        state.otpInputError -> {
+                            { Text(stringResource(R.string.entry_form_otp_invalid), color = MaterialTheme.colorScheme.error) }
+                        }
+                        qrNotFound -> {
+                            { Text(stringResource(R.string.entry_form_otp_qr_not_found), color = MaterialTheme.colorScheme.error) }
+                        }
+                        else -> null
+                    },
+                    trailingIcon = {
+                        if (state.otpInput.isNotBlank()) {
+                            IconButton(onClick = { viewModel.onOtpEntered() }) {
+                                Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.entry_form_otp_add))
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) {
+                    OutlinedButton(onClick = {
+                        qrNotFound = false
+                        scanLauncher.launch(
+                            ScanOptions()
+                                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                .setPrompt(scanPrompt)
+                                .setBeepEnabled(false)
+                                .setOrientationLocked(false)
+                        )
+                    }) {
+                        Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
+                        Text(stringResource(R.string.entry_form_otp_scan), modifier = Modifier.padding(start = Dimens.spaceSm))
+                    }
+                    OutlinedButton(onClick = {
+                        qrNotFound = false
+                        imageLauncher.launch("image/*")
+                    }) {
+                        Icon(Icons.Filled.Image, contentDescription = null)
+                        Text(stringResource(R.string.entry_form_otp_image), modifier = Modifier.padding(start = Dimens.spaceSm))
+                    }
+                }
+            }
 
             Text(
                 text = stringResource(R.string.entry_custom_fields),

@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,9 +29,11 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,9 +48,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +60,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -67,6 +73,9 @@ import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.theme.Dimens
 import com.erenium.snaplock.domain.model.EntryVersion
+import com.erenium.snaplock.domain.otp.OtpParameters
+import com.erenium.snaplock.domain.otp.Totp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -259,6 +268,15 @@ fun EntryDetailScreen(
                             )
                         }
 
+                        entry.otp?.let { otp ->
+                            HorizontalDivider()
+                            OtpRow(
+                                otp = otp,
+                                label = stringResource(R.string.entry_otp_label),
+                                onCopy = viewModel::onCopyOtp
+                            )
+                        }
+
                         if (!entry.url.isNullOrBlank()) {
                             HorizontalDivider()
                             DetailFieldRow(
@@ -387,6 +405,50 @@ fun EntryDetailScreen(
         }
     }
 }
+
+@Composable
+private fun OtpRow(
+    otp: OtpParameters,
+    label: String,
+    onCopy: (String) -> Unit
+) {
+    // Ticks on each second boundary so the code flips exactly when the period ends.
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(1000 - value % 1000)
+            value = System.currentTimeMillis()
+        }
+    }
+    val code = remember(otp, now / 1000 / otp.period) { Totp.code(otp, now) }
+    val remaining = Totp.secondsRemaining(otp, now)
+    DetailFieldRow(
+        icon = Icons.Filled.VerifiedUser,
+        label = label,
+        value = groupDigits(code),
+        valueStyle = MaterialTheme.typography.titleLarge
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(Dimens.iconLg)) {
+            CircularProgressIndicator(
+                progress = { remaining / otp.period.toFloat() },
+                modifier = Modifier.fillMaxSize(),
+                strokeWidth = 2.dp
+            )
+            Text(text = remaining.toString(), style = MaterialTheme.typography.labelSmall)
+        }
+        CopyButton(
+            contentDescription = stringResource(R.string.copy_field_hint, label),
+            onClick = { onCopy(label) }
+        )
+    }
+}
+
+/** "123456" -> "123 456", "12345678" -> "1234 5678"; Steam codes stay as they are. */
+private fun groupDigits(code: String): String =
+    if (code.all(Char::isDigit) && code.length >= 6) {
+        code.substring(0, code.length / 2) + " " + code.substring(code.length / 2)
+    } else {
+        code
+    }
 
 @Composable
 private fun SectionTitle(text: String) {

@@ -7,6 +7,8 @@ import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.otp.OtpParameters
+import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
@@ -37,6 +39,11 @@ data class EntryFormUiState(
     val url: String = "",
     val notes: String = "",
     val customFields: List<CustomFieldDraft> = emptyList(),
+    /** Current two-factor settings; null when the entry has none. */
+    val otp: OtpParameters? = null,
+    /** What the user typed or scanned while adding two-factor settings. */
+    val otpInput: String = "",
+    val otpInputError: Boolean = false,
     val groups: List<Group> = emptyList(),
     val groupUuid: UUID? = null,
     val isEditMode: Boolean = false,
@@ -66,6 +73,8 @@ class EntryFormViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var nextFieldKey = 0L
+    /** Whether the user touched the two-factor settings; untouched ones keep their stored format. */
+    private var otpChanged = false
 
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
@@ -107,6 +116,7 @@ class EntryFormViewModel @Inject constructor(
                             customFields = entry.customFields.map { field ->
                                 CustomFieldDraft(nextFieldKey++, field.name, field.value, field.isProtected)
                             },
+                            otp = entry.otp,
                             groupUuid = entry.groupUuid ?: it.groupUuid,
                             isLoading = false
                         )
@@ -123,6 +133,24 @@ class EntryFormViewModel @Inject constructor(
     fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value) }
     fun onUrlChange(value: String) = _uiState.update { it.copy(url = value) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
+
+    fun onOtpInputChange(value: String) = _uiState.update { it.copy(otpInput = value, otpInputError = false) }
+
+    /** Takes a setup key or otpauth:// link that was typed, pasted or read from a QR code. */
+    fun onOtpEntered(value: String = _uiState.value.otpInput) {
+        val parsed = OtpParser.parse(value)
+        if (parsed == null) {
+            _uiState.update { it.copy(otpInput = value, otpInputError = true) }
+            return
+        }
+        otpChanged = true
+        _uiState.update { it.copy(otp = parsed, otpInput = "", otpInputError = false) }
+    }
+
+    fun onRemoveOtp() {
+        otpChanged = true
+        _uiState.update { it.copy(otp = null) }
+    }
 
     fun onAddCustomField() = _uiState.update {
         it.copy(customFields = it.customFields + CustomFieldDraft(key = nextFieldKey++))
@@ -149,7 +177,8 @@ class EntryFormViewModel @Inject constructor(
             groupUuid = state.groupUuid,
             customFields = state.customFields
                 .filter { it.name.isNotBlank() }
-                .map { CustomField(it.name.trim(), it.value, it.isProtected) }
+                .map { CustomField(it.name.trim(), it.value, it.isProtected) },
+            otpUri = if (otpChanged) state.otp?.let(OtpParser::toUri).orEmpty() else null
         )
 
         viewModelScope.launch {
