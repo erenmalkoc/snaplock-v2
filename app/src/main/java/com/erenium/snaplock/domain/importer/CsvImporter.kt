@@ -39,7 +39,7 @@ object CsvImporter {
 
     /** Null when the file has no recognisable password column. */
     fun parse(text: String): CsvImport? {
-        val rows = Csv.parse(text.removePrefix("﻿")).filter { row -> row.any { it.isNotBlank() } }
+        val rows = Csv.parse(text.removePrefix("\uFEFF")).filter { row -> row.any { it.isNotBlank() } }
         if (rows.size < 2) return null
         val header = rows.first().map { it.trim().lowercase() }
         fun column(names: List<String>) = names.firstNotNullOfOrNull { name -> header.indexOf(name).takeIf { it >= 0 } }

@@ -75,7 +75,7 @@ class CsvImporterTest {
 
     @Test
     fun passwordsKeepTheirSpacesAndBomIsIgnored() {
-        val csv = "﻿name,url,username,password\nSpace,https://s.example,u,\"  padded  \"\n"
+        val csv = "\uFEFFname,url,username,password\nSpace,https://s.example,u,\"  padded  \"\n"
 
         assertEquals("  padded  ", CsvImporter.parse(csv)!!.entries.single().password)
     }

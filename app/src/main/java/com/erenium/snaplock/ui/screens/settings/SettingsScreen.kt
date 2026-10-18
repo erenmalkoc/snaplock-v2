@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,10 +46,12 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     AppScaffold(
         title = stringResource(R.string.settings_title),
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
     ) { contentModifier ->
         Column(
             modifier = contentModifier
@@ -75,6 +78,7 @@ fun SettingsScreen(
                     onClick = onNavigateToChangePassword,
                     modifier = Modifier.padding(top = Dimens.spaceMd)
                 )
+                ImportExportSection(snackbarHostState = snackbarHostState)
             }
 
             SettingsSection(title = stringResource(R.string.settings_appearance)) {

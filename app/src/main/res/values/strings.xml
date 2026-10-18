@@ -214,5 +214,23 @@
     <string name="health_breach_off">Checked on this device. Breach checking is off; turn it on in settings.</string>
     <string name="health_breach_done">Checked on this device and against Have I Been Pwned (hash prefixes only).</string>
     <string name="health_breach_failed">Checked on this device. The breach check could not reach Have I Been Pwned.</string>
+    <string name="settings_import">Import from CSV</string>
+    <string name="settings_import_desc">Move logins in from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass or KeePassXC exports, or out to another manager.</string>
+    <string name="settings_export">Export as CSV</string>
+    <string name="import_confirm_title">%1$s export</string>
+    <plurals name="import_confirm_message">
+        <item quantity="one">%1$d login will be added to the group \"%2$s\".</item>
+        <item quantity="other">%1$d logins will be added to the group \"%2$s\".</item>
+    </plurals>
+    <string name="import_group_name">Imported (%1$s)</string>
+    <plurals name="import_done">
+        <item quantity="one">%1$d login imported. Delete the CSV file: it holds passwords in plain text.</item>
+        <item quantity="other">%1$d logins imported. Delete the CSV file: it holds passwords in plain text.</item>
+    </plurals>
+    <string name="import_unrecognised">No password column found in this file.</string>
+    <string name="import_error">The file could not be processed.</string>
+    <string name="export_warning_title">Unencrypted export</string>
+    <string name="export_warning_message">The CSV file contains every password in plain text. Use it only to move to another manager, and delete it afterwards.</string>
+    <string name="export_done">Exported</string>
 
 </resources>
