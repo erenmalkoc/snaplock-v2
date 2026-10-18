@@ -32,12 +32,25 @@ same bytes. Signing certificate SHA-256:
 - **Autofill.** Fills logins in apps and browsers, with suggestions in the keyboard on
   Android 11 and later. Websites are only matched when a known browser reports them, so a
   web page inside another app cannot ask for your credentials.
+- **Passkeys and Credential Manager.** On Android 14 and later, Snaplock offers passwords
+  and passkeys in the system sign-in sheet and saves new ones. Passkeys are stored the
+  way KeePassXC stores them, so the same passkey works in KeePassXC's browser extension.
 - **Works with your existing links.** Reads the app and URL links KeePassDX,
   Keepass2Android and KeePassXC store in entries.
 - **The whole KeePass vault.** Nested groups, custom fields (protected or plain), file
   attachments, entry history you can restore from, and a recycle bin.
 - **Key files.** Unlock with a password, a key file or both, and change the master
   password at any time.
+- **Safe with sync.** If Syncthing, a cloud drive or another app changed the vault file,
+  Snaplock merges those changes before saving instead of overwriting them, the way
+  KeePass synchronises, and picks them up when you come back to the app.
+- **Daily backups.** Before the first save of each day, a copy of the encrypted vault file
+  is kept on the device for 7 days and can be saved anywhere from the settings.
+- **Database settings.** Name, recycle bin, history limit, and encryption: AES-256,
+  ChaCha20 or Twofish with Argon2d, Argon2id or AES-KDF, plus a benchmark that sets the
+  key derivation to take about a second on your phone.
+- **Import and export.** Brings in CSV exports from Bitwarden, Chrome, Firefox,
+  1Password, Proton Pass, LastPass and KeePassXC, and exports the vault as CSV.
 - **Biometric unlock** with a key kept in the Android Keystore.
 - **Recent databases** to reopen a vault in one tap.
 - **Two-factor codes.** Shows TOTP and Steam Guard codes stored by any KeePass client,
@@ -47,16 +60,25 @@ same bytes. Signing certificate SHA-256:
   wordlist.
 - **Password health.** Finds weak, reused, old and expired passwords on the device, and
   optionally checks them against known breaches.
+- **Site icons.** Shows the custom icons KeePassXC and other clients store, and can
+  download icons for your sites into the vault when you ask it to.
 - **Clipboard clearing** after a configurable delay.
 - **Auto-lock** when Snaplock leaves the screen, immediately or after a delay.
-- **Material You** colours, light and dark themes, English and Turkish.
+- **Part of Android.** Material You colours, light and dark themes, per-app language
+  (English and Turkish), a Quick Settings tile to lock the vault, launcher shortcuts, and
+  the list and entry side by side on tablets and foldables.
 
 ## Privacy and security
 
 - The database never leaves the file you chose, and Snaplock has no account or server.
-- The only network use is the optional breach check, which is off until you turn it on.
-  It sends the first 5 characters of each password's SHA-1 hash to Have I Been Pwned
-  (k-anonymity), never a password or a full hash.
+- Snaplock goes online only for two optional features, and only after you turn them on:
+  - The breach check sends the first 5 characters of each password's SHA-1 hash to Have
+    I Been Pwned (k-anonymity), never a password or a full hash.
+  - Site icon downloads ask each website directly for its own icon; no other service
+    sees which sites you use.
+- Passkeys answer for a website only when the request comes from a browser on Google's
+  list of privileged browsers. Any other app gets signatures bound to its own signing
+  certificate, which websites reject unless they trust that app.
 - The decrypted database lives only in memory and is dropped when the vault locks.
 - Screenshots, screen recordings and the recents preview are blocked in release builds.
 - For biometric unlock, the master password is encrypted with an Android Keystore key
@@ -80,6 +102,8 @@ described in [fdroid/PUBLISHING.md](fdroid/PUBLISHING.md).
 - `domain`: repository contracts, models and use cases
 - `data`: Kotpass data source, session cache, preferences, clipboard helper
 - `autofill`: autofill service, form detection and entry matching
+- `credentials`: Credential Manager provider for passwords and passkeys
+- `tile`: Quick Settings tile
 - `presentation`: ViewModels and UI state
 - `ui`: Compose screens, reusable components, navigation and theme
 - `di`: Hilt bindings
