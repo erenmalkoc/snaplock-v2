@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Only for the opt-in breach check (off by default); vault files never go online. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Only for scanning two-factor QR codes; Snaplock works without a camera. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <!-- Lets autofill show the requesting app's name instead of its package name. -->
     <queries>
         <intent>
@@ -32,6 +40,12 @@
             </intent-filter>
         </activity>
 
+        <!-- The QR scanner follows the phone's orientation instead of forcing landscape. -->
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="fullSensor"
+            tools:replace="screenOrientation" />
+
         <activity
             android:name=".autofill.AutofillActivity"
             android:excludeFromRecents="true"
@@ -59,6 +73,20 @@
             <meta-data
                 android:name="android.autofill"
                 android:resource="@xml/autofill_service" />
+        </service>
+
+        <service
+            android:name=".tile.LockTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_lock"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
         </service>
 
         <activity

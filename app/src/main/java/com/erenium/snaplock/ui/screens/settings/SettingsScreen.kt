@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import com.erenium.snaplock.presentation.settings.SettingsViewModel
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.SecondaryButton
 import com.erenium.snaplock.ui.theme.Dimens
 
 private val ClipboardTimeoutOptions = listOf(15, 30, 60, 120)
@@ -40,13 +42,17 @@ private val AutoLockOptions = listOf(0, 30, 60, 300)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToChangePassword: () -> Unit,
+    onNavigateToDatabaseSettings: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     AppScaffold(
         title = stringResource(R.string.settings_title),
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
     ) { contentModifier ->
         Column(
             modifier = contentModifier
@@ -56,6 +62,36 @@ fun SettingsScreen(
         ) {
             if (AutofillStatus.isSupported()) {
                 AutofillSection()
+            }
+
+            SettingsSection(title = stringResource(R.string.settings_database)) {
+                Text(
+                    text = stringResource(R.string.change_password_title),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.settings_change_password_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                SecondaryButton(
+                    text = stringResource(R.string.change_password_title),
+                    onClick = onNavigateToChangePassword,
+                    modifier = Modifier.padding(top = Dimens.spaceMd)
+                )
+                Text(
+                    text = stringResource(R.string.settings_database_settings_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = Dimens.spaceLg)
+                )
+                SecondaryButton(
+                    text = stringResource(R.string.database_settings_title),
+                    onClick = onNavigateToDatabaseSettings,
+                    modifier = Modifier.padding(top = Dimens.spaceSm)
+                )
+                ImportExportSection(snackbarHostState = snackbarHostState)
+                BackupsSection(snackbarHostState = snackbarHostState)
             }
 
             SettingsSection(title = stringResource(R.string.settings_appearance)) {
@@ -118,6 +154,16 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+
+            SettingsSection(title = stringResource(R.string.settings_online)) {
+                ToggleRow(
+                    label = stringResource(R.string.settings_breach_check),
+                    description = stringResource(R.string.settings_breach_check_desc),
+                    checked = settings.breachCheckEnabled,
+                    onCheckedChange = viewModel::onBreachCheckChange
+                )
+                SiteIconsSection(snackbarHostState = snackbarHostState)
             }
 
             SettingsSection(title = stringResource(R.string.settings_security)) {

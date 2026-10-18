@@ -142,7 +142,7 @@ private fun LazyListScope.section(
     items(items = credentials, key = { it.uuid }) { credential ->
         ListItem(
             modifier = Modifier.clickable { onPick(credential) },
-            leadingContent = { EntryAvatar(title = credential.title) },
+            leadingContent = { EntryAvatar(title = credential.title, icon = credential.icon) },
             headlineContent = {
                 Text(credential.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },

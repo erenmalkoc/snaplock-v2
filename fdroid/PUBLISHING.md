@@ -66,6 +66,33 @@ closed for inactivity on 2026-08-14 while the signing model was undecided.
 2. Reopen the merge request and reply that it now uses reproducible builds. The
    pipeline rebuilds the app and compares it with the release APK.
 
+## Anti-features
+
+Since 1.1.0, Snaplock has the INTERNET permission for two opt-in features: the breach
+check talks to Have I Been Pwned, a service whose server is not free software, and site
+icon downloads talk to the websites in the vault. F-Droid marks the first as
+`NonFreeNet`; add it to every build entry from 1.1.0 on:
+
+```yaml
+    antifeatures:
+      NonFreeNet:
+        en-US: Optional breach check against Have I Been Pwned (off by default).
+```
+
+## Passkey browser list
+
+`app/src/main/assets/privileged_browsers.json` is Google's list of browsers allowed to
+ask for passkeys on behalf of websites. Refresh it before a release and review the diff:
+
+```bash
+curl -sSL -o app/src/main/assets/privileged_browsers.json \
+  https://www.gstatic.com/gpm-passkeys-privileged-apps/apps.json
+git diff app/src/main/assets/privileged_browsers.json
+```
+
+A browser missing from it can still use passwords, but its passkey requests are signed
+for the browser app itself, which websites reject.
+
 ## Android developer verification
 
 From 2027, certified Android devices only install apps from registered developers

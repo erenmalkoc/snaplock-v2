@@ -5,7 +5,7 @@ import com.erenium.snaplock.domain.repository.KdbxRepository
 import javax.inject.Inject
 
 class UnlockDatabaseUseCase @Inject constructor(private val repository: KdbxRepository) {
-    suspend operator fun invoke(uri: Uri, password: CharSequence): Result<Unit> {
-        return repository.unlockDatabase(uri, password)
+    suspend operator fun invoke(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<Unit> {
+        return repository.unlockDatabase(uri, password, keyFile)
     }
 }

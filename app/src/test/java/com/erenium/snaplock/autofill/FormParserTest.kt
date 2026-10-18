@@ -118,6 +118,45 @@ class FormParserTest {
     }
 
     @Test
+    fun secondPageCodeFieldsAreFoundByAutocompleteHintOrLabel() {
+        val web = FormParser.parse(
+            container(
+                Node(
+                    autofillId = "code",
+                    htmlTag = "input",
+                    htmlAttributes = mapOf("type" to "text", "autocomplete" to "one-time-code")
+                )
+            )
+        )
+        val native = FormParser.parse(container(field("sms", hints = listOf("smsOTPCode"))))
+        val turkish = FormParser.parse(container(field("kod", hint = "Doğrulama kodu")))
+
+        assertEquals(listOf("code"), web.otpIds)
+        assertEquals(listOf("sms"), native.otpIds)
+        assertEquals(listOf("kod"), turkish.otpIds)
+        assertTrue(web.usernameIds.isEmpty() && !web.isEmpty)
+    }
+
+    @Test
+    fun codeFieldIsNotMistakenForTheUsername() {
+        val form = FormParser.parse(
+            container(
+                field("user", hints = listOf("username")),
+                field("pass", hints = listOf("password")),
+                field("otp", idEntry = "otp_input")
+            )
+        )
+
+        assertEquals(listOf("user"), form.usernameIds)
+        assertEquals(listOf("otp"), form.otpIds)
+    }
+
+    @Test
+    fun wordsThatOnlyContainOtpAreNotCodeFields() {
+        assertTrue(FormParser.parse(container(field("food", hint = "hotpot order"))).otpIds.isEmpty())
+    }
+
+    @Test
     fun noDomainForNativeApps() {
         assertNull(FormParser.parse(container(field("pass", hints = listOf("password")))).webDomain)
     }

@@ -24,6 +24,7 @@ import androidx.autofill.inline.v1.InlineSuggestionUi
 import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.otp.Totp
 
 /** Builds the datasets the system shows in the autofill dropdown and the keyboard strip. */
 @RequiresApi(Build.VERSION_CODES.O)
@@ -80,8 +81,11 @@ internal class AutofillResponses(private val context: Context) {
         credential: Credential,
         inline: InlineSpec? = null
     ): Dataset? {
+        // The code is worked out now; it is only valid until the end of the current period.
+        val code = credential.otp?.let { Totp.code(it, System.currentTimeMillis()) }
         val values = form.usernameIds.mapNotNull { id -> credential.username?.let { id to it } } +
-            form.passwordIds.mapNotNull { id -> credential.password?.let { id to it } }
+            form.passwordIds.mapNotNull { id -> credential.password?.let { id to it } } +
+            form.otpIds.mapNotNull { id -> code?.let { id to it } }
         if (values.isEmpty()) return null
         val builder = Dataset.Builder(remoteViews(credential.title, credential.username))
         values.forEach { (id, text) -> builder.setValue(id, AutofillValue.forText(text)) }

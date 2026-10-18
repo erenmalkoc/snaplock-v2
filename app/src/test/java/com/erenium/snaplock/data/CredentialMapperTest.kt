@@ -61,6 +61,17 @@ class CredentialMapperTest {
     }
 
     @Test
+    fun carriesTwoFactorSettingsForAutofill() {
+        val credential = entry(
+            "Title" to plain("GitHub"),
+            "otp" to plain("otpauth://totp/GitHub?secret=JBSWY3DPEHPK3PXP&digits=8")
+        ).toCredential(UNTITLED)
+
+        assertEquals(8, credential.otp?.digits)
+        assertNull(entry("Title" to plain("Plain")).toCredential(UNTITLED).otp)
+    }
+
+    @Test
     fun usesFallbackTitleAndNullForEmptyFields() {
         val credential = entry(
             "Title" to plain(" "),

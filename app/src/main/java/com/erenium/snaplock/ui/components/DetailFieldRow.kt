@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,6 +25,7 @@ fun DetailFieldRow(
     value: String,
     modifier: Modifier = Modifier,
     valueStyle: TextStyle = MaterialTheme.typography.bodyLarge,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
     singleLineValue: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -54,7 +56,7 @@ fun DetailFieldRow(
             Text(
                 text = value,
                 style = valueStyle,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = valueColor,
                 maxLines = if (singleLineValue) 1 else Int.MAX_VALUE,
                 overflow = if (singleLineValue) TextOverflow.Ellipsis else TextOverflow.Clip
             )

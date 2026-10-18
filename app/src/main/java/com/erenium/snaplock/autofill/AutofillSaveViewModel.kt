@@ -7,6 +7,7 @@ import com.erenium.snaplock.data.repository.RecentDatabasesRepository
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.RecentDatabase
 import com.erenium.snaplock.domain.repository.KdbxRepository
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -138,7 +139,7 @@ class AutofillSaveViewModel @Inject constructor(
             }
             result
                 .onSuccess { finished.send(Unit) }
-                .onFailure { form.update { it.copy(isSaving = false, errorStringId = R.string.entry_save_error) } }
+                .onFailure { error -> form.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) } }
         }
     }
 }

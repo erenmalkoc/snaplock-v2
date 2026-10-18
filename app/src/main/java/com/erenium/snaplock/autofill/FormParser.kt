@@ -28,10 +28,12 @@ data class LoginForm<ID>(
     val passwordIds: List<ID>,
     val webDomain: String?,
     val username: String?,
-    val password: String?
+    val password: String?,
+    /** Fields asking for a two-factor code, often on a second login page. */
+    val otpIds: List<ID> = emptyList()
 ) {
-    val allIds: List<ID> get() = usernameIds + passwordIds
-    val isEmpty: Boolean get() = usernameIds.isEmpty() && passwordIds.isEmpty()
+    val allIds: List<ID> get() = usernameIds + passwordIds + otpIds
+    val isEmpty: Boolean get() = usernameIds.isEmpty() && passwordIds.isEmpty() && otpIds.isEmpty()
 }
 
 object FormParser {
@@ -43,6 +45,13 @@ object FormParser {
     // No bare "pass": it also matches "passport" and "compass".
     private val passwordKeywords = listOf("password", "passwd", "pwd", "parola", "şifre", "sifre")
     private val ignoredKeywords = listOf("search", "captcha", "otp", "2fa", "arama", "ara", "promo")
+    // Matched as whole words: "otp" must not hit "hotpot".
+    private val otpWords = listOf("otp", "totp", "2fa", "mfa", "authenticator")
+    private val otpPhrases = listOf(
+        "one-time", "one_time", "onetime", "verification code", "verification_code", "verificationcode",
+        "security code", "auth code", "authentication code", "doğrulama kodu", "dogrulama kodu",
+        "tek kullanımlık", "onay kodu"
+    )
 
     fun <ID> parse(root: FormNode<ID>): LoginForm<ID> = parse(listOf(root))
 
@@ -58,12 +67,13 @@ object FormParser {
         roots.forEach(::walk)
 
         val passwords = fields.filter { isPassword(it) }
-        val usernames = fields.filter { it !in passwords && isUsername(it) }.toMutableList()
+        val otps = fields.filter { it !in passwords && isOneTimeCode(it) }
+        val usernames = fields.filter { it !in passwords && it !in otps && isUsername(it) }.toMutableList()
         if (usernames.isEmpty() && passwords.isNotEmpty()) {
             // Many forms only mark the password; the username is then the text field before it.
             val firstPassword = fields.indexOf(passwords.first())
             fields.subList(0, firstPassword)
-                .lastOrNull { it !in passwords && !isIgnored(it) }
+                .lastOrNull { it !in passwords && it !in otps && !isIgnored(it) }
                 ?.let(usernames::add)
         }
         return LoginForm(
@@ -71,8 +81,18 @@ object FormParser {
             passwordIds = passwords.mapNotNull { it.autofillId },
             webDomain = webDomain?.trim()?.lowercase(),
             username = usernames.firstNotNullOfOrNull { it.text?.takeIf(String::isNotEmpty) },
-            password = passwords.firstNotNullOfOrNull { it.text?.takeIf(String::isNotEmpty) }
+            password = passwords.firstNotNullOfOrNull { it.text?.takeIf(String::isNotEmpty) },
+            otpIds = otps.mapNotNull { it.autofillId }
         )
+    }
+
+    internal fun isOneTimeCode(node: FormNode<*>): Boolean {
+        // Android hints such as "smsOTPCode" and "2faAppOTPCode", optionally numbered per digit box.
+        if (node.autofillHints.any { it.lowercase().contains("otp") }) return true
+        if (node.htmlAttributes["autocomplete"].equals("one-time-code", ignoreCase = true)) return true
+        return node.labels().any { label ->
+            label.split(*SEPARATORS).any { it in otpWords } || otpPhrases.any { label.contains(it) }
+        }
     }
 
     internal fun isPassword(node: FormNode<*>): Boolean {

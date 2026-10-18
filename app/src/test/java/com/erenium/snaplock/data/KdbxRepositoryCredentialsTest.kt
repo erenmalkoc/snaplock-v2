@@ -14,6 +14,7 @@ import app.keemobile.kotpass.models.Group
 import app.keemobile.kotpass.models.Meta
 import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.local.KdbxLocalDataSource
+import com.erenium.snaplock.data.datasource.local.VaultBackups
 import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
 import com.erenium.snaplock.data.repository.KdbxRepositoryImpl
 import java.util.UUID
@@ -31,7 +32,7 @@ class KdbxRepositoryCredentialsTest {
     private val sessionCache = SessionCache()
     private val repository = KdbxRepositoryImpl(
         context,
-        KdbxLocalDataSource(context),
+        KdbxLocalDataSource(context, VaultBackups(context)),
         sessionCache,
         RecentDatabasesPrefs(context)
     )

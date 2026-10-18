@@ -9,4 +9,8 @@ object NavRoutes {
     const val PASSWORD_GENERATOR = "password_generator"
     const val ENTRY_FORM = "entry_form"
     const val CREATE_DATABASE = "create_database"
+    const val RECYCLE_BIN = "recycle_bin"
+    const val CHANGE_PASSWORD = "change_password"
+    const val DATABASE_SETTINGS = "database_settings"
+    const val PASSWORD_HEALTH = "password_health"
 }

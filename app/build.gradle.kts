@@ -15,8 +15,8 @@ android {
         applicationId = "com.erenium.snaplock"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -34,6 +34,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // kotpass stores entry times as java.time.Instant, which Android only has from 8.0
+        isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
         compose = true
@@ -60,6 +62,7 @@ kotlin {
 
 dependencies {
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.process)
@@ -91,6 +94,8 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.autofill)
     implementation(libs.androidx.credentials)
+    implementation(libs.zxing.android.embedded)
+    implementation(libs.zxing.core)
 
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)

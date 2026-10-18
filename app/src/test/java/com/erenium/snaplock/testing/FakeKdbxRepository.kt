@@ -1,14 +1,22 @@
 package com.erenium.snaplock.testing
 
 import android.net.Uri
+import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.DatabaseSettings
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.VaultBackup
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
+import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 /** In-memory [KdbxRepository] for tests; every entry lives in one root group. */
@@ -17,37 +25,58 @@ class FakeKdbxRepository : KdbxRepository {
     val locked = MutableStateFlow(true)
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
+    val recycled = MutableStateFlow<List<Entry>>(emptyList())
+    /** Attachment contents by entry and file name. */
+    val attachments = mutableMapOf<UUID, MutableMap<String, ByteArray>>()
+    /** Key file passed to the last unlockDatabase call. */
+    var lastKeyFile: ByteArray? = null
+    val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
+    /** Every form passed to addEntry or updateEntry, in order. */
+    val savedForms = mutableListOf<EntryFormData>()
+    /** How many times reloadIfChanged was called. */
+    var reloads = 0
+    var databaseSettings: DatabaseSettings? = DatabaseSettings("Passwords", true, 10, null)
+    /** Backup files by id; listed newest first by their creation time. */
+    val backups = mutableMapOf<VaultBackup, ByteArray>()
 
-    override suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit> {
+    override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
+        lastKeyFile = keyFile
         locked.value = false
         return Result.success(Unit)
     }
 
-    override suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit> {
+    override suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         locked.value = false
         return Result.success(Unit)
     }
+
+    override suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit> =
+        Result.success(Unit)
 
     override suspend fun lockDatabase() {
         locked.value = true
     }
 
-    override fun isLocked(): Flow<Boolean> = locked
+    override fun isLocked(): StateFlow<Boolean> = locked
 
     override fun getEntries(): Flow<List<Entry>> = entries
 
-    override fun getGroups(): Flow<List<Group>> =
-        MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", entries.value.size)))
+    override fun getGroups(): Flow<List<Group>> = groups
 
     override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
         return entryDetails[uuid]?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(uuid.toString()))
     }
 
+    val auditEntries = MutableStateFlow<List<AuditEntry>>(emptyList())
+
+    override suspend fun getAuditEntries(): List<AuditEntry> = auditEntries.value
+
     override suspend fun getCredentials(): List<Credential> =
         if (locked.value) emptyList() else credentials.value
 
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+        savedForms += data
         val uuid = UUID.randomUUID()
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value + Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords")
@@ -55,6 +84,7 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+        savedForms += data
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value.map {
             if (it.uuid == uuid) Entry(uuid, data.title, data.username, ROOT_GROUP_UUID, "Passwords") else it
@@ -63,8 +93,110 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
-        entryDetails.remove(uuid)
-        entries.value = entries.value.filterNot { it.uuid == uuid }
+        val live = entries.value.firstOrNull { it.uuid == uuid }
+        if (live != null) {
+            entries.value = entries.value - live
+            recycled.value = recycled.value + live
+        } else {
+            entryDetails.remove(uuid)
+            recycled.value = recycled.value.filterNot { it.uuid == uuid }
+        }
+        return Result.success(Unit)
+    }
+
+    override fun getRecycledEntries(): Flow<List<Entry>> = recycled
+
+    override suspend fun restoreEntry(uuid: UUID): Result<Unit> {
+        val entry = recycled.value.firstOrNull { it.uuid == uuid }
+            ?: return Result.failure(NoSuchElementException(uuid.toString()))
+        recycled.value = recycled.value - entry
+        entries.value = entries.value + entry
+        return Result.success(Unit)
+    }
+
+    override suspend fun emptyRecycleBin(): Result<Unit> {
+        recycled.value.forEach { entryDetails.remove(it.uuid) }
+        recycled.value = emptyList()
+        return Result.success(Unit)
+    }
+
+    override suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit> = Result.success(Unit)
+
+    override suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit> {
+        attachments.getOrPut(uuid) { mutableMapOf() }[name] = content
+        return Result.success(Unit)
+    }
+
+    override suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray> =
+        attachments[uuid]?.get(name)?.let { Result.success(it) }
+            ?: Result.failure(NoSuchElementException(name))
+
+    override suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit> {
+        attachments[uuid]?.remove(name)
+        return Result.success(Unit)
+    }
+
+    val imported = mutableListOf<Pair<String, List<ImportedEntry>>>()
+
+    override suspend fun importEntries(groupName: String, entries: List<ImportedEntry>): Result<Int> {
+        imported += groupName to entries
+        return Result.success(entries.size)
+    }
+
+    var exportEntries = emptyList<ExportedEntry>()
+
+    override suspend fun getExportEntries(): List<ExportedEntry> = exportEntries
+
+    override suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID> {
+        val uuid = UUID.randomUUID()
+        groups.value = groups.value + Group(uuid, name, 0, parentUuid)
+        return Result.success(uuid)
+    }
+
+    override suspend fun renameGroup(uuid: UUID, name: String): Result<Unit> {
+        groups.value = groups.value.map { if (it.uuid == uuid) it.copy(name = name) else it }
+        return Result.success(Unit)
+    }
+
+    override suspend fun deleteGroup(uuid: UUID): Result<Unit> {
+        if (uuid == ROOT_GROUP_UUID) return Result.failure(IllegalArgumentException("root"))
+        groups.value = groups.value.filterNot { it.uuid == uuid }
+        return Result.success(Unit)
+    }
+
+    override suspend fun reloadIfChanged(): Result<Boolean> {
+        reloads++
+        return Result.success(false)
+    }
+
+    override suspend fun getDatabaseSettings(): DatabaseSettings? = databaseSettings
+
+    override suspend fun updateDatabaseSettings(settings: DatabaseSettings): Result<Unit> {
+        databaseSettings = settings
+        return Result.success(Unit)
+    }
+
+    override suspend fun getBackups(): List<VaultBackup> = backups.keys.sortedByDescending { it.created }
+
+    override suspend fun getBackup(id: String): Result<ByteArray> =
+        backups.entries.firstOrNull { it.key.id == id }?.value?.let { Result.success(it) }
+            ?: Result.failure(NoSuchElementException(id))
+
+    val passkeys = mutableListOf<StoredPasskey>()
+
+    override suspend fun getPasskeys(): List<StoredPasskey> = if (locked.value) emptyList() else passkeys.toList()
+
+    override suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID> {
+        val uuid = UUID.randomUUID()
+        passkeys += StoredPasskey(uuid, title, passkey)
+        return Result.success(uuid)
+    }
+
+    /** Icons passed to setEntryIcons, by entry. */
+    val iconsSet = mutableMapOf<UUID, ByteArray>()
+
+    override suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit> {
+        iconsSet += icons
         return Result.success(Unit)
     }
 

@@ -1,0 +1,7 @@
+* Uygulama ve tarayıcılarda otomatik doldurma, 2FA kodları ve giriş kaydetme
+* Android 14+ oturum açma ekranında parolalar ve KeePassXC uyumlu geçiş anahtarları
+* Gruplar, özel alanlar, ekler, geçmiş, çöp kutusu ve anahtar dosyaları
+* 2FA kodları, parola cümleleri, güç ölçer ve parola sağlığı denetimi
+* Diğer cihazlardaki değişiklikleri birleştirme; günlük yedekler
+* CSV içe ve dışa aktarma; veritabanı ve şifreleme ayarları
+* Site simgeleri, Hızlı Ayarlar kutucuğu, kısayollar ve tablet düzeni

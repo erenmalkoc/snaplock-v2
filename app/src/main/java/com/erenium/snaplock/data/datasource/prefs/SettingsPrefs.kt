@@ -47,6 +47,11 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
         _settings.update { it.copy(autoLockSeconds = seconds) }
     }
 
+    fun setBreachCheckEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_BREACH_CHECK, enabled) }
+        _settings.update { it.copy(breachCheckEnabled = enabled) }
+    }
+
     private fun readSettings(): AppSettings {
         val themeName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name)
         val themeMode = runCatching { ThemeMode.valueOf(themeName ?: ThemeMode.SYSTEM.name) }
@@ -56,7 +61,8 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
             dynamicColor = prefs.getBoolean(KEY_DYNAMIC_COLOR, true),
             clipboardAutoClear = prefs.getBoolean(KEY_CLIPBOARD_AUTO_CLEAR, true),
             clipboardTimeoutSeconds = prefs.getInt(KEY_CLIPBOARD_TIMEOUT, DEFAULT_CLIPBOARD_TIMEOUT),
-            autoLockSeconds = prefs.getInt(KEY_AUTO_LOCK, DEFAULT_AUTO_LOCK)
+            autoLockSeconds = prefs.getInt(KEY_AUTO_LOCK, DEFAULT_AUTO_LOCK),
+            breachCheckEnabled = prefs.getBoolean(KEY_BREACH_CHECK, false)
         )
     }
 
@@ -67,6 +73,7 @@ class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_CLIPBOARD_AUTO_CLEAR = "clipboard_auto_clear"
         const val KEY_CLIPBOARD_TIMEOUT = "clipboard_timeout_seconds"
         const val KEY_AUTO_LOCK = "auto_lock_seconds"
+        const val KEY_BREACH_CHECK = "breach_check_enabled"
         const val DEFAULT_CLIPBOARD_TIMEOUT = 30
         const val DEFAULT_AUTO_LOCK = 0
     }

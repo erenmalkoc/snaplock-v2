@@ -1,14 +1,25 @@
 package com.erenium.snaplock.presentation.entrydetail
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
+import com.erenium.snaplock.data.datasource.local.DocumentFiles
+import com.erenium.snaplock.data.datasource.local.FileTooLargeException
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
+import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.otp.Totp
+import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
+import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
+import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
+import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
+import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,29 +33,47 @@ data class EntryDetailUiState(
     val entry: EntryDetail? = null,
     val isLoading: Boolean = true,
     val errorStringId: Int? = null,
-    val isPasswordVisible: Boolean = false
+    val isPasswordVisible: Boolean = false,
+    /** Names of protected custom fields the user chose to show. */
+    val revealedFields: Set<String> = emptySet()
 )
-
-enum class CopiedField { USERNAME, PASSWORD }
 
 @HiltViewModel
 class EntryDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
     private val deleteEntryUseCase: DeleteEntryUseCase,
+    private val restoreVersionUseCase: RestoreVersionUseCase,
+    private val addAttachmentUseCase: AddAttachmentUseCase,
+    private val getAttachmentUseCase: GetAttachmentUseCase,
+    private val removeAttachmentUseCase: RemoveAttachmentUseCase,
+    private val documentFiles: DocumentFiles,
     private val clipboardManager: ClipboardManagerHelper
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _copyEvents = Channel<CopiedField>(Channel.BUFFERED)
+    /** Label of the field just copied, for the confirmation message. */
+    private val _copyEvents = Channel<String>(Channel.BUFFERED)
     val copyEvents = _copyEvents.receiveAsFlow()
+
+    private val _restoredEvents = Channel<Unit>(Channel.BUFFERED)
+    val restoredEvents = _restoredEvents.receiveAsFlow()
+
+    /** Short confirmations and errors: a string resource and its optional argument. */
+    private val _messages = Channel<Pair<Int, String?>>(Channel.BUFFERED)
+    val messages = _messages.receiveAsFlow()
 
     private val _deletedEvents = Channel<Unit>(Channel.BUFFERED)
     val deletedEvents = _deletedEvents.receiveAsFlow()
 
-    private val entryUuid: String = checkNotNull(savedStateHandle["uuid"])
+    // The navigation argument on phones; the pane beside the list on wide screens has none
+    // and picks its entry with show().
+    private var entryUuid: String? = savedStateHandle["uuid"]
+    private var loadJob: Job? = null
+
+    private val currentUuid: UUID get() = UUID.fromString(checkNotNull(entryUuid))
 
     init {
         loadEntryDetails()
@@ -52,11 +81,22 @@ class EntryDetailViewModel @Inject constructor(
 
     fun reload() = loadEntryDetails()
 
+    /** Switches to another entry, starting from a clean state. */
+    fun show(uuid: UUID) {
+        if (entryUuid == uuid.toString()) return
+        entryUuid = uuid.toString()
+        _uiState.value = EntryDetailUiState()
+        loadEntryDetails()
+    }
+
     private fun loadEntryDetails() {
-        viewModelScope.launch {
+        val uuid = entryUuid?.let(UUID::fromString) ?: return
+        // A slower load for the previous entry must not overwrite this one.
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val result = getEntryDetailsUseCase(UUID.fromString(entryUuid))
+            val result = getEntryDetailsUseCase(uuid)
 
             result.onSuccess { entry ->
                 _uiState.update { it.copy(isLoading = false, entry = entry) }
@@ -74,23 +114,97 @@ class EntryDetailViewModel @Inject constructor(
         val password = _uiState.value.entry?.password
         if (password.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = password)
-        _copyEvents.trySend(CopiedField.PASSWORD)
+        _copyEvents.trySend(label)
     }
 
     fun onCopyUsername(label: String) {
         val username = _uiState.value.entry?.username
         if (username.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = username, sensitive = false)
-        _copyEvents.trySend(CopiedField.USERNAME)
+        _copyEvents.trySend(label)
+    }
+
+    fun onCopyOtp(label: String) {
+        val otp = _uiState.value.entry?.otp ?: return
+        clipboardManager.copyToClipboard(label = label, text = Totp.code(otp, System.currentTimeMillis()))
+        _copyEvents.trySend(label)
+    }
+
+    fun onCopyCustomField(field: CustomField) {
+        if (field.value.isEmpty()) return
+        clipboardManager.copyToClipboard(label = field.name, text = field.value, sensitive = field.isProtected)
+        _copyEvents.trySend(field.name)
+    }
+
+    fun toggleFieldVisibility(name: String) {
+        _uiState.update {
+            val revealed = if (name in it.revealedFields) it.revealedFields - name else it.revealedFields + name
+            it.copy(revealedFields = revealed)
+        }
+    }
+
+    fun onRestoreVersion(index: Int) {
+        viewModelScope.launch {
+            restoreVersionUseCase(currentUuid, index)
+                .onSuccess {
+                    loadEntryDetails()
+                    _restoredEvents.trySend(Unit)
+                }
+                .onFailure { error -> _uiState.update { it.copy(errorStringId = error.saveErrorMessage()) } }
+        }
+    }
+
+    fun onAddAttachment(uri: Uri) {
+        val uuid = currentUuid
+        viewModelScope.launch {
+            documentFiles.read(uri, MAX_ATTACHMENT_BYTES)
+                .onFailure { error ->
+                    message(if (error is FileTooLargeException) R.string.attachment_too_large else R.string.attachment_error)
+                }
+                .onSuccess { document ->
+                    addAttachmentUseCase(uuid, document.name, document.content)
+                        .onSuccess {
+                            loadEntryDetails()
+                            message(R.string.attachment_added, document.name)
+                        }
+                        .onFailure { message(it.saveErrorMessage(R.string.attachment_error)) }
+                }
+        }
+    }
+
+    fun onSaveAttachment(name: String, target: Uri) {
+        viewModelScope.launch {
+            getAttachmentUseCase(currentUuid, name)
+                .fold(onSuccess = { documentFiles.write(target, it) }, onFailure = { Result.failure(it) })
+                .onSuccess { message(R.string.attachment_saved, name) }
+                .onFailure { message(R.string.attachment_error) }
+        }
+    }
+
+    fun onRemoveAttachment(name: String) {
+        viewModelScope.launch {
+            removeAttachmentUseCase(currentUuid, name)
+                .onSuccess { loadEntryDetails() }
+                .onFailure { message(it.saveErrorMessage(R.string.attachment_error)) }
+        }
+    }
+
+    private fun message(resId: Int, argument: String? = null) {
+        _messages.trySend(resId to argument)
     }
 
     fun onDelete() {
         viewModelScope.launch {
-            deleteEntryUseCase(UUID.fromString(entryUuid))
+            deleteEntryUseCase(currentUuid)
                 .onSuccess { _deletedEvents.trySend(Unit) }
-                .onFailure {
-                    _uiState.update { it.copy(errorStringId = R.string.entry_delete_error) }
+                .onFailure { error ->
+                    _uiState.update { it.copy(errorStringId = error.saveErrorMessage(R.string.entry_delete_error)) }
                 }
         }
+    }
+
+    private companion object {
+        // Attachments live inside the vault file, so a size cap keeps it quick to open and sync.
+        const val MAX_ATTACHMENT_BYTES = 20L * 1024 * 1024
     }
 }

@@ -1,23 +1,54 @@
 package com.erenium.snaplock.domain.repository
 
 import android.net.Uri
+import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
 import com.erenium.snaplock.domain.model.Credential
+import com.erenium.snaplock.domain.model.DatabaseSettings
+import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.VaultBackup
+import com.erenium.snaplock.domain.passkeys.Passkey
+import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 interface KdbxRepository {
 
-    suspend fun unlockDatabase(uri: Uri, password: CharSequence): Result<Unit>
+    /** Opens the database with a password, a key file, or both. */
+    suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<Unit>
 
-    suspend fun createDatabase(uri: Uri, password: CharSequence): Result<Unit>
+    suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray? = null): Result<Unit>
+
+    /** Replaces the master password and key file of the open database. */
+    suspend fun changeCredentials(password: CharSequence, keyFile: ByteArray?): Result<Unit>
+
+    /** Settings stored in the open vault file; null while locked. */
+    suspend fun getDatabaseSettings(): DatabaseSettings?
+
+    /** Saves new vault settings; a changed cipher or key derivation applies from this save on. */
+    suspend fun updateDatabaseSettings(settings: DatabaseSettings): Result<Unit>
 
     suspend fun lockDatabase()
 
-    fun isLocked(): Flow<Boolean>
+    /**
+     * Takes in what another device or app (Syncthing, a cloud drive) wrote to the vault file
+     * since this session opened or saved it. Returns whether there was anything; false while
+     * locked.
+     */
+    suspend fun reloadIfChanged(): Result<Boolean>
+
+    /** Copies of the open vault file from before earlier saves, newest first; empty while locked. */
+    suspend fun getBackups(): List<VaultBackup>
+
+    /** The encrypted KDBX file of one of [getBackups]. */
+    suspend fun getBackup(id: String): Result<ByteArray>
+
+    fun isLocked(): StateFlow<Boolean>
 
     fun getEntries(): Flow<List<Entry>>
 
@@ -28,11 +59,68 @@ interface KdbxRepository {
     /** Login data of every entry outside the recycle bin; empty while locked. */
     suspend fun getCredentials(): List<Credential>
 
+    /** Passwords and dates of every entry outside the recycle bin, for the health check. */
+    suspend fun getAuditEntries(): List<AuditEntry>
+
     suspend fun addEntry(data: EntryFormData): Result<Unit>
 
     suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit>
 
+    /**
+     * Moves the entry to the recycle bin. Deletes it for good when it is already there or
+     * the database has the recycle bin turned off, like other KeePass clients.
+     */
     suspend fun deleteEntry(uuid: UUID): Result<Unit>
+
+    /** Entries in the recycle bin. [getEntries] and [getCredentials] leave them out. */
+    fun getRecycledEntries(): Flow<List<Entry>>
+
+    /** Moves an entry out of the recycle bin, back to its previous group if that still exists. */
+    suspend fun restoreEntry(uuid: UUID): Result<Unit>
+
+    suspend fun emptyRecycleBin(): Result<Unit>
+
+    /** Makes a version from the entry's history current again; the current one goes to history. */
+    suspend fun restoreVersion(uuid: UUID, index: Int): Result<Unit>
+
+    /** Stores a file with the entry; a name already in use gets a " (1)" style suffix. */
+    suspend fun addAttachment(uuid: UUID, name: String, content: ByteArray): Result<Unit>
+
+    suspend fun getAttachment(uuid: UUID, name: String): Result<ByteArray>
+
+    suspend fun removeAttachment(uuid: UUID, name: String): Result<Unit>
+
+    /**
+     * Adds [entries] in one save under a new group called [groupName] below the root;
+     * each entry's folder becomes a subgroup. Returns how many entries were added.
+     */
+    suspend fun importEntries(groupName: String, entries: List<ImportedEntry>): Result<Int>
+
+    /** Every entry outside the recycle bin, for a CSV export. */
+    suspend fun getExportEntries(): List<ExportedEntry>
+
+    /** Adds an empty group under [parentUuid] and returns its id. */
+    suspend fun createGroup(parentUuid: UUID, name: String): Result<UUID>
+
+    suspend fun renameGroup(uuid: UUID, name: String): Result<Unit>
+
+    /**
+     * Moves the group and everything in it to the recycle bin, or deletes it for good when
+     * it is already there or the recycle bin is off. The root group cannot be deleted.
+     */
+    suspend fun deleteGroup(uuid: UUID): Result<Unit>
+
+    /**
+     * Gives entries custom icons (PNG data by entry) in one save. Identical images share one
+     * stored icon, as do images the vault already holds.
+     */
+    suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit>
+
+    /** Passkeys of every entry outside the recycle bin; empty while locked. */
+    suspend fun getPasskeys(): List<StoredPasskey>
+
+    /** Saves a new passkey in its own entry under the root group and returns the entry's id. */
+    suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID>
 
     /** Links an Android app to the entry so autofill offers it there next time. */
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>

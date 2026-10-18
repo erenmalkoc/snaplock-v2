@@ -1,20 +1,29 @@
-Snaplock, Android için tamamen çevrimdışı, KeePass uyumlu bir parola yöneticisidir.
-Mevcut .kdbx veritabanınızı açar, çözülmüş veriyi yalnızca aktif oturum boyunca
-bellekte tutar ve uygulama kilitlendiğinde ya da arka plana alındığında bu oturumu
-anında temizler.
+Snaplock, Android'in bir parçası gibi hissettiren açık kaynaklı, KeePass uyumlu bir parola yöneticisidir. Doğrudan kendi şifreli .kdbx dosyanız üzerinde çalışır: dosyayı cihazda tutun ya da istediğiniz uygulamayla eşitleyin; aynı kasayı diğer cihazlarınızda KeePassXC, KeePass veya KeePassDX ile kullanın.
 
-Snaplock hiçbir internet izni istemez. Veritabanınız cihazınızdan asla çıkmaz.
+Her şey çevrimdışı çalışır. İki isteğe bağlı özellik yalnızca siz açtıktan sonra internete çıkar: parolanın SHA-1 özetinin yalnızca ilk 5 karakterini gönderen Have I Been Pwned sızıntı denetimi ve her web sitesinden yalnızca kendi simgesini isteyen site simgesi indirme.
 
-Özellikler:
+Her yerde oturum açın:
+* Uygulama ve tarayıcılarda otomatik doldurma, klavyede öneriler
+* Paroladan sonra tek kullanımlık 2FA kodlarını doldurma
+* Android 14+ oturum açma ekranında parolalar ve geçiş anahtarları; geçiş anahtarları KeePassXC biçiminde saklanır, orada da çalışır
+* Yeni ve değişen girişleri kaydetmeyi önerme
 
-* Standart KeePass .kdbx veritabanlarını açma ve kilidini çözme
-* Çözülmüş veritabanındaki kayıtları ve grupları görüntüleme
-* Kayıt kullanıcı adı ve parola ayrıntılarını görme
-* Parola görünürlüğünü açıp kapatma
-* Parolaları otomatik zamanlı temizleme ile panoya kopyalama
-* Kaydedilmiş veritabanı parolası için isteğe bağlı biyometrik kilit açma
+Kasanız:
+* Gruplar, özel alanlar, ekler, kayıt geçmişi ve çöp kutusu
+* Parola, anahtar dosyası veya ikisi birden; istediğiniz zaman değiştirilebilir
+* Argon2 veya AES-KDF ile AES-256, ChaCha20 ya da Twofish; anahtar türetme için tek dokunuşla ölçüm
+* Diğer cihazlarda yapılan değişikliklerin üzerine yazmak yerine onları birleştirme
+* Kasa dosyasının cihazda 7 gün saklanan günlük yedeği
+* Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass ve KeePassXC CSV dosyalarından içe aktarma; CSV'ye dışa aktarma
 
-Snaplock çözülmüş veritabanını kalıcı olarak saklamaz. Seçilen dosya Android'in
-belge seçici aracılığıyla okunur ve çözülmüş içerik yalnızca işlem oturum
-önbelleğinde yaşar; bu önbellek uygulama kilitlendiğinde veya arka plana
-alındığında silinir.
+Parolalar:
+* Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)
+* Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi
+* QR kod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları
+
+Android'in parçası:
+* Material You renkleri, açık ve koyu tema, uygulamaya özel dil
+* Biyometrik kilit açma, otomatik kilit, engellenen ekran görüntüleri ve pano temizleme
+* Hızlı Ayarlar kutucuğu, başlatıcı kısayolları; tablet ve katlanabilir cihazlarda liste ile kayıt yan yana
+
+Snaplock'ta hesap, reklam ve izleyici yoktur; hiçbir veri toplamaz.
