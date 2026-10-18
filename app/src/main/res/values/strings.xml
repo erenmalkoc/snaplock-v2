@@ -175,5 +175,19 @@
     <string name="entry_form_otp_qr_not_found">No QR code found in the image.</string>
     <string name="entry_form_otp_remove">Remove 2FA</string>
     <string name="scan_prompt">Point the camera at the 2FA QR code</string>
+    <string name="strength_very_weak">Very weak</string>
+    <string name="strength_weak">Weak</string>
+    <string name="strength_fair">Fair</string>
+    <string name="strength_strong">Strong</string>
+    <string name="strength_very_strong">Very strong</string>
+    <string name="strength_with_bits">%1$s · %2$d bits</string>
+    <string name="pwgen_mode_password">Password</string>
+    <string name="pwgen_mode_passphrase">Passphrase</string>
+    <string name="pwgen_words">Words</string>
+    <string name="pwgen_separator">Separator</string>
+    <string name="pwgen_separator_space">Space</string>
+    <string name="pwgen_capitalize">Capitalize words</string>
+    <string name="pwgen_include_number">Add a number</string>
+    <string name="entry_form_generate">Generate a strong password</string>
 
 </resources>

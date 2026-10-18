@@ -175,5 +175,19 @@
     <string name="entry_form_otp_qr_not_found">Görüntüde QR kod bulunamadı.</string>
     <string name="entry_form_otp_remove">2FA\'yı kaldır</string>
     <string name="scan_prompt">Kamerayı 2FA QR koduna doğrultun</string>
+    <string name="strength_very_weak">Çok zayıf</string>
+    <string name="strength_weak">Zayıf</string>
+    <string name="strength_fair">Orta</string>
+    <string name="strength_strong">Güçlü</string>
+    <string name="strength_very_strong">Çok güçlü</string>
+    <string name="strength_with_bits">%1$s · %2$d bit</string>
+    <string name="pwgen_mode_password">Şifre</string>
+    <string name="pwgen_mode_passphrase">Parola cümlesi</string>
+    <string name="pwgen_words">Kelime sayısı</string>
+    <string name="pwgen_separator">Ayraç</string>
+    <string name="pwgen_separator_space">Boşluk</string>
+    <string name="pwgen_capitalize">Kelimelerin baş harfi büyük</string>
+    <string name="pwgen_include_number">Bir rakam ekle</string>
+    <string name="entry_form_generate">Güçlü şifre üret</string>
 
 </resources>

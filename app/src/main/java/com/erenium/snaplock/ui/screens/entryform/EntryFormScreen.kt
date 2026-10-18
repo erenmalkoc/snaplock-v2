@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Checkbox
@@ -28,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +54,7 @@ import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PasswordTextField
+import com.erenium.snaplock.ui.components.StrengthMeter
 import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
@@ -136,13 +139,25 @@ fun EntryFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            PasswordTextField(
-                value = state.password,
-                onValueChange = viewModel::onPasswordChange,
-                label = stringResource(R.string.entry_password_label),
-                placeholder = stringResource(R.string.enter_password_placeholder),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column {
+                PasswordTextField(
+                    value = state.password,
+                    onValueChange = viewModel::onPasswordChange,
+                    label = stringResource(R.string.entry_password_label),
+                    placeholder = stringResource(R.string.enter_password_placeholder),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                state.passwordStrength?.let { strength ->
+                    StrengthMeter(estimate = strength, modifier = Modifier.padding(top = Dimens.spaceSm))
+                }
+                TextButton(onClick = viewModel::onGeneratePassword) {
+                    Icon(Icons.Filled.Password, contentDescription = null)
+                    Text(
+                        text = stringResource(R.string.entry_form_generate),
+                        modifier = Modifier.padding(start = Dimens.spaceSm)
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = state.url,

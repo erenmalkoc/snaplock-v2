@@ -7,6 +7,10 @@ import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.model.PasswordOptions
+import com.erenium.snaplock.domain.passwords.PasswordStrengthEstimator
+import com.erenium.snaplock.domain.passwords.StrengthEstimate
+import com.erenium.snaplock.domain.usecase.GeneratePasswordUseCase
 import com.erenium.snaplock.domain.otp.OtpParameters
 import com.erenium.snaplock.domain.otp.OtpParser
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
@@ -36,6 +40,7 @@ data class EntryFormUiState(
     val title: String = "",
     val username: String = "",
     val password: String = "",
+    val passwordStrength: StrengthEstimate? = null,
     val url: String = "",
     val notes: String = "",
     val customFields: List<CustomFieldDraft> = emptyList(),
@@ -60,7 +65,9 @@ class EntryFormViewModel @Inject constructor(
     private val getEntryDetailsUseCase: GetEntryDetailsUseCase,
     private val getGroupsUseCase: GetGroupsUseCase,
     private val addEntryUseCase: AddEntryUseCase,
-    private val updateEntryUseCase: UpdateEntryUseCase
+    private val updateEntryUseCase: UpdateEntryUseCase,
+    private val generatePasswordUseCase: GeneratePasswordUseCase,
+    private val strengthEstimator: PasswordStrengthEstimator
 ) : ViewModel() {
 
     private val entryUuid: UUID? = savedStateHandle.get<String>("uuid")?.let(UUID::fromString)
@@ -111,6 +118,7 @@ class EntryFormViewModel @Inject constructor(
                             title = entry.title,
                             username = entry.username.orEmpty(),
                             password = entry.password.orEmpty(),
+                            passwordStrength = entry.password?.takeIf { it.isNotEmpty() }?.let(strengthEstimator::estimate),
                             url = entry.url.orEmpty(),
                             notes = entry.notes.orEmpty(),
                             customFields = entry.customFields.map { field ->
@@ -130,7 +138,11 @@ class EntryFormViewModel @Inject constructor(
 
     fun onTitleChange(value: String) = _uiState.update { it.copy(title = value, errorStringId = null) }
     fun onUsernameChange(value: String) = _uiState.update { it.copy(username = value) }
-    fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value) }
+    fun onPasswordChange(value: String) = _uiState.update {
+        it.copy(password = value, passwordStrength = value.takeIf { v -> v.isNotEmpty() }?.let(strengthEstimator::estimate))
+    }
+
+    fun onGeneratePassword() = onPasswordChange(generatePasswordUseCase(GENERATED_PASSWORD))
     fun onUrlChange(value: String) = _uiState.update { it.copy(url = value) }
     fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
 
@@ -196,5 +208,10 @@ class EntryFormViewModel @Inject constructor(
                     _uiState.update { it.copy(isSaving = false, errorStringId = R.string.entry_save_error) }
                 }
         }
+    }
+
+    private companion object {
+        /** What "generate" in the form produces: long, every character class. */
+        val GENERATED_PASSWORD = PasswordOptions(length = 20, useSymbols = true)
     }
 }

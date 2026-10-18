@@ -4,6 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.otp.OtpParser
+import com.erenium.snaplock.domain.passwords.PasswordStrength
+import com.erenium.snaplock.domain.passwords.PasswordStrengthEstimator
+import com.erenium.snaplock.domain.passwords.WordList
+import com.erenium.snaplock.domain.usecase.GeneratePasswordUseCase
 import com.erenium.snaplock.domain.usecase.AddEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
 import com.erenium.snaplock.domain.usecase.GetGroupsUseCase
@@ -30,7 +34,11 @@ class EntryFormViewModelTest {
         GetEntryDetailsUseCase(repository),
         GetGroupsUseCase(repository),
         AddEntryUseCase(repository),
-        UpdateEntryUseCase(repository)
+        UpdateEntryUseCase(repository),
+        GeneratePasswordUseCase(),
+        PasswordStrengthEstimator(object : WordList {
+            override val words = listOf("abacus", "abdomen", "abide")
+        })
     )
 
     @Test
@@ -46,6 +54,19 @@ class EntryFormViewModelTest {
         viewModel.onSave()
 
         assertEquals(listOf(CustomField("PIN", "1234", isProtected = true)), repository.savedForms.single().customFields)
+    }
+
+    @Test
+    fun generatedPasswordIsStrongAndRated() {
+        val viewModel = viewModel()
+
+        viewModel.onGeneratePassword()
+
+        val state = viewModel.uiState.value
+        assertEquals(20, state.password.length)
+        assertEquals(PasswordStrength.VERY_STRONG, state.passwordStrength?.strength)
+        viewModel.onPasswordChange("123456")
+        assertEquals(PasswordStrength.VERY_WEAK, viewModel.uiState.value.passwordStrength?.strength)
     }
 
     @Test
