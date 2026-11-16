@@ -1,5 +1,6 @@
 package com.erenium.snaplock.data
 
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -61,6 +62,35 @@ class ClipboardManagerHelperTest {
         assertEquals("s3cret", primaryText())
 
         advanceTimeBy(2_000)
-        assertEquals("", primaryText())
+        assertTrue(primaryText().isNullOrEmpty())
+    }
+
+    @Test
+    fun somethingCopiedLaterIsLeftAlone() = runTest(dispatcher) {
+        settings.setClipboardAutoClear(true)
+        settings.setClipboardTimeoutSeconds(15)
+
+        ClipboardManagerHelper(context, settings).copyToClipboard("Password", "s3cret")
+        advanceTimeBy(5_000)
+        clipboard.setPrimaryClip(ClipData.newPlainText("other", "my address"))
+        advanceTimeBy(20_000)
+
+        assertEquals("my address", primaryText())
+    }
+
+    @Test
+    fun aNewCopyRestartsTheTimeoutAndClearsOnlyTheNewValue() = runTest(dispatcher) {
+        settings.setClipboardAutoClear(true)
+        settings.setClipboardTimeoutSeconds(15)
+        val helper = ClipboardManagerHelper(context, settings)
+
+        helper.copyToClipboard("Password", "first")
+        advanceTimeBy(10_000)
+        helper.copyToClipboard("Password", "second")
+        advanceTimeBy(10_000)
+        assertEquals("second", primaryText())
+
+        advanceTimeBy(6_000)
+        assertTrue(primaryText().isNullOrEmpty())
     }
 }
