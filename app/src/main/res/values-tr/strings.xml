@@ -229,7 +229,7 @@
     <string name="settings_auto_site_icons">Simgeleri otomatik indir</string>
     <string name="settings_auto_site_icons_desc">Web sitesi olan kayıtlar eklendiğinde, içe aktarıldığında veya eşitlendiğinde her seferinde sormadan simgesini alır.</string>
     <string name="settings_online">İnternet (isteğe bağlı)</string>
-    <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
+    <string name="settings_breach_check">Parolaları bilinen sızıntılarda ara</string>
     <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her parolanın SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir. Parolanın kendisi cihazdan çıkmaz.</string>
     <string name="health_breached">Sızıntılarda bulunan</string>
     <string name="health_breached_desc">Saldırganlar önce bunları dener. Hemen değiştirin.</string>
@@ -241,9 +241,9 @@
     <string name="settings_export">CSV olarak dışa aktar</string>
     <string name="tile_label">Snaplock\'u kilitle</string>
     <string name="entry_passkey_label">Geçiş anahtarı</string>
-    <string name="credentials_passkey_create_description">Snaplock kasanıza kaydedilir</string>
+    <string name="credentials_passkey_create_description">Snaplock veritabanınıza kaydedilir</string>
     <string name="credentials_passkey_verify_title">Geçiş anahtarınızı kullanın</string>
-    <string name="credentials_passkey_exists">Bu kasada bu hesap için zaten bir geçiş anahtarı var.</string>
+    <string name="credentials_passkey_exists">Bu veritabanında bu hesap için zaten bir geçiş anahtarı var.</string>
     <string name="credentials_passkey_error">Snaplock geçiş anahtarını kullanamadı.</string>
     <string name="entry_pick_one">Burada görmek için bir kayıt seçin.</string>
     <string name="shortcut_search">Ara</string>
