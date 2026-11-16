@@ -145,7 +145,7 @@ class AutofillSaveViewModelTest {
             override suspend fun getCredentials(): List<Credential> =
                 if (broken) throw IllegalStateException("boom") else repository.getCredentials()
         }
-        val viewModel = AutofillSaveViewModel(failing, RecentDatabasesRepository(context, RecentDatabasesPrefs(context)))
+        val viewModel = AutofillSaveViewModel(failing, testRecentRepository(context))
         val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         viewModel.start("com.bank.app", null, "Bank", "client", "1234")
         awaitState(viewModel) { it.loadFailed }

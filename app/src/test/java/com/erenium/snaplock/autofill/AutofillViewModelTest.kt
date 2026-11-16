@@ -136,7 +136,7 @@ class AutofillViewModelTest {
             override suspend fun getCredentials(): List<Credential> =
                 if (broken) throw IllegalStateException("boom") else repository.getCredentials()
         }
-        val viewModel = AutofillViewModel(failing, RecentDatabasesRepository(context, RecentDatabasesPrefs(context)))
+        val viewModel = AutofillViewModel(failing, testRecentRepository(context))
         val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         viewModel.start(CHROME, "github.com", fillSingleMatch = false)
 
