@@ -79,6 +79,30 @@ class KeyFileViewModelsTest {
     }
 
     @Test
+    fun lostFileAccessIsReportedAsFileAccessNotAsWrongPassword() = runTest {
+        repository.unlockFailure = SecurityException("Permission Denial")
+        val viewModel = unlockViewModel()
+
+        viewModel.onPasswordChange("secret")
+        viewModel.onUnlockClicked(database)
+
+        eventually { viewModel.uiState.first { it.errorStringId != null } }
+        assertEquals(R.string.unlock_file_access_error, viewModel.uiState.value.errorStringId)
+    }
+
+    @Test
+    fun otherFailuresStillReportAWrongPassword() = runTest {
+        repository.unlockFailure = IllegalStateException("bad hmac")
+        val viewModel = unlockViewModel()
+
+        viewModel.onPasswordChange("secret")
+        viewModel.onUnlockClicked(database)
+
+        eventually { viewModel.uiState.first { it.errorStringId != null } }
+        assertEquals(R.string.wrong_password, viewModel.uiState.value.errorStringId)
+    }
+
+    @Test
     fun noPasswordAndNoKeyFileCannotUnlock() {
         val viewModel = unlockViewModel()
 

@@ -163,6 +163,7 @@
     <string name="unlock_key_file_choose">Anahtar dosyası kullan</string>
     <string name="unlock_key_file_clear">Bu anahtar dosyasını kullanma</string>
     <string name="unlock_key_file_error">Anahtar dosyası okunamadı.</string>
+    <string name="unlock_file_access_error">Veritabanı dosyasına erişilemiyor. Dosyayı yeniden seçin.</string>
     <string name="settings_database">Veritabanı</string>
     <string name="settings_change_password_desc">Açık veritabanı için yeni bir ana parola veya anahtar dosyası belirleyin.</string>
     <string name="change_password_title">Ana parolayı değiştir</string>

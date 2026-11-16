@@ -39,8 +39,11 @@ class FakeKdbxRepository : KdbxRepository {
     /** Backup files by id; listed newest first by their creation time. */
     val backups = mutableMapOf<VaultBackup, ByteArray>()
 
+    var unlockFailure: Throwable? = null
+
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         lastKeyFile = keyFile
+        unlockFailure?.let { return Result.failure(it) }
         locked.value = false
         return Result.success(Unit)
     }

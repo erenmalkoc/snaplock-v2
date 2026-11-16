@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.FileNotFoundException
 import javax.crypto.Cipher
 import javax.inject.Inject
 
@@ -121,8 +122,13 @@ class UnlockViewModel @Inject constructor(
                     it.copy(isLoading = false, isUnlockSuccessful = true)
                 }
             }
-            result.onFailure {
-                _uiState.update { it.copy(isLoading = false, errorStringId = R.string.wrong_password) }
+            result.onFailure { error ->
+                val messageId = if (error is SecurityException || error is FileNotFoundException) {
+                    R.string.unlock_file_access_error
+                } else {
+                    R.string.wrong_password
+                }
+                _uiState.update { it.copy(isLoading = false, errorStringId = messageId) }
             }
         }
     }

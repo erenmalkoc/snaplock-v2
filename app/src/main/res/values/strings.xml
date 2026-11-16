@@ -163,6 +163,7 @@
     <string name="unlock_key_file_choose">Use a key file</string>
     <string name="unlock_key_file_clear">Stop using this key file</string>
     <string name="unlock_key_file_error">The key file could not be read.</string>
+    <string name="unlock_file_access_error">Cannot access the database file. Select it again.</string>
     <string name="settings_database">Database</string>
     <string name="settings_change_password_desc">Set a new master password or key file for the open database.</string>
     <string name="change_password_title">Change master password</string>
