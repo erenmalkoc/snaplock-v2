@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -18,8 +19,8 @@ fun publishAppShortcuts(context: Context) {
     val shortcuts = AppShortcut.entries.mapIndexed { rank, shortcut ->
         val (label, longLabel, icon) = when (shortcut) {
             AppShortcut.SEARCH -> Triple(R.string.shortcut_search, R.string.shortcut_search_long, R.drawable.ic_shortcut_search)
-            AppShortcut.NEW_ENTRY -> Triple(R.string.shortcut_new_entry, R.string.shortcut_new_entry, R.drawable.ic_shortcut_new_entry)
-            AppShortcut.GENERATOR -> Triple(R.string.shortcut_generator, R.string.shortcut_generator, R.drawable.ic_shortcut_generator)
+            AppShortcut.NEW_ENTRY -> Triple(R.string.shortcut_new_entry, R.string.shortcut_new_entry_long, R.drawable.ic_shortcut_new_entry)
+            AppShortcut.GENERATOR -> Triple(R.string.shortcut_generator, R.string.shortcut_generator_long, R.drawable.ic_shortcut_generator)
             AppShortcut.LOCK -> Triple(R.string.shortcut_lock, R.string.shortcut_lock_long, R.drawable.ic_shortcut_lock)
         }
         ShortcutInfoCompat.Builder(context, shortcut.id)
@@ -31,4 +32,11 @@ fun publishAppShortcuts(context: Context) {
             .build()
     }
     ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
+}
+
+/** Publishes the shortcuts again in the new language when the device language changes. */
+class ShortcutLocaleReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent?) {
+        if (intent?.action == Intent.ACTION_LOCALE_CHANGED) publishAppShortcuts(context)
+    }
 }

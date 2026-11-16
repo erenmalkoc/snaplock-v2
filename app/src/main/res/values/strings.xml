@@ -372,4 +372,6 @@
     <string name="autofill_discard_message">You changed the fields and have not saved them.</string>
     <string name="autofill_discard_confirm">Discard</string>
     <string name="autofill_discard_keep">Keep editing</string>
+    <string name="shortcut_new_entry_long">Add a new entry</string>
+    <string name="shortcut_generator_long">Generate a password</string>
 </resources>
