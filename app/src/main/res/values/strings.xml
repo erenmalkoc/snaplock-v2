@@ -50,7 +50,7 @@
     <string name="open_url_hint">Open link</string>
     <string name="open_url_error">Could not open link.</string>
     <string name="app_tagline">KeePass-compatible password manager</string>
-    <string name="pwgen_title">Password Generator</string>
+    <string name="pwgen_title">Password generator</string>
     <string name="pwgen_length">Length</string>
     <string name="pwgen_lowercase">Lowercase (a-z)</string>
     <string name="pwgen_uppercase">Uppercase (A-Z)</string>
@@ -356,4 +356,12 @@
     <string name="database_discard_message">Your edits to the database settings have not been saved.</string>
     <string name="database_discard_confirm">Discard</string>
     <string name="database_discard_keep">Keep editing</string>
+    <plurals name="pwgen_length_state">
+        <item quantity="one">%d character</item>
+        <item quantity="other">%d characters</item>
+    </plurals>
+    <plurals name="pwgen_words_state">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
+    </plurals>
 </resources>

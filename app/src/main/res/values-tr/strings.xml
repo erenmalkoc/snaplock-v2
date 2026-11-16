@@ -50,7 +50,7 @@
     <string name="open_url_hint">Bağlantıyı aç</string>
     <string name="open_url_error">Bağlantı açılamadı.</string>
     <string name="app_tagline">KeePass uyumlu parola yöneticisi</string>
-    <string name="pwgen_title">Şifre Üreteci</string>
+    <string name="pwgen_title">Parola üreteci</string>
     <string name="pwgen_length">Uzunluk</string>
     <string name="pwgen_lowercase">Küçük harfler (a-z)</string>
     <string name="pwgen_uppercase">Büyük harfler (A-Z)</string>
@@ -185,7 +185,7 @@
     <string name="strength_strong">Güçlü</string>
     <string name="strength_very_strong">Çok güçlü</string>
     <string name="strength_with_bits">%1$s · %2$d bit</string>
-    <string name="pwgen_mode_password">Şifre</string>
+    <string name="pwgen_mode_password">Parola</string>
     <string name="pwgen_mode_passphrase">Parola cümlesi</string>
     <string name="pwgen_words">Kelime sayısı</string>
     <string name="pwgen_separator">Ayraç</string>
@@ -356,4 +356,12 @@
     <string name="database_discard_message">Veritabanı ayarlarındaki düzenlemeleriniz kaydedilmedi.</string>
     <string name="database_discard_confirm">Sil</string>
     <string name="database_discard_keep">Düzenlemeye devam et</string>
+    <plurals name="pwgen_length_state">
+        <item quantity="one">%d karakter</item>
+        <item quantity="other">%d karakter</item>
+    </plurals>
+    <plurals name="pwgen_words_state">
+        <item quantity="one">%d kelime</item>
+        <item quantity="other">%d kelime</item>
+    </plurals>
 </resources>
