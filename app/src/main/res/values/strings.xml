@@ -345,4 +345,13 @@
     </plurals>
     <string name="recycle_bin_deleted_on">Deleted %1$s</string>
     <string name="recycle_bin_deleted_unknown">Deletion date unknown</string>
+    <string name="health_breach_incomplete">Checked on this device. The breach check could not finish, so some passwords were not looked up.</string>
+    <string name="health_no_passwords">There are no passwords to check yet.</string>
+    <string name="health_check_failed">The password check could not run.</string>
+    <string name="health_refresh_failed">Could not refresh the check</string>
+    <string name="health_refresh">Check again</string>
+    <plurals name="health_reused_group">
+        <item quantity="one">Shared by %d entry</item>
+        <item quantity="other">Shared by %d entries</item>
+    </plurals>
 </resources>

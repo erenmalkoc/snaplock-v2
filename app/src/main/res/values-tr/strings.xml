@@ -345,4 +345,13 @@
     </plurals>
     <string name="recycle_bin_deleted_on">%1$s tarihinde silindi</string>
     <string name="recycle_bin_deleted_unknown">Silinme tarihi bilinmiyor</string>
+    <string name="health_breach_incomplete">Bu cihazda kontrol edildi. Sızıntı kontrolü tamamlanamadı, bu yüzden bazı parolalar sorgulanmadı.</string>
+    <string name="health_no_passwords">Henüz kontrol edilecek parola yok.</string>
+    <string name="health_check_failed">Parola kontrolü çalıştırılamadı.</string>
+    <string name="health_refresh_failed">Kontrol yenilenemedi</string>
+    <string name="health_refresh">Yeniden kontrol et</string>
+    <plurals name="health_reused_group">
+        <item quantity="one">%d kayıt paylaşıyor</item>
+        <item quantity="other">%d kayıt paylaşıyor</item>
+    </plurals>
 </resources>
