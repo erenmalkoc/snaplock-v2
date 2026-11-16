@@ -29,7 +29,7 @@ data class UnlockUiState(
     val isUnlockSuccessful: Boolean = false,
     val errorStringId: Int? = null
 ) {
-    val canUnlock: Boolean get() = password.isNotBlank() || keyFileUri != null
+    val canUnlock: Boolean get() = password.isNotEmpty() || keyFileUri != null
 }
 
 @HiltViewModel

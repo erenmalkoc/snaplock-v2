@@ -103,6 +103,15 @@ class KeyFileViewModelsTest {
     }
 
     @Test
+    fun aPasswordMadeOfSpacesCanUnlock() {
+        val viewModel = unlockViewModel()
+
+        viewModel.onPasswordChange("   ")
+
+        assertTrue(viewModel.uiState.value.canUnlock)
+    }
+
+    @Test
     fun noPasswordAndNoKeyFileCannotUnlock() {
         val viewModel = unlockViewModel()
 

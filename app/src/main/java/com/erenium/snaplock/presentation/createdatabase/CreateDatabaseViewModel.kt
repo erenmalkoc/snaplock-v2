@@ -21,7 +21,7 @@ data class CreateDatabaseUiState(
     val errorStringId: Int? = null
 ) {
     val passwordsMatch: Boolean get() = password == confirmPassword
-    val canSubmit: Boolean get() = password.isNotBlank() && passwordsMatch && !isCreating
+    val canSubmit: Boolean get() = password.isNotEmpty() && passwordsMatch && !isCreating
 }
 
 @HiltViewModel
