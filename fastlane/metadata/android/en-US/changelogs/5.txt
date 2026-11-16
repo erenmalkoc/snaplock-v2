@@ -1,0 +1,6 @@
+* A new look: Material 3 Expressive design with a calm green palette and smoother motion
+* Fingerprint unlock that works per database, with clear messages when it is off
+* Clearer messages when a database file cannot be opened
+* Search, sorting, history and the recycle bin that behave the way you expect
+* Settings grouped by purpose, with an About page
+* Every button now carries an icon next to its text

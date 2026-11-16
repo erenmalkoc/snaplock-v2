@@ -1,0 +1,6 @@
+* Yeni görünüm: sakin yeşil palet ve daha akıcı hareketlerle Material 3 Expressive tasarım
+* Veritabanı başına çalışan parmak iziyle açma, kapalıyken açık mesajlar
+* Veritabanı dosyası açılamadığında daha anlaşılır mesajlar
+* Beklediğiniz gibi çalışan arama, sıralama, geçmiş ve geri dönüşüm kutusu
+* Amaca göre gruplanmış ayarlar ve Hakkında sayfası
+* Her düğmenin yazısının yanında artık bir ikon var
