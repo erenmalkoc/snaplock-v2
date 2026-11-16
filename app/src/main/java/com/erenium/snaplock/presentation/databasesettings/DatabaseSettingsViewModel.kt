@@ -23,6 +23,27 @@ import javax.inject.Inject
 
 private const val BYTES_PER_MIB = 1024L * 1024
 
+/** The values the form edits, compared with a snapshot taken at load to find unsaved edits. */
+data class DatabaseSettingsFields(
+    val name: String,
+    val recycleBinEnabled: Boolean,
+    val historyMaxItems: Int,
+    val cipher: VaultCipher,
+    val kdf: KdfAlgorithm,
+    val iterations: String,
+    val memoryMiB: String,
+    val parallelism: String
+)
+
+/** A benchmark result that would make unlocking faster than the user's current setting. */
+data class BenchmarkLowering(val measured: Long, val current: Long)
+
+/** What to do with a benchmark result: [measured] is applied unless it would lower [current]. */
+fun benchmarkOutcome(current: Long?, measured: Long, max: Long): Pair<Long, BenchmarkLowering?> {
+    val capped = measured.coerceIn(1, max)
+    return if (current != null && capped < current) current to BenchmarkLowering(capped, current) else capped to null
+}
+
 data class DatabaseSettingsUiState(
     /** The settings as the file holds them; null until loaded. */
     val saved: DatabaseSettings? = null,
@@ -36,8 +57,38 @@ data class DatabaseSettingsUiState(
     val parallelism: String = "",
     val isBenchmarking: Boolean = false,
     val isSaving: Boolean = false,
-    val errorStringId: Int? = null
+    val errorStringId: Int? = null,
+    val loadFailed: Boolean = false,
+    val baseline: DatabaseSettingsFields? = null,
+    /** Iterations that unlock in about a second on this device, from the last speed test. */
+    val benchmarkIterations: Long? = null,
+    val lowering: BenchmarkLowering? = null,
+    val confirmEncryptionSave: Boolean = false
 ) {
+    val isLoading: Boolean get() = saved == null && !loadFailed
+
+    val fields: DatabaseSettingsFields
+        get() = DatabaseSettingsFields(
+            name.trim(), recycleBinEnabled, historyMaxItems, cipher, kdf, iterations, memoryMiB, parallelism
+        )
+
+    val hasUnsavedChanges: Boolean get() = baseline != null && fields != baseline
+
+    val showRecycleBinWarning: Boolean get() = saved != null && !recycleBinEnabled
+
+    val showHistoryWarning: Boolean get() = saved != null && historyMaxItems == 0
+
+    val encryptionChanged: Boolean
+        get() = saved?.encryption != null && edited?.encryption != saved.encryption
+
+    /** Seconds one unlock takes here with the edited iterations, when a speed test gives the rate. */
+    val estimatedUnlockSeconds: Int?
+        get() {
+            val rate = benchmarkIterations ?: return null
+            val passes = iterations.toLongOrNull() ?: return null
+            return ((passes + rate / 2) / rate).toInt().coerceAtLeast(1)
+        }
+
     val isArgon2: Boolean get() = kdf != KdfAlgorithm.AES_KDF
 
     /** Null when the file has no editable encryption (KDBX 3) or a value does not parse. */
@@ -114,15 +165,28 @@ class DatabaseSettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DatabaseSettingsUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _done = Channel<Unit>(Channel.BUFFERED)
-    val done = _done.receiveAsFlow()
+    private val _messages = Channel<Int>(Channel.BUFFERED)
+    val messages = _messages.receiveAsFlow()
 
     init {
+        load()
+    }
+
+    fun onRetry() {
+        _uiState.update { it.copy(loadFailed = false) }
+        load()
+    }
+
+    private fun load() {
         viewModelScope.launch {
-            val settings = repository.getDatabaseSettings() ?: return@launch
+            val settings = runCatching { repository.getDatabaseSettings() }.getOrNull()
+            if (settings == null) {
+                _uiState.update { it.copy(loadFailed = true) }
+                return@launch
+            }
             val encryption = settings.encryption
             _uiState.update {
-                it.copy(
+                val loaded = it.copy(
                     saved = settings,
                     name = settings.name,
                     recycleBinEnabled = settings.recycleBinEnabled,
@@ -135,6 +199,7 @@ class DatabaseSettingsViewModel @Inject constructor(
                     parallelism = encryption?.takeIf { e -> e.kdf != KdfAlgorithm.AES_KDF }
                         ?.parallelism?.toString() ?: DEFAULT_PARALLELISM.toString()
                 )
+                loaded.copy(baseline = loaded.fields)
             }
         }
     }
@@ -145,7 +210,7 @@ class DatabaseSettingsViewModel @Inject constructor(
 
     fun onHistoryMaxItemsChange(count: Int) = _uiState.update { it.copy(historyMaxItems = count, errorStringId = null) }
 
-    fun onCipherChange(cipher: VaultCipher) = _uiState.update { it.copy(cipher = cipher, errorStringId = null) }
+    fun onCipherChange(cipher: VaultCipher) = _uiState.update { it.copy(cipher = cipher, benchmarkIterations = null, errorStringId = null) }
 
     /** Passes and rounds mean different amounts of work, so switching families resets the count. */
     fun onKdfChange(kdf: KdfAlgorithm) = _uiState.update { state ->
@@ -159,15 +224,19 @@ class DatabaseSettingsViewModel @Inject constructor(
             } else {
                 DEFAULT_ARGON2_PASSES.toString()
             },
+            benchmarkIterations = null,
+            lowering = null,
             errorStringId = null
         )
     }
 
     fun onIterationsChange(value: String) = _uiState.update { it.copy(iterations = value.digitsOnly(), errorStringId = null) }
 
-    fun onMemoryChange(value: String) = _uiState.update { it.copy(memoryMiB = value.digitsOnly(), errorStringId = null) }
+    fun onMemoryChange(value: String) =
+        _uiState.update { it.copy(memoryMiB = value.digitsOnly(), benchmarkIterations = null, errorStringId = null) }
 
-    fun onParallelismChange(value: String) = _uiState.update { it.copy(parallelism = value.digitsOnly(), errorStringId = null) }
+    fun onParallelismChange(value: String) =
+        _uiState.update { it.copy(parallelism = value.digitsOnly(), benchmarkIterations = null, errorStringId = null) }
 
     /** Sets the iterations that make unlocking take about a second on this device. */
     fun onBenchmark() {
@@ -181,25 +250,52 @@ class DatabaseSettingsViewModel @Inject constructor(
             } catch (e: Exception) {
                 null
             }
-            _uiState.update { state ->
-                if (iterations == null) {
-                    state.copy(isBenchmarking = false, errorStringId = R.string.database_benchmark_error)
-                } else {
-                    val capped = iterations.coerceIn(1, state.maxIterationsAllowed)
-                    state.copy(iterations = capped.toString(), isBenchmarking = false)
-                }
+            onBenchmarkResult(iterations)
+        }
+    }
+
+    internal fun onBenchmarkResult(iterations: Long?) {
+        _uiState.update { state ->
+            if (iterations == null) {
+                state.copy(isBenchmarking = false, errorStringId = R.string.database_benchmark_error)
+            } else {
+                val (chosen, lowering) = benchmarkOutcome(
+                    state.iterations.toLongOrNull(), iterations, state.maxIterationsAllowed
+                )
+                state.copy(
+                    iterations = chosen.toString(),
+                    isBenchmarking = false,
+                    benchmarkIterations = iterations.coerceIn(1, state.maxIterationsAllowed),
+                    lowering = lowering,
+                    errorStringId = null
+                )
             }
         }
     }
 
-    fun onSave() {
+    fun onLoweringConfirmed() = _uiState.update { state ->
+        val lowering = state.lowering ?: return@update state
+        state.copy(iterations = lowering.measured.toString(), lowering = null)
+    }
+
+    fun onLoweringDismissed() = _uiState.update { it.copy(lowering = null) }
+
+    fun onSave(confirmed: Boolean = false) {
         val state = _uiState.value
         if (!state.canSave) return
+        if (state.encryptionChanged && !confirmed) {
+            _uiState.update { it.copy(confirmEncryptionSave = true) }
+            return
+        }
         val settings = state.edited ?: return
-        _uiState.update { it.copy(isSaving = true, errorStringId = null) }
+        _uiState.update { it.copy(isSaving = true, confirmEncryptionSave = false, errorStringId = null) }
         viewModelScope.launch {
-            repository.updateDatabaseSettings(settings)
-                .onSuccess { _done.send(Unit) }
+            val result = runCatching { repository.updateDatabaseSettings(settings).getOrThrow() }
+            result
+                .onSuccess {
+                    _uiState.update { it.copy(isSaving = false, saved = settings, baseline = it.fields) }
+                    _messages.send(R.string.database_settings_saved)
+                }
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(isSaving = false, errorStringId = error.saveErrorMessage(R.string.database_settings_save_error))
@@ -207,6 +303,10 @@ class DatabaseSettingsViewModel @Inject constructor(
                 }
         }
     }
+
+    fun onEncryptionSaveDismissed() = _uiState.update { it.copy(confirmEncryptionSave = false) }
+
+    fun onEncryptionSaveConfirmed() = onSave(confirmed = true)
 
     private fun String.digitsOnly(): String = filter(Char::isDigit).take(MAX_DIGITS)
 

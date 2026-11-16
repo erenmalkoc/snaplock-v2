@@ -255,22 +255,22 @@
     <string name="tile_locked">Kilitli</string>
     <string name="tile_unlocked">Açık, kilitlemek için dokunun</string>
     <string name="database_settings_title">Veritabanı ayarları</string>
-    <string name="settings_database_settings_desc">Bu kasanın adı, çöp kutusu, kayıt geçmişi ve şifrelemesi. Dosyada saklanır, bu yüzden her KeePass uygulaması bunları kullanır.</string>
+    <string name="settings_database_settings_desc">Bu veritabanının adı, geri dönüşüm kutusu, kayıt geçmişi ve şifrelemesi. Dosyada saklanır, bu yüzden her KeePass uygulaması bunları kullanır.</string>
     <string name="database_name">Veritabanı adı</string>
-    <string name="database_recycle_bin">Çöp kutusu</string>
-    <string name="database_recycle_bin_desc">Silinen kayıtlar önce çöp kutusuna taşınır.</string>
+    <string name="database_recycle_bin">Geri dönüşüm kutusu</string>
+    <string name="database_recycle_bin_desc">Silinen kayıtlar önce geri dönüşüm kutusuna taşınır.</string>
     <string name="database_history">Kayıt geçmişi</string>
     <string name="database_history_desc">Her kayıt için saklanan önceki sürümler.</string>
     <string name="database_history_off">Kapalı</string>
     <string name="database_history_unlimited">Sınırsız</string>
     <string name="database_encryption">Şifreleme</string>
-    <string name="database_encryption_desc">Yüksek değerler parola tahminini yavaşlatır, kilidi açmak da uzar. Kasanın tüm cihazlarınızda yeterince hızlı açıldığından emin olun.</string>
+    <string name="database_encryption_desc">Yüksek değerler parola tahminini yavaşlatır, kilidi açmak da uzar. Veritabanının tüm cihazlarınızda yeterince hızlı açıldığından emin olun.</string>
     <string name="database_cipher">Şifreleme algoritması</string>
     <string name="database_kdf">Anahtar türetme</string>
     <string name="database_iterations">Yineleme</string>
     <string name="database_rounds">Tur sayısı</string>
     <string name="database_memory">Bellek (MiB)</string>
-    <string name="database_memory_warning">Bu kadar bellek, zayıf cihazların kasayı açmasını engelleyebilir.</string>
+    <string name="database_memory_warning">Bu kadar bellek, düşük donanımlı cihazların veritabanını açmasını engelleyebilir.</string>
     <string name="database_benchmark_error">Hız testi bu cihazda tamamlanamadı. Daha düşük bir bellek değeri deneyin.</string>
     <string name="database_parallelism">Paralellik</string>
     <string name="database_benchmark">Bu cihazda 1 saniyeye ayarla</string>
@@ -333,4 +333,27 @@
     <string name="import_too_large">Dosya çok büyük. Sınır 20 MB.</string>
     <string name="import_unreadable">Dosya okunamadı.</string>
     <string name="export_error">Dosya kaydedilemedi.</string>
+    <string name="database_settings_load_error">Veritabanı ayarları yüklenemedi.</string>
+    <string name="database_settings_saved">Kaydedildi</string>
+    <string name="database_saving">Kaydediliyor…</string>
+    <string name="database_recycle_bin_warning">Geri dönüşüm kutusu kapalıyken silinen kayıtlar kalıcı olarak silinir.</string>
+    <string name="database_history_warning">Geçmiş kapalıyken eski sürümler tutulmaz ve saklananlar silinebilir.</string>
+    <string name="database_cipher_hint_twofish">Bazı KeePass uygulamaları Twofish kullanan veritabanlarını açamaz. AES-256 her yerde çalışır.</string>
+    <string name="database_cipher_hint_chacha">Bazı KeePass uygulamaları ChaCha20 kullanan veritabanlarını açamaz. AES-256 her yerde çalışır.</string>
+    <string name="database_benchmark_result_iterations">Bu cihazda yaklaşık 1 saniye = %1$s yineleme</string>
+    <string name="database_benchmark_result_rounds">Bu cihazda yaklaşık 1 saniye = %1$s tur</string>
+    <string name="database_lower_title">Mevcut ayar düşürülsün mü?</string>
+    <string name="database_lower_message">Hız testi %1$s buldu. Bu, mevcut %2$s değerinden düşük. Düşük değerler parolanın tahmin edilmesini kolaylaştırır.</string>
+    <string name="database_lower_apply">Düşük değeri kullan</string>
+    <string name="database_lower_keep">Mevcut kalsın</string>
+    <string name="database_encryption_confirm_title">Şifreleme değiştirilsin mi?</string>
+    <plurals name="database_encryption_confirm_seconds">
+        <item quantity="one">Kilidi açmak bu cihazda yaklaşık %d saniye sürecek. Diğer cihazlar bu veritabanını açamayabilir.</item>
+        <item quantity="other">Kilidi açmak bu cihazda yaklaşık %d saniye sürecek. Diğer cihazlar bu veritabanını açamayabilir.</item>
+    </plurals>
+    <string name="database_encryption_confirm_generic">Kilidi açmak öncekinden daha uzun veya kısa sürebilir. Diğer cihazlar bu veritabanını açamayabilir.</string>
+    <string name="database_discard_title">Değişiklikler silinsin mi?</string>
+    <string name="database_discard_message">Veritabanı ayarlarındaki düzenlemeleriniz kaydedilmedi.</string>
+    <string name="database_discard_confirm">Sil</string>
+    <string name="database_discard_keep">Düzenlemeye devam et</string>
 </resources>

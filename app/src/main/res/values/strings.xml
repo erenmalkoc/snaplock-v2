@@ -255,7 +255,7 @@
     <string name="tile_locked">Locked</string>
     <string name="tile_unlocked">Open, tap to lock</string>
     <string name="database_settings_title">Database settings</string>
-    <string name="settings_database_settings_desc">Name, recycle bin, entry history and encryption of this vault. They are stored in the file, so every KeePass app uses them.</string>
+    <string name="settings_database_settings_desc">Name, recycle bin, entry history and encryption of this database. They are stored in the file, so every KeePass app uses them.</string>
     <string name="database_name">Database name</string>
     <string name="database_recycle_bin">Recycle bin</string>
     <string name="database_recycle_bin_desc">Deleted entries go to the recycle bin first.</string>
@@ -264,13 +264,13 @@
     <string name="database_history_off">Off</string>
     <string name="database_history_unlimited">Unlimited</string>
     <string name="database_encryption">Encryption</string>
-    <string name="database_encryption_desc">Higher values make guessing the password slower, and unlocking slower too. Make sure the vault still opens quickly enough on all your devices.</string>
+    <string name="database_encryption_desc">Higher values make guessing the password slower, and unlocking slower too. Make sure the database still opens quickly enough on all your devices.</string>
     <string name="database_cipher">Cipher</string>
     <string name="database_kdf">Key derivation</string>
     <string name="database_iterations">Iterations</string>
     <string name="database_rounds">Rounds</string>
     <string name="database_memory">Memory (MiB)</string>
-    <string name="database_memory_warning">This much memory may keep low-end devices from opening the vault.</string>
+    <string name="database_memory_warning">This much memory may keep low-end devices from opening the database.</string>
     <string name="database_benchmark_error">The speed test could not finish on this device. Try a lower memory value.</string>
     <string name="database_parallelism">Parallelism</string>
     <string name="database_benchmark">Set to 1 second on this device</string>
@@ -333,4 +333,27 @@
     <string name="import_too_large">The file is too large. The limit is 20 MB.</string>
     <string name="import_unreadable">The file could not be read.</string>
     <string name="export_error">The file could not be saved.</string>
+    <string name="database_settings_load_error">The database settings could not be loaded.</string>
+    <string name="database_settings_saved">Saved</string>
+    <string name="database_saving">Saving…</string>
+    <string name="database_recycle_bin_warning">With the recycle bin off, deleted entries are removed for good.</string>
+    <string name="database_history_warning">With history off, no older versions are kept and the stored ones may be removed.</string>
+    <string name="database_cipher_hint_twofish">Some KeePass apps cannot open databases that use Twofish. AES-256 works everywhere.</string>
+    <string name="database_cipher_hint_chacha">Some KeePass apps cannot open databases that use ChaCha20. AES-256 works everywhere.</string>
+    <string name="database_benchmark_result_iterations">About 1 second on this device = %1$s iterations</string>
+    <string name="database_benchmark_result_rounds">About 1 second on this device = %1$s rounds</string>
+    <string name="database_lower_title">Lower the current setting?</string>
+    <string name="database_lower_message">The speed test found %1$s, which is lower than your current %2$s. Lower values make the password easier to guess.</string>
+    <string name="database_lower_apply">Use lower value</string>
+    <string name="database_lower_keep">Keep current</string>
+    <string name="database_encryption_confirm_title">Change the encryption?</string>
+    <plurals name="database_encryption_confirm_seconds">
+        <item quantity="one">Unlocking will take about %d second on this device. Other devices may fail to open this database.</item>
+        <item quantity="other">Unlocking will take about %d seconds on this device. Other devices may fail to open this database.</item>
+    </plurals>
+    <string name="database_encryption_confirm_generic">Unlocking may take more or less time than before. Other devices may fail to open this database.</string>
+    <string name="database_discard_title">Discard changes?</string>
+    <string name="database_discard_message">Your edits to the database settings have not been saved.</string>
+    <string name="database_discard_confirm">Discard</string>
+    <string name="database_discard_keep">Keep editing</string>
 </resources>
