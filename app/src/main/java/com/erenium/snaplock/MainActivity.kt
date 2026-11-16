@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.fragment.app.FragmentActivity
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
+import com.erenium.snaplock.presentation.main.AutoLockManager
 import com.erenium.snaplock.presentation.main.AppShortcut
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.blockScreenshots
@@ -23,6 +24,9 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity() {
     @Inject
     lateinit var settingsPrefs: SettingsPrefs
+
+    @Inject
+    lateinit var autoLockManager: AutoLockManager
 
     private val mainViewModel: MainViewModel by viewModels()
 
@@ -39,6 +43,20 @@ class MainActivity : FragmentActivity() {
                 AppNavigation(mainViewModel)
             }
         }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        autoLockManager.pickerLaunched()
+        @Suppress("DEPRECATION")
+        super.startActivityForResult(intent, requestCode, options)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        autoLockManager.pickerFinished()
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onNewIntent(intent: Intent) {

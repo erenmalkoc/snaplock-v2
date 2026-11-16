@@ -60,6 +60,62 @@ class AutoLockManagerTest {
     }
 
     @Test
+    fun anOpenPickerKeepsTheVaultOpenForAWhileEvenWhenLockingIsImmediate() = runTest(dispatcher) {
+        settings.setAutoLockSeconds(0)
+        val manager = manager()
+
+        manager.pickerLaunched()
+        manager.onStop(owner)
+        advanceTimeBy(119_000)
+        assertFalse(repository.locked.value)
+
+        advanceTimeBy(2_000)
+        assertTrue(repository.locked.value)
+    }
+
+    @Test
+    fun aFinishedPickerNoLongerDelaysTheLock() = runTest(dispatcher) {
+        settings.setAutoLockSeconds(0)
+        val manager = manager()
+
+        manager.pickerLaunched()
+        manager.pickerFinished()
+        manager.onStop(owner)
+        runCurrent()
+
+        assertTrue(repository.locked.value)
+    }
+
+    @Test
+    fun returningAfterTheDelayLocksEvenWhenTheTimerNeverRan() = runTest(dispatcher) {
+        settings.setAutoLockSeconds(300)
+        var now = 0L
+        val manager = manager().apply { elapsedRealtime = { now } }
+
+        manager.onStop(owner)
+        now = 31 * 60 * 1000L
+        manager.onStart(owner)
+        runCurrent()
+
+        assertTrue(repository.locked.value)
+    }
+
+    @Test
+    fun returningBeforeTheDelayKeepsTheVaultOpen() = runTest(dispatcher) {
+        settings.setAutoLockSeconds(300)
+        var now = 0L
+        val manager = manager().apply { elapsedRealtime = { now } }
+
+        manager.onStop(owner)
+        now = 60 * 1000L
+        manager.onStart(owner)
+        runCurrent()
+        advanceTimeBy(600_000)
+
+        assertFalse(repository.locked.value)
+    }
+
+    @Test
     fun comingBackCancelsThePendingLock() = runTest(dispatcher) {
         settings.setAutoLockSeconds(30)
         val manager = manager()
