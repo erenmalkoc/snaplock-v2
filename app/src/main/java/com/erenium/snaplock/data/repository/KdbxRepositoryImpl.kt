@@ -162,7 +162,12 @@ class KdbxRepositoryImpl @Inject constructor(
         return sessionCache.databaseFlow.map { database ->
             val bin = database?.recycleBin()?.let { database.content.group.findGroup(it) }
             bin?.entriesOutside(excludedGroup = null)
-                ?.map { (group, entry) -> entry.toDomainEntry(group, database.content.meta.customIcons) }
+                ?.map { (group, entry) ->
+                    entry.toDomainEntry(group, database.content.meta.customIcons).copy(
+                        deletedAt = entry.times?.locationChanged,
+                        previousGroupUuid = entry.previousParentGroup
+                    )
+                }
                 .orEmpty()
         }
     }
@@ -202,7 +207,14 @@ class KdbxRepositoryImpl @Inject constructor(
                     modified = version.times?.lastModificationTime,
                     title = version.fields[FIELD_TITLE]?.content ?: context.getString(R.string.untitled_entry),
                     username = version.fields[FIELD_USERNAME]?.content,
-                    password = version.fields[FIELD_PASSWORD]?.content
+                    password = version.fields[FIELD_PASSWORD]?.content,
+                    url = version.fields[FIELD_URL]?.content,
+                    notes = version.fields[FIELD_NOTES]?.content,
+                    customFields = version.fields
+                        .filterKeys {
+                            it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) && !Passkey.isPasskeyField(it)
+                        }
+                        .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) }
                 )
             }.asReversed(),
             otp = OtpParser.fromFields(fields.entries.associate { it.key to it.value.content }),

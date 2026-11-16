@@ -91,6 +91,17 @@ class KdbxRepositoryRecycleBinTest {
     }
 
     @Test
+    fun recycledEntriesKnowWhenAndFromWhereTheyWereDeleted() = runTest {
+        open()
+
+        repository.deleteEntry(entryUuid).getOrThrow()
+
+        val recycled = repository.getRecycledEntries().first().single()
+        assertEquals(webGroup, recycled.previousGroupUuid)
+        assertNotNull(recycled.deletedAt)
+    }
+
+    @Test
     fun deletingFromTheRecycleBinIsPermanent() = runTest {
         open()
         repository.deleteEntry(entryUuid).getOrThrow()

@@ -137,6 +137,29 @@ class KdbxRepositoryFieldsTest {
     }
 
     @Test
+    fun historyVersionsCarryEveryField() = runTest {
+        open(
+            mapOf(
+                "Title" to EntryValue.Plain("Bank"),
+                "URL" to EntryValue.Plain("https://bank.example"),
+                "Notes" to EntryValue.Plain("first note"),
+                "PIN" to EntryValue.Encrypted(EncryptedValue.fromString("1234")),
+                "Branch" to EntryValue.Plain("Manisa")
+            )
+        )
+        repository.updateEntry(entryUuid, form("v2", null).copy(url = "https://new.example", notes = "second")).getOrThrow()
+
+        val version = repository.getEntryByUuid(entryUuid).getOrThrow().history.single()
+
+        assertEquals("https://bank.example", version.url)
+        assertEquals("first note", version.notes)
+        assertEquals(
+            setOf(CustomField("PIN", "1234", true), CustomField("Branch", "Manisa", false)),
+            version.customFields.toSet()
+        )
+    }
+
+    @Test
     fun expirySetsClearsAndStaysWhenUntouched() = runTest {
         open(mapOf("Title" to EntryValue.Plain("Bank")))
         val date = Instant.parse("2027-01-31T00:00:00Z")

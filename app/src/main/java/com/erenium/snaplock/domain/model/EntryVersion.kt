@@ -9,5 +9,8 @@ data class EntryVersion(
     val modified: Instant?,
     val title: String,
     val username: String?,
-    val password: String?
+    val password: String?,
+    val url: String? = null,
+    val notes: String? = null,
+    val customFields: List<CustomField> = emptyList()
 )
