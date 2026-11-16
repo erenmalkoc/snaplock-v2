@@ -175,12 +175,12 @@
     <string name="entry_form_otp_set">Kurulu</string>
     <string name="entry_form_otp_input">Kurulum anahtarı veya otpauth bağlantısı</string>
     <string name="entry_form_otp_add">Ekle</string>
-    <string name="entry_form_otp_scan">QR tara</string>
+    <string name="entry_form_otp_scan">Karekod tara</string>
     <string name="entry_form_otp_image">Görüntüden</string>
     <string name="entry_form_otp_invalid">Bu geçerli bir kurulum anahtarı değil.</string>
-    <string name="entry_form_otp_qr_not_found">Görüntüde QR kod bulunamadı.</string>
+    <string name="entry_form_otp_qr_not_found">Görüntüde karekod bulunamadı.</string>
     <string name="entry_form_otp_remove">2FA\'yı kaldır</string>
-    <string name="scan_prompt">Kamerayı 2FA QR koduna doğrultun</string>
+    <string name="scan_prompt">Kamerayı 2FA karekoduna doğrultun</string>
     <string name="strength_very_weak">Çok zayıf</string>
     <string name="strength_weak">Zayıf</string>
     <string name="strength_fair">Orta</string>

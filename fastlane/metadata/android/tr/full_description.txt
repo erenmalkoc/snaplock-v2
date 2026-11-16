@@ -19,7 +19,7 @@ Kasanız:
 Parolalar:
 * Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)
 * Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi
-* QR kod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları
+* Karekod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları
 
 Android'in parçası:
 * Material You renkleri, açık ve koyu tema, uygulamaya özel dil
