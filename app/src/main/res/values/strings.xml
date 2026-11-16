@@ -290,11 +290,11 @@
     </plurals>
     <string name="import_group_name">Imported (%1$s)</string>
     <plurals name="import_done">
-        <item quantity="one">%1$d login imported. Delete the CSV file: it holds passwords in plain text.</item>
-        <item quantity="other">%1$d logins imported. Delete the CSV file: it holds passwords in plain text.</item>
+        <item quantity="one">%1$d login imported</item>
+        <item quantity="other">%1$d logins imported</item>
     </plurals>
-    <string name="import_unrecognised">No password column found in this file.</string>
-    <string name="import_error">The file could not be processed.</string>
+    <string name="import_unrecognised">This file is not a known password export. No password column was found.</string>
+    <string name="import_error">The logins could not be added.</string>
     <string name="export_warning_title">Unencrypted export</string>
     <string name="export_warning_message">The CSV file contains every password in plain text. Use it only to move to another manager, and delete it afterwards.</string>
     <string name="export_done">Exported</string>
@@ -327,4 +327,10 @@
     <string name="backups_restore_hint">Tap the save icon to store a copy as a file. To restore it, open that file in Snaplock. It opens with the password it was saved with.</string>
     <string name="backup_save_copy">Save a copy</string>
     <string name="backups_load_error">The backups could not be loaded.</string>
+    <string name="import_preview">First entries: %1$s</string>
+    <string name="import_reimport_warning">Importing the same file again creates another group named \"%1$s\".</string>
+    <string name="import_plaintext_warning">The CSV file holds passwords in plain text. Delete it after importing.</string>
+    <string name="import_too_large">The file is too large. The limit is 20 MB.</string>
+    <string name="import_unreadable">The file could not be read.</string>
+    <string name="export_error">The file could not be saved.</string>
 </resources>

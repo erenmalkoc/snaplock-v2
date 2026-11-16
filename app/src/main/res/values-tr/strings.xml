@@ -290,13 +290,13 @@
     </plurals>
     <string name="import_group_name">İçe aktarılanlar (%1$s)</string>
     <plurals name="import_done">
-        <item quantity="one">%1$d kayıt içe aktarıldı. CSV dosyasını silin: şifreleri açık metin olarak içeriyor.</item>
-        <item quantity="other">%1$d kayıt içe aktarıldı. CSV dosyasını silin: şifreleri açık metin olarak içeriyor.</item>
+        <item quantity="one">%1$d kayıt içe aktarıldı</item>
+        <item quantity="other">%1$d kayıt içe aktarıldı</item>
     </plurals>
-    <string name="import_unrecognised">Bu dosyada şifre sütunu bulunamadı.</string>
-    <string name="import_error">Dosya işlenemedi.</string>
+    <string name="import_unrecognised">Bu dosya bilinen bir parola dışa aktarımı değil. Parola sütunu bulunamadı.</string>
+    <string name="import_error">Kayıtlar eklenemedi.</string>
     <string name="export_warning_title">Şifrelenmemiş dışa aktarma</string>
-    <string name="export_warning_message">CSV dosyası tüm şifrelerinizi açık metin olarak içerir. Yalnızca başka bir yöneticiye taşımak için kullanın ve sonra silin.</string>
+    <string name="export_warning_message">CSV dosyası tüm parolalarınızı düz metin olarak içerir. Yalnızca başka bir yöneticiye taşımak için kullanın ve sonra silin.</string>
     <string name="export_done">Dışa aktarıldı</string>
 
     <string name="settings_data">Veriler</string>
@@ -327,4 +327,10 @@
     <string name="backups_restore_hint">Bir kopyayı dosya olarak saklamak için kaydet simgesine dokunun. Geri yüklemek için dosyayı Snaplock\'ta açın. Dosya, kaydedildiği andaki parolayla açılır.</string>
     <string name="backup_save_copy">Kopyayı kaydet</string>
     <string name="backups_load_error">Yedekler yüklenemedi.</string>
+    <string name="import_preview">İlk kayıtlar: %1$s</string>
+    <string name="import_reimport_warning">Aynı dosyayı yeniden içe aktarırsanız \"%1$s\" adında bir grup daha oluşturulur.</string>
+    <string name="import_plaintext_warning">CSV dosyası parolaları düz metin olarak içerir. İçe aktardıktan sonra silin.</string>
+    <string name="import_too_large">Dosya çok büyük. Sınır 20 MB.</string>
+    <string name="import_unreadable">Dosya okunamadı.</string>
+    <string name="export_error">Dosya kaydedilemedi.</string>
 </resources>

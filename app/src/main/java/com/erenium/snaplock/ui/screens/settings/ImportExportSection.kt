@@ -2,9 +2,15 @@ package com.erenium.snaplock.ui.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,14 +20,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.settings.ImportExportViewModel
+import com.erenium.snaplock.presentation.settings.previewTitles
 import com.erenium.snaplock.ui.components.AppDialog
 import com.erenium.snaplock.ui.components.SettingRow
+import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
 fun ImportExportRows(
@@ -29,6 +38,7 @@ fun ImportExportRows(
     viewModel: ImportExportViewModel = hiltViewModel()
 ) {
     val pendingImport by viewModel.pendingImport.collectAsState()
+    val isWorking by viewModel.isWorking.collectAsState()
     var confirmExport by remember { mutableStateOf(false) }
     val resources = LocalResources.current
 
@@ -50,6 +60,13 @@ fun ImportExportRows(
         }
     }
 
+    if (isWorking) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Dimens.spaceSm)
+        )
+    }
     SettingRow(
         title = stringResource(R.string.settings_import),
         description = stringResource(R.string.settings_import_desc),
@@ -72,7 +89,26 @@ fun ImportExportRows(
             onConfirm = { viewModel.onImportConfirmed(groupName) },
             onDismiss = viewModel::onImportDismissed
         ) {
-            Text(pluralStringResource(R.plurals.import_confirm_message, import.entries.size, import.entries.size, groupName))
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) {
+                Text(pluralStringResource(R.plurals.import_confirm_message, import.entries.size, import.entries.size, groupName))
+                val titles = import.previewTitles()
+                if (titles.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.import_preview, titles.joinToString(", ")),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.import_reimport_warning, groupName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = stringResource(R.string.import_plaintext_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 
