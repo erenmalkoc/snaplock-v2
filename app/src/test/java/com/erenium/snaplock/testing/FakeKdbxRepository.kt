@@ -83,7 +83,10 @@ class FakeKdbxRepository : KdbxRepository {
     override suspend fun getCredentials(): List<Credential> =
         if (locked.value) emptyList() else credentials.value
 
+    var saveFailure: Throwable? = null
+
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+        saveFailure?.let { return Result.failure(it) }
         savedForms += data
         val uuid = UUID.randomUUID()
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
@@ -92,6 +95,7 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+        saveFailure?.let { return Result.failure(it) }
         savedForms += data
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value.map {
@@ -100,7 +104,10 @@ class FakeKdbxRepository : KdbxRepository {
         return Result.success(Unit)
     }
 
+    var deleteFailure: Throwable? = null
+
     override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
+        deleteFailure?.let { return Result.failure(it) }
         val live = entries.value.firstOrNull { it.uuid == uuid }
         if (live != null) {
             entries.value = entries.value - live
@@ -118,7 +125,9 @@ class FakeKdbxRepository : KdbxRepository {
         val entry = recycled.value.firstOrNull { it.uuid == uuid }
             ?: return Result.failure(NoSuchElementException(uuid.toString()))
         recycled.value = recycled.value - entry
-        entries.value = entries.value + entry
+        val target = entry.previousGroupUuid?.let { id -> groups.value.firstOrNull { it.uuid == id } }
+            ?: groups.value.first { it.parentUuid == null }
+        entries.value = entries.value + entry.copy(groupUuid = target.uuid, groupName = target.name)
         return Result.success(Unit)
     }
 

@@ -41,9 +41,11 @@ data class CustomFieldDraft(
 
 data class EntryFormUiState(
     val title: String = "",
+    val titleError: Boolean = false,
     val username: String = "",
     val password: String = "",
     val passwordStrength: StrengthEstimate? = null,
+    val passwordGenerated: Boolean = false,
     val url: String = "",
     val notes: String = "",
     val customFields: List<CustomFieldDraft> = emptyList(),
@@ -55,13 +57,47 @@ data class EntryFormUiState(
     /** When the password should be replaced; null if it never expires. */
     val expires: Instant? = null,
     val groups: List<Group> = emptyList(),
+    val groupPaths: Map<UUID, String> = emptyMap(),
     val groupUuid: UUID? = null,
     val isEditMode: Boolean = false,
     val isLoading: Boolean = false,
+    val loadFailed: Boolean = false,
     val isSaving: Boolean = false,
-    val errorStringId: Int? = null
+    val isDirty: Boolean = false
 ) {
-    val canSave: Boolean get() = title.isNotBlank() && !isSaving && !isLoading
+    val canSave: Boolean get() = title.isNotBlank() && !isSaving && !isLoading && !loadFailed
+}
+
+private data class FormSnapshot(
+    val title: String,
+    val username: String,
+    val password: String,
+    val url: String,
+    val notes: String,
+    val fields: List<Triple<String, String, Boolean>>,
+    val otp: OtpParameters?,
+    val otpInput: String,
+    val expires: Instant?,
+    val groupUuid: UUID?
+)
+
+private fun EntryFormUiState.snapshot() = FormSnapshot(
+    title, username, password, url, notes,
+    customFields.map { Triple(it.name, it.value, it.isProtected) },
+    otp, otpInput, expires, groupUuid
+)
+
+fun groupPaths(groups: List<Group>): Map<UUID, String> {
+    val byId = groups.associateBy { it.uuid }
+    return groups.associate { group ->
+        val names = mutableListOf(group.name)
+        var parent = group.parentUuid?.let(byId::get)
+        while (parent != null && parent.parentUuid != null && names.size <= groups.size) {
+            names.add(0, parent.name)
+            parent = parent.parentUuid?.let(byId::get)
+        }
+        group.uuid to names.joinToString(" / ")
+    }
 }
 
 @HiltViewModel
@@ -84,6 +120,7 @@ class EntryFormViewModel @Inject constructor(
     )
     val uiState = _uiState.asStateFlow()
 
+    private var baseline = _uiState.value.snapshot()
     private var nextFieldKey = 0L
     /** Whether the user touched the two-factor settings; untouched ones keep their stored format. */
     private var otpChanged = false
@@ -92,6 +129,9 @@ class EntryFormViewModel @Inject constructor(
     private val _savedEvents = Channel<Unit>(Channel.BUFFERED)
     val savedEvents = _savedEvents.receiveAsFlow()
 
+    private val _messages = Channel<Int>(Channel.BUFFERED)
+    val messages = _messages.receiveAsFlow()
+
     init {
         loadGroups()
         if (entryUuid != null) {
@@ -99,28 +139,33 @@ class EntryFormViewModel @Inject constructor(
         }
     }
 
+    private fun edit(change: (EntryFormUiState) -> EntryFormUiState) = _uiState.update { state ->
+        val next = change(state)
+        next.copy(isDirty = next.snapshot() != baseline)
+    }
+
     private fun loadGroups() {
         viewModelScope.launch {
             val groups = getGroupsUseCase().first()
             _uiState.update { state ->
-                state.copy(
-                    groups = groups,
-                    groupUuid = state.groupUuid
-                        ?: initialGroupUuid?.takeIf { uuid -> groups.any { it.uuid == uuid } }
-                        ?: groups.firstOrNull()?.uuid
-                )
+                val chosen = state.groupUuid
+                    ?: initialGroupUuid?.takeIf { uuid -> groups.any { it.uuid == uuid } }
+                    ?: groups.firstOrNull()?.uuid
+                if (baseline.groupUuid == null) baseline = baseline.copy(groupUuid = chosen)
+                val next = state.copy(groups = groups, groupPaths = groupPaths(groups), groupUuid = chosen)
+                next.copy(isDirty = next.snapshot() != baseline)
             }
         }
     }
 
-    fun onGroupSelected(groupUuid: UUID) = _uiState.update { it.copy(groupUuid = groupUuid) }
+    fun onGroupSelected(groupUuid: UUID) = edit { it.copy(groupUuid = groupUuid) }
 
     private fun loadEntry(uuid: UUID) {
         viewModelScope.launch {
             getEntryDetailsUseCase(uuid)
                 .onSuccess { entry ->
                     _uiState.update {
-                        it.copy(
+                        val loaded = it.copy(
                             title = entry.title,
                             username = entry.username.orEmpty(),
                             password = entry.password.orEmpty(),
@@ -133,58 +178,76 @@ class EntryFormViewModel @Inject constructor(
                             otp = entry.otp,
                             expires = entry.expires,
                             groupUuid = entry.groupUuid ?: it.groupUuid,
-                            isLoading = false
+                            isLoading = false,
+                            loadFailed = false
                         )
+                        baseline = loaded.snapshot()
+                        loaded.copy(isDirty = false)
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoading = false, errorStringId = R.string.entry_load_error) }
+                    _uiState.update { it.copy(isLoading = false, loadFailed = true) }
+                    _messages.trySend(R.string.entry_load_error)
                 }
         }
     }
 
-    fun onTitleChange(value: String) = _uiState.update { it.copy(title = value, errorStringId = null) }
-    fun onUsernameChange(value: String) = _uiState.update { it.copy(username = value) }
-    fun onPasswordChange(value: String) = _uiState.update {
-        it.copy(password = value, passwordStrength = value.takeIf { v -> v.isNotEmpty() }?.let(strengthEstimator::estimate))
+    fun onRetryLoad() {
+        val uuid = entryUuid ?: return
+        _uiState.update { it.copy(isLoading = true, loadFailed = false) }
+        loadEntry(uuid)
     }
 
-    fun onGeneratePassword() = onPasswordChange(generatePasswordUseCase(GENERATED_PASSWORD))
-    fun onUrlChange(value: String) = _uiState.update { it.copy(url = value) }
-    fun onNotesChange(value: String) = _uiState.update { it.copy(notes = value) }
+    fun onTitleChange(value: String) = edit { it.copy(title = value, titleError = value.isBlank()) }
+    fun onUsernameChange(value: String) = edit { it.copy(username = value) }
+    fun onPasswordChange(value: String) = edit {
+        it.copy(
+            password = value,
+            passwordStrength = value.takeIf { v -> v.isNotEmpty() }?.let(strengthEstimator::estimate),
+            passwordGenerated = false
+        )
+    }
 
-    fun onOtpInputChange(value: String) = _uiState.update { it.copy(otpInput = value, otpInputError = false) }
+    fun onGeneratePassword() {
+        onPasswordChange(generatePasswordUseCase(GENERATED_PASSWORD))
+        _uiState.update { it.copy(passwordGenerated = true) }
+    }
+
+    fun onUrlChange(value: String) = edit { it.copy(url = value) }
+    fun onNotesChange(value: String) = edit { it.copy(notes = value) }
+
+    fun onOtpInputChange(value: String) = edit { it.copy(otpInput = value, otpInputError = false) }
 
     /** Takes a setup key or otpauth:// link that was typed, pasted or read from a QR code. */
     fun onOtpEntered(value: String = _uiState.value.otpInput) {
         val parsed = OtpParser.parse(value)
         if (parsed == null) {
-            _uiState.update { it.copy(otpInput = value, otpInputError = true) }
+            edit { it.copy(otpInput = value, otpInputError = true) }
             return
         }
         otpChanged = true
-        _uiState.update { it.copy(otp = parsed, otpInput = "", otpInputError = false) }
+        edit { it.copy(otp = parsed, otpInput = "", otpInputError = false) }
     }
 
     fun onExpiryChange(expires: Instant?) {
         expiryChanged = true
-        _uiState.update { it.copy(expires = expires) }
+        edit { it.copy(expires = expires) }
     }
 
     fun onRemoveOtp() {
         otpChanged = true
-        _uiState.update { it.copy(otp = null) }
+        edit { it.copy(otp = null) }
     }
 
-    fun onAddCustomField() = _uiState.update {
+    fun onAddCustomField() = edit {
         it.copy(customFields = it.customFields + CustomFieldDraft(key = nextFieldKey++))
     }
 
-    fun onCustomFieldChange(field: CustomFieldDraft) = _uiState.update { state ->
+    fun onCustomFieldChange(field: CustomFieldDraft) = edit { state ->
         state.copy(customFields = state.customFields.map { if (it.key == field.key) field else it })
     }
 
-    fun onRemoveCustomField(key: Long) = _uiState.update { state ->
+    fun onRemoveCustomField(key: Long) = edit { state ->
         state.copy(customFields = state.customFields.filterNot { it.key == key })
     }
 
@@ -197,6 +260,12 @@ class EntryFormViewModel @Inject constructor(
         }
         val state = _uiState.value
         if (!state.canSave) return
+
+        val names = state.customFields.map { it.name.trim() }.filter { it.isNotEmpty() }
+        if (names.size != names.toSet().size || names.any { it in RESERVED_FIELD_NAMES }) {
+            _messages.trySend(R.string.entry_form_duplicate_field)
+            return
+        }
 
         val data = EntryFormData(
             title = state.title.trim(),
@@ -213,7 +282,7 @@ class EntryFormViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, errorStringId = null) }
+            _uiState.update { it.copy(isSaving = true) }
 
             val result = if (entryUuid != null) {
                 updateEntryUseCase(entryUuid, data)
@@ -224,7 +293,8 @@ class EntryFormViewModel @Inject constructor(
             result
                 .onSuccess { _savedEvents.trySend(Unit) }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) }
+                    _uiState.update { it.copy(isSaving = false) }
+                    _messages.trySend(error.saveErrorMessage())
                 }
         }
     }
@@ -232,5 +302,7 @@ class EntryFormViewModel @Inject constructor(
     private companion object {
         /** What "generate" in the form produces: long, every character class. */
         val GENERATED_PASSWORD = PasswordOptions(length = 20, useSymbols = true)
+
+        val RESERVED_FIELD_NAMES = setOf("Title", "UserName", "Password", "URL", "Notes")
     }
 }

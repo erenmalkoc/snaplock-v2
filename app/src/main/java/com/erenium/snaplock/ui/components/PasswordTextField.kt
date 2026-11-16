@@ -32,7 +32,8 @@ fun PasswordTextField(
     isError: Boolean = false,
     supportingText: @Composable (() -> Unit)? = null,
     imeAction: ImeAction = ImeAction.Done,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -40,6 +41,7 @@ fun PasswordTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
+        enabled = enabled,
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),

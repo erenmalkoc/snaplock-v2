@@ -15,21 +15,37 @@ fun AppCard(
     modifier: Modifier = Modifier,
     contentPadding: Boolean = true,
     selected: Boolean = false,
+    onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
-        colors = if (selected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-        } else {
-            CardDefaults.cardColors()
-        },
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimens.cardElevation)
-    ) {
+    val colors = if (selected) {
+        CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    } else {
+        CardDefaults.cardColors()
+    }
+    val elevation = CardDefaults.cardElevation(defaultElevation = Dimens.cardElevation)
+    val body: @Composable ColumnScope.() -> Unit = {
         Column(
             modifier = if (contentPadding) Modifier.padding(Dimens.spaceMd) else Modifier,
             content = content
+        )
+    }
+    if (onClick != null) {
+        Card(
+            onClick = onClick,
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            colors = colors,
+            elevation = elevation,
+            content = body
+        )
+    } else {
+        Card(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            colors = colors,
+            elevation = elevation,
+            content = body
         )
     }
 }

@@ -50,6 +50,9 @@ class ClipboardManagerHelper @Inject constructor(
         }
     }
 
+    fun autoClearSeconds(): Int? =
+        settingsPrefs.settings.value.takeIf { it.clipboardAutoClear }?.clipboardTimeoutSeconds
+
     private fun clearIfStillOurs(token: Long) {
         if (ownedClipToken != token) return
         ownedClipToken = null

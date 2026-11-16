@@ -15,7 +15,7 @@ data class AuditEntry(
     val expires: Instant?
 )
 
-enum class BreachCheck { OFF, DONE, FAILED }
+enum class BreachCheck { OFF, DONE, INCOMPLETE, FAILED }
 
 data class HealthReport(
     val checked: Int,

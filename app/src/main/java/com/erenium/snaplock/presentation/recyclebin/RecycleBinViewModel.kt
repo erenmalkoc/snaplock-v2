@@ -4,16 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.Entry
+import com.erenium.snaplock.domain.text.localeComparator
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.EmptyRecycleBinUseCase
+import com.erenium.snaplock.domain.usecase.GetEntriesUseCase
 import com.erenium.snaplock.domain.usecase.GetRecycledEntriesUseCase
 import com.erenium.snaplock.domain.usecase.RestoreEntryUseCase
 import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,39 +31,62 @@ data class RecycleBinUiState(
     /** Entry waiting for the "delete permanently" confirmation. */
     val pendingDelete: Entry? = null,
     val confirmEmpty: Boolean = false,
-    val errorStringId: Int? = null
+    val errorStringId: Int? = null,
+    val viewing: Entry? = null
 )
 
 @HiltViewModel
 class RecycleBinViewModel @Inject constructor(
-    getRecycledEntries: GetRecycledEntriesUseCase,
+    private val recycledEntries: GetRecycledEntriesUseCase,
     private val restoreEntry: RestoreEntryUseCase,
     private val deleteEntry: DeleteEntryUseCase,
-    private val emptyRecycleBin: EmptyRecycleBinUseCase
+    private val emptyRecycleBin: EmptyRecycleBinUseCase,
+    private val getEntries: GetEntriesUseCase
 ) : ViewModel() {
 
     private data class Dialogs(
         val pendingDelete: Entry? = null,
         val confirmEmpty: Boolean = false,
-        val errorStringId: Int? = null
+        val errorStringId: Int? = null,
+        val viewing: Entry? = null
     )
 
     private val dialogs = MutableStateFlow(Dialogs())
 
+    private val _messages = Channel<Pair<Int, String?>>(Channel.BUFFERED)
+    val messages = _messages.receiveAsFlow()
+
     val uiState: StateFlow<RecycleBinUiState> =
-        combine(getRecycledEntries(), dialogs) { entries, dialogs ->
+        combine(recycledEntries(), dialogs) { entries, dialogs ->
             RecycleBinUiState(
-                entries = entries.sortedBy { it.title.lowercase() },
+                entries = entries.sortedWith(compareBy(localeComparator()) { it.title }),
                 isLoading = false,
                 pendingDelete = dialogs.pendingDelete,
                 confirmEmpty = dialogs.confirmEmpty,
-                errorStringId = dialogs.errorStringId
+                errorStringId = dialogs.errorStringId,
+                viewing = dialogs.viewing
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RecycleBinUiState())
 
-    fun onRestore(uuid: UUID) = run { restoreEntry(uuid) }
+    fun onRestore(uuid: UUID) {
+        dialogs.update { it.copy(viewing = null) }
+        viewModelScope.launch {
+            val entry = recycledEntries().first().firstOrNull { it.uuid == uuid }
+            restoreEntry(uuid)
+                .onSuccess {
+                    val restored = getEntries().first().firstOrNull { it.uuid == uuid } ?: return@onSuccess
+                    val fellBack = entry?.previousGroupUuid?.let { it != restored.groupUuid } == true
+                    _messages.trySend(
+                        (if (fellBack) R.string.recycle_bin_restored_fallback else R.string.recycle_bin_restored) to restored.groupName
+                    )
+                }
+                .onFailure { error -> dialogs.update { it.copy(errorStringId = error.saveErrorMessage()) } }
+        }
+    }
 
-    fun onDeleteRequest(entry: Entry) = dialogs.update { it.copy(pendingDelete = entry) }
+    fun onView(entry: Entry) = dialogs.update { it.copy(viewing = entry) }
+
+    fun onDeleteRequest(entry: Entry) = dialogs.update { it.copy(pendingDelete = entry, viewing = null) }
 
     fun onDeleteConfirmed() {
         val entry = dialogs.value.pendingDelete ?: return
@@ -73,7 +101,7 @@ class RecycleBinViewModel @Inject constructor(
         run { emptyRecycleBin() }
     }
 
-    fun onDismissDialog() = dialogs.update { it.copy(pendingDelete = null, confirmEmpty = false) }
+    fun onDismissDialog() = dialogs.update { it.copy(pendingDelete = null, confirmEmpty = false, viewing = null) }
 
     fun onErrorShown() = dialogs.update { it.copy(errorStringId = null) }
 

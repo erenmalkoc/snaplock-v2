@@ -6,6 +6,13 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalResources
+import com.erenium.snaplock.presentation.entrylist.SearchMatch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -103,8 +110,9 @@ fun EntryListScreen(
             onSearchFocused()
         }
     }
-    var dialog by remember { mutableStateOf<GroupDialog?>(null) }
+    var dialog by rememberSaveable { mutableStateOf<GroupDialog?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
     val errorMessage = state.errorStringId?.let { stringResource(it) }
 
     LaunchedEffect(errorMessage) {
@@ -113,9 +121,25 @@ fun EntryListScreen(
             viewModel.onErrorShown()
         }
     }
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { (resId, argument) ->
+            snackbarHostState.showSnackbar(resources.getString(resId, argument))
+        }
+    }
+    LaunchedEffect(viewModel) {
+        viewModel.deletedEntries.collect { deleted ->
+            val result = snackbarHostState.showSnackbar(
+                message = resources.getString(R.string.entry_moved_to_bin, deleted.title),
+                actionLabel = resources.getString(R.string.undo_button),
+                withDismissAction = true,
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) viewModel.onUndoDelete(deleted.uuid)
+        }
+    }
 
-    BackHandler(enabled = !state.isRoot && !state.isSearching) {
-        viewModel.onNavigateUp()
+    BackHandler(enabled = state.isSearching || !state.isRoot) {
+        viewModel.onBack()
     }
 
     AppScaffold(
@@ -124,7 +148,7 @@ fun EntryListScreen(
         } else {
             state.currentGroup?.name.orEmpty()
         },
-        onNavigateBack = if (state.isRoot) null else ({ viewModel.onNavigateUp() }),
+        onNavigateBack = if (state.isRoot) null else ({ viewModel.onBack() }),
         applyContentPadding = false,
         snackbarHostState = snackbarHostState,
         floatingActionButton = {
@@ -160,6 +184,13 @@ fun EntryListScreen(
         }
     ) { contentModifier ->
         Column(modifier = contentModifier.fillMaxSize()) {
+            if (!state.isRoot && !state.isSearching) {
+                Breadcrumb(
+                    path = state.breadcrumb,
+                    onOpenGroup = viewModel::onOpenGroup,
+                    modifier = Modifier.padding(horizontal = Dimens.screenPadding)
+                )
+            }
             SearchBar(
                 query = state.query,
                 onQueryChange = viewModel::onQueryChange,
@@ -181,7 +212,10 @@ fun EntryListScreen(
                             state.isRoot -> R.string.entry_list_empty
                             else -> R.string.group_empty
                         }
-                    )
+                    ),
+                    actionText = if (state.isSearching) null else stringResource(R.string.entry_add_button),
+                    actionIcon = Icons.Filled.Add,
+                    onAction = { onAddEntry(state.currentGroup?.uuid) }
                 )
             } else {
                 LazyColumn(
@@ -213,6 +247,7 @@ fun EntryListScreen(
                         EntryListItem(
                             entry = entry,
                             showGroup = state.isSearching,
+                            match = state.matches[entry.uuid],
                             selected = entry.uuid == selectedEntry,
                             onClick = { onEntryClick(entry.uuid) }
                         )
@@ -244,7 +279,13 @@ fun EntryListScreen(
         GroupDialog.DELETE -> AlertDialog(
             onDismissRequest = { dialog = null },
             title = { Text(state.currentGroup?.name.orEmpty()) },
-            text = { Text(stringResource(R.string.group_delete_message)) },
+            text = {
+                Text(
+                    stringResource(
+                        if (state.recycleBinEnabled) R.string.group_delete_message else R.string.group_delete_message_permanent
+                    )
+                )
+            },
             confirmButton = {
                 AppTextButton(
                     text = stringResource(R.string.entry_delete_confirm),
@@ -331,7 +372,7 @@ private fun NameDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name by remember { mutableStateOf(initialName) }
+    var name by rememberSaveable { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -420,9 +461,44 @@ private fun SearchBar(
 }
 
 @Composable
+private fun Breadcrumb(
+    path: List<Group>,
+    onOpenGroup: (UUID) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        path.forEachIndexed { index, group ->
+            if (index > 0) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(Dimens.iconSm),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = group.name,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                modifier = Modifier
+                    .clickable { onOpenGroup(group.uuid) }
+                    .padding(vertical = Dimens.spaceSm, horizontal = Dimens.spaceXs)
+            )
+        }
+    }
+}
+
+@Composable
 private fun EntryListItem(
     entry: Entry,
     showGroup: Boolean,
+    match: SearchMatch?,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -431,12 +507,12 @@ private fun EntryListItem(
             .fillMaxWidth()
             .padding(vertical = Dimens.spaceXs),
         contentPadding = false,
-        selected = selected
+        selected = selected,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
                 .padding(Dimens.spaceMd),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -448,17 +524,27 @@ private fun EntryListItem(
             ) {
                 Text(
                     text = entry.title,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
+                val matchLabel = when (match) {
+                    SearchMatch.URL -> stringResource(R.string.search_match_url)
+                    SearchMatch.NOTES -> stringResource(R.string.search_match_notes)
+                    else -> null
+                }
                 val subtitle = listOfNotNull(
                     entry.username?.takeIf { it.isNotBlank() },
-                    entry.groupName.takeIf { showGroup }
+                    entry.groupName.takeIf { showGroup },
+                    matchLabel
                 ).joinToString(" · ")
                 if (subtitle.isNotEmpty()) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = Dimens.spaceXxs)
                     )
                 }
