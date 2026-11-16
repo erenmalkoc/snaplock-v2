@@ -35,10 +35,13 @@ developer verification, so F-Droid and GitHub installs are the same APK.
    rebuilds it with another JDK, path and core count. Both builds must match.
 3. Download the artifact and sign it with apksigner from **build-tools 34**: output
    from 35 and newer fails apksigcopier, which F-Droid uses for the comparison.
+   Keep v1 signing off as shown: apksigner adds a JAR signature otherwise, and
+   apksigcopier then reports a digest mismatch.
 
    ```bash
    gh run download <run-id> -n app-release-unsigned -D dist
-   apksigner sign --ks ~/.android-keys/snaplock-release.p12 --ks-key-alias snaplock \
+   apksigner sign --v1-signing-enabled false --v4-signing-enabled false \
+     --ks ~/.android-keys/snaplock-release.p12 --ks-key-alias snaplock \
      --ks-pass file:$HOME/.android-keys/snaplock-release.pass \
      --out dist/snaplock-X.Y.Z.apk dist/app-release-unsigned.apk
    apksigcopier compare dist/snaplock-X.Y.Z.apk --unsigned dist/app-release-unsigned.apk
@@ -69,15 +72,9 @@ closed for inactivity on 2026-08-14 while the signing model was undecided.
 ## Anti-features
 
 Since 1.1.0, Snaplock has the INTERNET permission for two opt-in features: the breach
-check talks to Have I Been Pwned, a service whose server is not free software, and site
-icon downloads talk to the websites in the vault. F-Droid marks the first as
-`NonFreeNet`; add it to every build entry from 1.1.0 on:
-
-```yaml
-    antifeatures:
-      NonFreeNet:
-        en-US: Optional breach check against Have I Been Pwned (off by default).
-```
+check talks to Have I Been Pwned and site icon downloads talk to the websites in the
+vault. Both are off by default. The F-Droid reviewer asked for no `antifeatures` entry
+on the build, so the recipe has none.
 
 ## Passkey browser list
 
