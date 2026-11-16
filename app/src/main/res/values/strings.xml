@@ -364,4 +364,12 @@
         <item quantity="one">%d word</item>
         <item quantity="other">%d words</item>
     </plurals>
+    <string name="autofill_load_error">Your logins could not be loaded.</string>
+    <string name="autofill_vault_empty">Vault is empty</string>
+    <string name="autofill_saved">Saved to Snaplock</string>
+    <string name="autofill_link_picked_desc">Next time, Snaplock suggests this login for it.</string>
+    <string name="autofill_discard_title">Discard this login?</string>
+    <string name="autofill_discard_message">You changed the fields and have not saved them.</string>
+    <string name="autofill_discard_confirm">Discard</string>
+    <string name="autofill_discard_keep">Keep editing</string>
 </resources>

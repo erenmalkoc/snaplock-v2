@@ -104,8 +104,8 @@
     <string name="autofill_no_database">Otomatik doldurma için önce Snaplock\'ta bir veritabanı açın.</string>
     <string name="autofill_open_app">Snaplock\'u aç</string>
     <string name="autofill_save_title">Snaplock\'a kaydet</string>
-    <string name="autofill_update_title">Şifreyi güncelle</string>
-    <string name="autofill_update_message">%1$s kaydının şifresi değişmiş görünüyor.</string>
+    <string name="autofill_update_title">Parolayı güncelle</string>
+    <string name="autofill_update_message">%1$s kaydının parolası değişmiş görünüyor.</string>
     <string name="autofill_update_button">Güncelle</string>
     <string name="autofill_save_as_new">Yeni kayıt olarak kaydet</string>
     <string name="autofill_link_picked">Seçtiğim kaydı %1$s ile hatırla</string>
@@ -364,4 +364,12 @@
         <item quantity="one">%d kelime</item>
         <item quantity="other">%d kelime</item>
     </plurals>
+    <string name="autofill_load_error">Kayıtlarınız yüklenemedi.</string>
+    <string name="autofill_vault_empty">Veritabanı boş</string>
+    <string name="autofill_saved">Snaplock\'a kaydedildi</string>
+    <string name="autofill_link_picked_desc">Bir dahaki sefere Snaplock bu kaydı onun için önerir.</string>
+    <string name="autofill_discard_title">Bu kayıt silinsin mi?</string>
+    <string name="autofill_discard_message">Alanları değiştirdiniz ve kaydetmediniz.</string>
+    <string name="autofill_discard_confirm">Sil</string>
+    <string name="autofill_discard_keep">Düzenlemeye devam et</string>
 </resources>

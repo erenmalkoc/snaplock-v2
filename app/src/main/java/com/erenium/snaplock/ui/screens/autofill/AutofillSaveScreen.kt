@@ -3,7 +3,11 @@ package com.erenium.snaplock.ui.screens.autofill
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,13 +22,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.erenium.snaplock.R
 import com.erenium.snaplock.autofill.AutofillSaveViewModel
 import com.erenium.snaplock.autofill.SaveDecision
+import com.erenium.snaplock.autofill.SaveOutcome
+import com.erenium.snaplock.ui.components.AppDialog
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.AppTextButton
+import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PasswordTextField
 import com.erenium.snaplock.ui.components.PrimaryButton
@@ -42,15 +53,27 @@ fun AutofillSaveScreen(
     onCancel: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var confirmDiscard by remember { mutableStateOf(false) }
+    val requestCancel = { if (state.hasEdits) confirmDiscard = true else onCancel() }
 
     LaunchedEffect(viewModel) {
-        viewModel.done.collect { onDone() }
+        viewModel.done.collect { outcome ->
+            if (outcome == SaveOutcome.SAVED) {
+                Toast.makeText(context, R.string.autofill_saved, Toast.LENGTH_SHORT).show()
+            }
+            onDone()
+        }
     }
 
     val database = state.database
     val decision = state.decision
     when {
         state.isLoading -> LoadingSpinner(modifier = Modifier.fillMaxSize())
+        state.loadFailed -> ErrorState(
+            message = stringResource(R.string.autofill_load_error),
+            onRetry = viewModel::onRetry
+        )
         state.isLocked && database == null -> NoDatabase(onOpenApp = onOpenApp, onCancel = onCancel)
         state.isLocked && database != null -> UnlockScreen(
             uri = database.uri,
@@ -64,8 +87,9 @@ fun AutofillSaveScreen(
                 title = stringResource(
                     if (update != null) R.string.autofill_update_title else R.string.autofill_save_title
                 ),
-                onNavigateBack = onCancel
+                onNavigateBack = requestCancel
             ) { contentModifier ->
+                BackHandler(enabled = state.hasEdits) { confirmDiscard = true }
                 Column(
                     modifier = contentModifier
                         .fillMaxSize()
@@ -132,11 +156,28 @@ fun AutofillSaveScreen(
                     AppTextButton(
                         icon = Icons.Filled.Close,
                         text = stringResource(R.string.cancel_button),
-                        onClick = onCancel,
+                        onClick = requestCancel,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        }
+    }
+
+    if (confirmDiscard) {
+        AppDialog(
+            title = stringResource(R.string.autofill_discard_title),
+            confirmText = stringResource(R.string.autofill_discard_confirm),
+            confirmIcon = Icons.Filled.Delete,
+            onConfirm = {
+                confirmDiscard = false
+                onCancel()
+            },
+            onDismiss = { confirmDiscard = false },
+            dismissText = stringResource(R.string.autofill_discard_keep),
+            dismissIcon = Icons.Filled.Edit
+        ) {
+            Text(stringResource(R.string.autofill_discard_message))
         }
     }
 }

@@ -27,7 +27,9 @@ data class AutofillUiState(
     val others: List<Credential> = emptyList(),
     val query: String = "",
     /** Link the picked entry to this app or site when it was not a match yet. */
-    val linkPicked: Boolean = true
+    val linkPicked: Boolean = false,
+    val isVaultEmpty: Boolean = false,
+    val loadFailed: Boolean = false
 )
 
 @HiltViewModel
@@ -39,10 +41,17 @@ class AutofillViewModel @Inject constructor(
     private var packageName = ""
     private var webDomain: String? = null
     private var started = false
+    private var fillSingleMatch = false
+
+    private data class Loaded(
+        val credentials: List<Credential> = emptyList(),
+        val done: Boolean = false,
+        val failed: Boolean = false
+    )
 
     private val query = MutableStateFlow("")
-    private val linkPicked = MutableStateFlow(true)
-    private val credentials = MutableStateFlow<List<Credential>>(emptyList())
+    private val linkPicked = MutableStateFlow(false)
+    private val loaded = MutableStateFlow(Loaded())
     private val picks = Channel<Credential>(Channel.BUFFERED)
 
     /** The entry the user chose, or the only match after unlocking. */
@@ -51,20 +60,23 @@ class AutofillViewModel @Inject constructor(
     val uiState: StateFlow<AutofillUiState> = combine(
         repository.isLocked(),
         recentDatabasesRepository.recentDatabases.map { it.firstOrNull() },
-        credentials,
+        loaded,
         query,
         linkPicked
-    ) { isLocked, database, all, query, linkPicked ->
+    ) { isLocked, database, loaded, query, linkPicked ->
+        val all = loaded.credentials
         val matches = CredentialMatcher.match(all, packageName, webDomain)
         val others = all.filterNot { it in matches }.sortedBy { it.title.lowercase() }
         AutofillUiState(
-            isLoading = false,
+            isLoading = !isLocked && !loaded.done,
             isLocked = isLocked,
             database = database,
             matches = matches.filter { it.matchesQuery(query) },
             others = others.filter { it.matchesQuery(query) },
             query = query,
-            linkPicked = linkPicked
+            linkPicked = linkPicked,
+            isVaultEmpty = loaded.done && !loaded.failed && all.isEmpty(),
+            loadFailed = loaded.failed
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AutofillUiState())
 
@@ -77,15 +89,31 @@ class AutofillViewModel @Inject constructor(
         started = true
         this.packageName = packageName
         this.webDomain = webDomain
+        this.fillSingleMatch = fillSingleMatch
         viewModelScope.launch {
             repository.isLocked().collect { isLocked ->
-                if (isLocked) return@collect
-                val all = repository.getCredentials()
-                credentials.value = all
+                if (isLocked) {
+                    loaded.value = Loaded()
+                } else {
+                    load()
+                }
+            }
+        }
+    }
+
+    fun onRetry() {
+        loaded.value = Loaded()
+        viewModelScope.launch { load() }
+    }
+
+    private suspend fun load() {
+        runCatching { repository.getCredentials() }
+            .onSuccess { all ->
+                loaded.value = Loaded(all, done = true)
                 val matches = CredentialMatcher.match(all, packageName, webDomain)
                 if (fillSingleMatch && matches.size == 1) picks.send(matches.single())
             }
-        }
+            .onFailure { loaded.value = Loaded(done = true, failed = true) }
     }
 
     fun onQueryChange(value: String) {
@@ -98,7 +126,7 @@ class AutofillViewModel @Inject constructor(
 
     fun onPick(credential: Credential) {
         viewModelScope.launch {
-            val isMatch = credential in CredentialMatcher.match(credentials.value, packageName, webDomain)
+            val isMatch = credential in CredentialMatcher.match(loaded.value.credentials, packageName, webDomain)
             if (linkPicked.value && !isMatch) {
                 // Best effort: a failed write must not stop the fill the user asked for.
                 val domain = webDomain?.let(CredentialMatcher::hostOf)

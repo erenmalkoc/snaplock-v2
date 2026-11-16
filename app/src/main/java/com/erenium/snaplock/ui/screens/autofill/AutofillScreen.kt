@@ -21,7 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,9 +36,11 @@ import com.erenium.snaplock.autofill.AutofillViewModel
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.EmptyState
+import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.EntryAvatar
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.SettingToggleRow
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import com.erenium.snaplock.ui.theme.Dimens
 
@@ -64,6 +65,10 @@ fun AutofillScreen(
     val database = state.database
     when {
         state.isLoading -> LoadingSpinner(modifier = Modifier.fillMaxSize())
+        state.loadFailed -> ErrorState(
+            message = stringResource(R.string.autofill_load_error),
+            onRetry = viewModel::onRetry
+        )
         state.isLocked && database == null -> NoDatabase(onOpenApp = onOpenApp, onCancel = onCancel)
         state.isLocked && database != null -> UnlockScreen(
             uri = database.uri,
@@ -84,18 +89,20 @@ fun AutofillScreen(
                         .padding(horizontal = Dimens.screenPadding, vertical = Dimens.spaceSm)
                 )
                 if (state.others.isNotEmpty()) {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.autofill_link_picked, target)) },
-                        trailingContent = {
-                            Switch(checked = state.linkPicked, onCheckedChange = viewModel::onLinkPickedChange)
-                        },
-                        modifier = Modifier.clickable { viewModel.onLinkPickedChange(!state.linkPicked) }
+                    SettingToggleRow(
+                        label = stringResource(R.string.autofill_link_picked, target),
+                        description = stringResource(R.string.autofill_link_picked_desc),
+                        checked = state.linkPicked,
+                        onCheckedChange = viewModel::onLinkPickedChange,
+                        modifier = Modifier.padding(horizontal = Dimens.screenPadding)
                     )
                 }
                 if (state.matches.isEmpty() && state.others.isEmpty()) {
                     EmptyState(
                         modifier = Modifier.fillMaxSize(),
-                        message = stringResource(R.string.entry_search_no_results)
+                        message = stringResource(
+                            if (state.isVaultEmpty) R.string.autofill_vault_empty else R.string.entry_search_no_results
+                        )
                     )
                 } else {
                     val matchesHeader = stringResource(R.string.autofill_matches_header, target)
