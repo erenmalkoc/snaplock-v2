@@ -42,7 +42,12 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = md_dark_surfaceVariant,
     onSurfaceVariant = md_dark_onSurfaceVariant,
     outline = md_dark_outline,
-    outlineVariant = md_dark_outlineVariant
+    outlineVariant = md_dark_outlineVariant,
+    surfaceContainerLowest = md_dark_surfaceContainerLowest,
+    surfaceContainerLow = md_dark_surfaceContainerLow,
+    surfaceContainer = md_dark_surfaceContainer,
+    surfaceContainerHigh = md_dark_surfaceContainerHigh,
+    surfaceContainerHighest = md_dark_surfaceContainerHighest
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -69,7 +74,12 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = md_light_surfaceVariant,
     onSurfaceVariant = md_light_onSurfaceVariant,
     outline = md_light_outline,
-    outlineVariant = md_light_outlineVariant
+    outlineVariant = md_light_outlineVariant,
+    surfaceContainerLowest = md_light_surfaceContainerLowest,
+    surfaceContainerLow = md_light_surfaceContainerLow,
+    surfaceContainer = md_light_surfaceContainer,
+    surfaceContainerHigh = md_light_surfaceContainerHigh,
+    surfaceContainerHighest = md_light_surfaceContainerHighest
 )
 
 val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
