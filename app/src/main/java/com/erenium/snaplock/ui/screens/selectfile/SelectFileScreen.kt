@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.selectfile
 
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FolderOpen
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -107,11 +109,13 @@ fun SelectFileScreen(
 
             Spacer(modifier = Modifier.height(Dimens.spaceXl))
             PrimaryButton(
+                icon = Icons.Filled.FolderOpen,
                 text = stringResource(R.string.select_file_button),
                 onClick = { filePickerLauncher.launch(arrayOf("*/*")) }
             )
             Spacer(modifier = Modifier.height(Dimens.spaceSm))
             SecondaryButton(
+                icon = Icons.Filled.Add,
                 text = stringResource(R.string.create_db_button),
                 onClick = onCreateDatabase
             )

@@ -1,5 +1,9 @@
 package com.erenium.snaplock.ui.screens.autofill
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -108,6 +112,7 @@ fun AutofillSaveScreen(
                     )
                     Spacer(modifier = Modifier.height(Dimens.spaceLg))
                     PrimaryButton(
+                        icon = Icons.Filled.Save,
                         text = stringResource(
                             if (update != null) R.string.autofill_update_button else R.string.entry_form_save
                         ),
@@ -117,6 +122,7 @@ fun AutofillSaveScreen(
                     if (update != null) {
                         Spacer(modifier = Modifier.height(Dimens.spaceSm))
                         SecondaryButton(
+                            icon = Icons.Filled.Add,
                             text = stringResource(R.string.autofill_save_as_new),
                             onClick = { viewModel.onSave(asNew = true) },
                             enabled = !state.isSaving && state.password.isNotEmpty()
@@ -124,6 +130,7 @@ fun AutofillSaveScreen(
                     }
                     Spacer(modifier = Modifier.height(Dimens.spaceSm))
                     AppTextButton(
+                        icon = Icons.Filled.Close,
                         text = stringResource(R.string.cancel_button),
                         onClick = onCancel,
                         modifier = Modifier.fillMaxWidth()

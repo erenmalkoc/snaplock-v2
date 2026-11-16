@@ -1,5 +1,10 @@
 package com.erenium.snaplock.ui.screens.settings
 
+import androidx.compose.material.icons.filled.Image
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -64,6 +69,7 @@ fun SiteIconsSection(
     } else {
         SecondaryButton(
             text = stringResource(R.string.settings_site_icons),
+            icon = Icons.Filled.Image,
             onClick = viewModel::onDownloadRequested,
             modifier = Modifier.padding(top = Dimens.spaceSm)
         )
@@ -75,10 +81,18 @@ fun SiteIconsSection(
             title = { Text(stringResource(R.string.site_icons_confirm_title)) },
             text = { Text(pluralStringResource(R.plurals.site_icons_confirm_message, count, count)) },
             confirmButton = {
-                TextButton(onClick = viewModel::onConfirmed) { Text(stringResource(R.string.site_icons_download)) }
+                AppTextButton(
+                    text = stringResource(R.string.site_icons_download),
+                    icon = Icons.Filled.Download,
+                    onClick = viewModel::onConfirmed
+                )
             },
             dismissButton = {
-                TextButton(onClick = viewModel::onDismiss) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = viewModel::onDismiss
+                )
             }
         )
     }

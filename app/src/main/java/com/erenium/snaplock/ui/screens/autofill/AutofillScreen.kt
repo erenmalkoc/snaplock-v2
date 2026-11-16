@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.autofill
 
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -190,7 +191,7 @@ internal fun NoDatabase(onOpenApp: () -> Unit, onCancel: () -> Unit) {
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(Dimens.spaceLg))
-            PrimaryButton(text = stringResource(R.string.autofill_open_app), onClick = onOpenApp)
+            PrimaryButton(icon = Icons.Filled.OpenInNew, text = stringResource(R.string.autofill_open_app), onClick = onOpenApp)
         }
     }
 }

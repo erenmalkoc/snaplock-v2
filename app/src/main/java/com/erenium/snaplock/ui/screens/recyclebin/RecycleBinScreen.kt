@@ -1,5 +1,8 @@
 package com.erenium.snaplock.ui.screens.recyclebin
 
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -135,7 +138,11 @@ private fun ConfirmDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(message) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) } }
+        confirmButton = { AppTextButton(text = confirm, icon = Icons.Filled.Check, onClick = onConfirm) },
+        dismissButton = { AppTextButton(
+            text = stringResource(R.string.cancel_button),
+            icon = Icons.Filled.Close,
+            onClick = onDismiss
+        ) }
     )
 }

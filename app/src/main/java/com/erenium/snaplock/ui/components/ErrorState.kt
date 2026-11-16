@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.components
 
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -58,6 +59,7 @@ fun ErrorState(
         if (onRetry != null) {
             Spacer(modifier = Modifier.height(Dimens.spaceLg))
             PrimaryButton(
+                icon = Icons.Filled.Refresh,
                 text = stringResource(R.string.retry_button),
                 onClick = onRetry,
                 fillMaxWidth = false

@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.changepassword
 
+import androidx.compose.material.icons.filled.LockReset
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -115,6 +116,7 @@ fun ChangeMasterPasswordScreen(
                 }
             } else {
                 AppTextButton(
+                    icon = Icons.Filled.Key,
                     text = stringResource(R.string.unlock_key_file_choose),
                     onClick = { keyFileLauncher.launch(arrayOf("*/*")) }
                 )
@@ -129,6 +131,7 @@ fun ChangeMasterPasswordScreen(
             }
             Spacer(modifier = Modifier.height(Dimens.spaceLg))
             PrimaryButton(
+                icon = Icons.Filled.LockReset,
                 text = stringResource(R.string.change_password_submit),
                 onClick = viewModel::onSave,
                 enabled = state.canSave

@@ -1,5 +1,8 @@
 package com.erenium.snaplock.ui.screens.databasesettings
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -126,6 +129,7 @@ fun DatabaseSettingsScreen(
                 Text(stringResource(errorId), color = MaterialTheme.colorScheme.error)
             }
             PrimaryButton(
+                icon = Icons.Filled.Save,
                 text = stringResource(R.string.entry_form_save),
                 onClick = viewModel::onSave,
                 enabled = state.canSave
@@ -185,6 +189,7 @@ private fun EncryptionFields(state: DatabaseSettingsUiState, viewModel: Database
         )
     }
     SecondaryButton(
+        icon = Icons.Filled.Speed,
         text = stringResource(if (state.isBenchmarking) R.string.database_benchmarking else R.string.database_benchmark),
         onClick = viewModel::onBenchmark,
         enabled = !state.isBenchmarking && !state.memoryInvalid && !state.parallelismInvalid,

@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.entrydetail
 
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.filled.Restore
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -140,13 +142,21 @@ fun EntryDetailScreen(
             title = { Text(stringResource(R.string.attachment_remove)) },
             text = { Text(stringResource(R.string.attachment_remove_message, name)) },
             confirmButton = {
-                TextButton(onClick = {
-                    attachmentToRemove = null
-                    viewModel.onRemoveAttachment(name)
-                }) { Text(stringResource(R.string.attachment_remove)) }
+                AppTextButton(
+                    text = stringResource(R.string.attachment_remove),
+                    icon = Icons.Filled.Delete,
+                    onClick = {
+                        attachmentToRemove = null
+                        viewModel.onRemoveAttachment(name)
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { attachmentToRemove = null }) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = { attachmentToRemove = null }
+                )
             }
         )
     }
@@ -182,17 +192,21 @@ fun EntryDetailScreen(
             title = { Text(stringResource(R.string.entry_delete_title)) },
             text = { Text(stringResource(R.string.entry_delete_message)) },
             confirmButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    viewModel.onDelete()
-                }) {
-                    Text(stringResource(R.string.entry_delete_confirm))
-                }
+                AppTextButton(
+                    text = stringResource(R.string.entry_delete_confirm),
+                    icon = Icons.Filled.Delete,
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.onDelete()
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.cancel_button))
-                }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = { showDeleteDialog = false }
+                )
             }
         )
     }
@@ -396,16 +410,12 @@ fun EntryDetailScreen(
                             )
                             HorizontalDivider()
                         }
-                        TextButton(
+                        AppTextButton(
+                            text = stringResource(R.string.attachment_add),
+                            icon = Icons.Filled.Add,
                             onClick = { addAttachmentLauncher.launch(arrayOf("*/*")) },
                             modifier = Modifier.padding(horizontal = Dimens.spaceSm)
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = null)
-                            Text(
-                                text = stringResource(R.string.attachment_add),
-                                modifier = Modifier.padding(start = Dimens.spaceSm)
-                            )
-                        }
+                        )
                     }
 
                     if (entry.history.isNotEmpty()) {
@@ -515,8 +525,16 @@ private fun VersionDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onRestore) { Text(stringResource(R.string.entry_history_restore)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) } }
+        confirmButton = { AppTextButton(
+            text = stringResource(R.string.entry_history_restore),
+            icon = Icons.Filled.Restore,
+            onClick = onRestore
+        ) },
+        dismissButton = { AppTextButton(
+            text = stringResource(R.string.cancel_button),
+            icon = Icons.Filled.Close,
+            onClick = onDismiss
+        ) }
     )
 }
 

@@ -1,5 +1,10 @@
 package com.erenium.snaplock.ui.screens.settings
 
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
@@ -61,11 +66,13 @@ fun ImportExportSection(
     )
     SecondaryButton(
         text = stringResource(R.string.settings_import),
+        icon = Icons.Filled.FileDownload,
         onClick = { importLauncher.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel")) },
         modifier = Modifier.padding(top = Dimens.spaceSm)
     )
     SecondaryButton(
         text = stringResource(R.string.settings_export),
+        icon = Icons.Filled.FileUpload,
         onClick = { confirmExport = true },
         modifier = Modifier.padding(top = Dimens.spaceSm)
     )
@@ -79,12 +86,18 @@ fun ImportExportSection(
                 Text(pluralStringResource(R.plurals.import_confirm_message, import.entries.size, import.entries.size, groupName))
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.onImportConfirmed(groupName) }) {
-                    Text(stringResource(R.string.settings_import))
-                }
+                AppTextButton(
+                    text = stringResource(R.string.settings_import),
+                    icon = Icons.Filled.FileDownload,
+                    onClick = { viewModel.onImportConfirmed(groupName) }
+                )
             },
             dismissButton = {
-                TextButton(onClick = viewModel::onImportDismissed) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = viewModel::onImportDismissed
+                )
             }
         )
     }
@@ -95,13 +108,21 @@ fun ImportExportSection(
             title = { Text(stringResource(R.string.export_warning_title)) },
             text = { Text(stringResource(R.string.export_warning_message)) },
             confirmButton = {
-                TextButton(onClick = {
-                    confirmExport = false
-                    exportLauncher.launch("snaplock-export.csv")
-                }) { Text(stringResource(R.string.settings_export)) }
+                AppTextButton(
+                    text = stringResource(R.string.settings_export),
+                    icon = Icons.Filled.FileUpload,
+                    onClick = {
+                        confirmExport = false
+                        exportLauncher.launch("snaplock-export.csv")
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { confirmExport = false }) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = { confirmExport = false }
+                )
             }
         )
     }

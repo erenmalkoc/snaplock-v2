@@ -1,5 +1,9 @@
 package com.erenium.snaplock.ui.screens.entryform
 
+import com.erenium.snaplock.ui.components.SecondaryButton
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Save
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -163,13 +167,11 @@ fun EntryFormScreen(
                 state.passwordStrength?.let { strength ->
                     StrengthMeter(estimate = strength, modifier = Modifier.padding(top = Dimens.spaceSm))
                 }
-                TextButton(onClick = viewModel::onGeneratePassword) {
-                    Icon(Icons.Filled.Password, contentDescription = null)
-                    Text(
-                        text = stringResource(R.string.entry_form_generate),
-                        modifier = Modifier.padding(start = Dimens.spaceSm)
-                    )
-                }
+                AppTextButton(
+                    text = stringResource(R.string.entry_form_generate),
+                    icon = Icons.Filled.Password,
+                    onClick = viewModel::onGeneratePassword
+                )
             }
 
             OutlinedTextField(
@@ -239,26 +241,30 @@ fun EntryFormScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) {
-                    OutlinedButton(onClick = {
-                        qrNotFound = false
-                        scanLauncher.launch(
-                            ScanOptions()
-                                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                .setPrompt(scanPrompt)
-                                .setBeepEnabled(false)
-                                .setOrientationLocked(false)
-                        )
-                    }) {
-                        Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
-                        Text(stringResource(R.string.entry_form_otp_scan), modifier = Modifier.padding(start = Dimens.spaceSm))
-                    }
-                    OutlinedButton(onClick = {
-                        qrNotFound = false
-                        imageLauncher.launch("image/*")
-                    }) {
-                        Icon(Icons.Filled.Image, contentDescription = null)
-                        Text(stringResource(R.string.entry_form_otp_image), modifier = Modifier.padding(start = Dimens.spaceSm))
-                    }
+                    SecondaryButton(
+                        text = stringResource(R.string.entry_form_otp_scan),
+                        icon = Icons.Filled.QrCodeScanner,
+                        onClick = {
+                            qrNotFound = false
+                            scanLauncher.launch(
+                                ScanOptions()
+                                    .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                    .setPrompt(scanPrompt)
+                                    .setBeepEnabled(false)
+                                    .setOrientationLocked(false)
+                            )
+                        },
+                        fillMaxWidth = false
+                    )
+                    SecondaryButton(
+                        text = stringResource(R.string.entry_form_otp_image),
+                        icon = Icons.Filled.Image,
+                        onClick = {
+                            qrNotFound = false
+                            imageLauncher.launch("image/*")
+                        },
+                        fillMaxWidth = false
+                    )
                 }
             }
 
@@ -273,13 +279,12 @@ fun EntryFormScreen(
                     onRemove = { viewModel.onRemoveCustomField(field.key) }
                 )
             }
-            OutlinedButton(onClick = viewModel::onAddCustomField) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Text(
-                    text = stringResource(R.string.entry_form_add_field),
-                    modifier = Modifier.padding(start = Dimens.spaceSm)
-                )
-            }
+            SecondaryButton(
+                text = stringResource(R.string.entry_form_add_field),
+                icon = Icons.Filled.Add,
+                onClick = viewModel::onAddCustomField,
+                fillMaxWidth = false
+            )
 
             if (state.groups.size > 1) {
                 Text(
@@ -373,9 +378,11 @@ private fun ExpiryEditor(expires: Instant?, onChange: (Instant?) -> Unit) {
         ) {
             Text(stringResource(R.string.entry_form_expires), style = MaterialTheme.typography.bodyLarge)
             if (expires != null) {
-                TextButton(onClick = { picking = true }, contentPadding = PaddingValues(0.dp)) {
-                    Text(formatDate(expires))
-                }
+                AppTextButton(
+                    text = formatDate(expires),
+                    icon = Icons.Filled.CalendarMonth,
+                    onClick = { picking = true }
+                )
             }
         }
         Switch(
@@ -391,13 +398,21 @@ private fun ExpiryEditor(expires: Instant?, onChange: (Instant?) -> Unit) {
         DatePickerDialog(
             onDismissRequest = { picking = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { onChange(Instant.ofEpochMilli(it)) }
-                    picking = false
-                }) { Text(stringResource(R.string.entry_form_save)) }
+                AppTextButton(
+                    text = stringResource(R.string.entry_form_save),
+                    icon = Icons.Filled.Save,
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { onChange(Instant.ofEpochMilli(it)) }
+                        picking = false
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = { picking = false }
+                )
             }
         ) {
             DatePicker(state = pickerState)

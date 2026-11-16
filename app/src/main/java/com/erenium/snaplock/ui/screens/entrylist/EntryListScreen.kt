@@ -1,5 +1,9 @@
 package com.erenium.snaplock.ui.screens.entrylist
 
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Save
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -242,13 +246,21 @@ fun EntryListScreen(
             title = { Text(state.currentGroup?.name.orEmpty()) },
             text = { Text(stringResource(R.string.group_delete_message)) },
             confirmButton = {
-                TextButton(onClick = {
-                    dialog = null
-                    viewModel.onDeleteCurrentGroup()
-                }) { Text(stringResource(R.string.entry_delete_confirm)) }
+                AppTextButton(
+                    text = stringResource(R.string.entry_delete_confirm),
+                    icon = Icons.Filled.Delete,
+                    onClick = {
+                        dialog = null
+                        viewModel.onDeleteCurrentGroup()
+                    }
+                )
             },
             dismissButton = {
-                TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.cancel_button),
+                    icon = Icons.Filled.Close,
+                    onClick = { dialog = null }
+                )
             }
         )
         null -> Unit
@@ -332,11 +344,18 @@ private fun NameDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.entry_form_save))
-            }
+            AppTextButton(
+                text = stringResource(R.string.entry_form_save),
+                icon = Icons.Filled.Save,
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank()
+            )
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) } }
+        dismissButton = { AppTextButton(
+            text = stringResource(R.string.cancel_button),
+            icon = Icons.Filled.Close,
+            onClick = onDismiss
+        ) }
     )
 }
 

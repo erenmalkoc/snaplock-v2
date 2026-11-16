@@ -1,5 +1,9 @@
 package com.erenium.snaplock.ui.screens.settings
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -76,6 +80,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 SecondaryButton(
+                    icon = Icons.Filled.Password,
                     text = stringResource(R.string.change_password_title),
                     onClick = onNavigateToChangePassword,
                     modifier = Modifier.padding(top = Dimens.spaceMd)
@@ -87,6 +92,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(top = Dimens.spaceLg)
                 )
                 SecondaryButton(
+                    icon = Icons.Filled.Tune,
                     text = stringResource(R.string.database_settings_title),
                     onClick = onNavigateToDatabaseSettings,
                     modifier = Modifier.padding(top = Dimens.spaceSm)
@@ -233,6 +239,7 @@ private fun AutofillSection() {
             )
         } else {
             PrimaryButton(
+                icon = Icons.Filled.Settings,
                 text = stringResource(
                     if (setup == AutofillSetup.PASSKEYS_OFF) R.string.settings_autofill_make_preferred else R.string.settings_autofill_enable
                 ),

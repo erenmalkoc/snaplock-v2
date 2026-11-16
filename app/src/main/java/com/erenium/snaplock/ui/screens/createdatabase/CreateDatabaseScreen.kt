@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.createdatabase
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -124,6 +126,7 @@ fun CreateDatabaseScreen(
             )
 
             PrimaryButton(
+                icon = Icons.Filled.Add,
                 text = stringResource(R.string.create_db_submit),
                 onClick = { createDocumentLauncher.launch(DEFAULT_DATABASE_FILE_NAME) },
                 enabled = state.canSubmit

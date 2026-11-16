@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.unlock
 
+import androidx.compose.material.icons.filled.LockOpen
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -184,6 +185,7 @@ fun UnlockScreen(
                         }
                     } else {
                         AppTextButton(
+                            icon = Icons.Filled.Key,
                             text = stringResource(R.string.unlock_key_file_choose),
                             onClick = { keyFileLauncher.launch(arrayOf("*/*")) }
                         )
@@ -192,6 +194,7 @@ fun UnlockScreen(
                     Spacer(modifier = Modifier.height(Dimens.spaceMd))
 
                     PrimaryButton(
+                        icon = Icons.Filled.LockOpen,
                         text = stringResource(R.string.open_button),
                         onClick = { viewModel.onUnlockClicked(uri) },
                         enabled = state.canUnlock

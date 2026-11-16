@@ -1,5 +1,9 @@
 package com.erenium.snaplock.ui.screens.settings
 
+import androidx.compose.material.icons.filled.Backup
+import com.erenium.snaplock.ui.components.AppTextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -61,6 +65,7 @@ fun BackupsSection(
     )
     SecondaryButton(
         text = stringResource(R.string.settings_backups),
+        icon = Icons.Filled.Backup,
         onClick = viewModel::onShowBackups,
         modifier = Modifier.padding(top = Dimens.spaceSm)
     )
@@ -91,7 +96,11 @@ fun BackupsSection(
                 }
             },
             confirmButton = {
-                TextButton(onClick = viewModel::onDismiss) { Text(stringResource(R.string.close_button)) }
+                AppTextButton(
+                    text = stringResource(R.string.close_button),
+                    icon = Icons.Filled.Close,
+                    onClick = viewModel::onDismiss
+                )
             }
         )
     }
