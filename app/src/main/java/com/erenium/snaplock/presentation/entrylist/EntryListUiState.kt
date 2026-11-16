@@ -16,11 +16,8 @@ data class EntryListUiState(
     val query: String = "",
     val isLoading: Boolean = true,
     val errorStringId: Int? = null,
-    /** Which field of each search result matched; empty outside a search. */
     val matches: Map<UUID, SearchMatch> = emptyMap(),
-    /** Groups from the root down to the parent of the open group; empty at the root. */
     val breadcrumb: List<Group> = emptyList(),
-    /** Whether deleting a group moves it to the recycle bin instead of removing it for good. */
     val recycleBinEnabled: Boolean = true
 ) {
     val isEmpty: Boolean get() = entries.isEmpty() && subgroups.isEmpty()

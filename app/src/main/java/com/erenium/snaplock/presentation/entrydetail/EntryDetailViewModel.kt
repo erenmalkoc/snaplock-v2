@@ -35,16 +35,13 @@ import javax.inject.Inject
 data class EntryDetailUiState(
     val entry: EntryDetail? = null,
     val isLoading: Boolean = true,
-    /** Set only while the entry could not be loaded; other failures go through messages. */
     val errorStringId: Int? = null,
     val isPasswordVisible: Boolean = false,
     /** Names of protected custom fields the user chose to show. */
     val revealedFields: Set<String> = emptySet(),
-    /** Whether deleting the entry moves it to the recycle bin instead of removing it for good. */
     val recycleBinEnabled: Boolean = true
 )
 
-/** A copied field and the seconds until the clipboard is cleared, if it clears itself. */
 data class CopyEvent(val label: String, val clearSeconds: Int?)
 
 @HiltViewModel
@@ -99,7 +96,6 @@ class EntryDetailViewModel @Inject constructor(
         loadEntryDetails()
     }
 
-    /** Forgets the entry, so showing it again later starts hidden and fresh. */
     fun clear() {
         loadJob?.cancel()
         entryUuid = null
@@ -111,7 +107,6 @@ class EntryDetailViewModel @Inject constructor(
         // A slower load for the previous entry must not overwrite this one.
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            // Reloading an entry that is already on screen stays silent: no spinner, no jump.
             _uiState.update { if (it.entry == null) it.copy(isLoading = true, errorStringId = null) else it }
 
             val result = getEntryDetailsUseCase(uuid)

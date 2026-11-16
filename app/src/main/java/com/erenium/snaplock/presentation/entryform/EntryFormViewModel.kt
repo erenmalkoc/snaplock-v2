@@ -87,7 +87,6 @@ private fun EntryFormUiState.snapshot() = FormSnapshot(
     otp, otpInput, expires, groupUuid
 )
 
-/** Where each group sits, such as "Work / Servers"; the root group only shows its own name. */
 fun groupPaths(groups: List<Group>): Map<UUID, String> {
     val byId = groups.associateBy { it.uuid }
     return groups.associate { group ->

@@ -45,10 +45,8 @@ class EntryListViewModel @Inject constructor(
     private val _errorStringId = MutableStateFlow<Int?>(null)
 
     private val _messages = Channel<Pair<Int, String?>>(Channel.BUFFERED)
-    /** Short confirmations: a string resource and its optional argument. */
     val messages = _messages.receiveAsFlow()
 
-    /** Entries just moved to the recycle bin from their own screen, which can be undone. */
     val deletedEntries = recentlyDeleted.events
 
     val uiState: StateFlow<EntryListUiState> =
@@ -108,7 +106,6 @@ class EntryListViewModel @Inject constructor(
         return true
     }
 
-    /** Back first ends an active search, then climbs a group; false when there is nothing to undo. */
     fun onBack(): Boolean {
         if (_query.value.isNotBlank()) {
             _query.value = ""
