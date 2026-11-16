@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="docs/assets/banner.png" alt="Snaplock: KeePass-compatible password manager" width="760">
+  <img src="docs/assets/hero.png" alt="Snaplock: your passwords live in one file you own" width="100%">
 </p>
-
-<h3 align="center">Your passwords live in one file you own.<br>Snaplock is the fast, private Android app that opens it.</h3>
 
 <p align="center">
   <a href="https://github.com/erenmalkoc/snaplock-v2/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/erenmalkoc/snaplock-v2?color=1DBF73&label=release"></a>
@@ -23,12 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05_unlock.png" width="150" alt="Unlock screen">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_entries.png" width="150" alt="Entry list with site icons">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03_detail.png" width="150" alt="Entry details with a live 2FA code">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04_generator.png" width="150" alt="Password generator">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07_health.png" width="150" alt="Password health report">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_autofill.png" width="150" alt="Autofill suggestions in the keyboard">
+  <img src="docs/assets/features.png" alt="Unlock, entries, live 2FA codes, password health and the generator" width="100%">
 </p>
 
 ## Why Snaplock
