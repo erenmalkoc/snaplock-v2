@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.entrylist
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ListItemDefaults
 import com.erenium.snaplock.ui.components.AppTextButton
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -221,8 +223,10 @@ fun EntryListScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        horizontal = Dimens.screenPadding,
-                        vertical = Dimens.spaceSm
+                        start = Dimens.screenPadding,
+                        end = Dimens.screenPadding,
+                        top = Dimens.spaceSm,
+                        bottom = Dimens.fabClearance
                     )
                 ) {
                     if (state.subgroups.isNotEmpty()) {
@@ -405,6 +409,7 @@ private fun NameDialog(
 private fun GroupListItem(group: Group, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         leadingContent = { Icon(Icons.Filled.Folder, contentDescription = null) },
         headlineContent = { Text(group.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         supportingContent = {
