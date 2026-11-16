@@ -29,7 +29,6 @@ import com.erenium.snaplock.ui.screens.health.PasswordHealthScreen
 import com.erenium.snaplock.ui.screens.recyclebin.RecycleBinScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
-import java.net.URLDecoder
 import java.util.UUID
 import com.erenium.snaplock.ui.screens.entrylist.isTwoPaneWidth
 import com.erenium.snaplock.ui.screens.entrylist.EntryListDetailLayout
@@ -125,12 +124,8 @@ fun AppNavigation(
             route = "${NavRoutes.UNLOCK_SCREEN}/{uri}",
             arguments = listOf(navArgument("uri") { type = NavType.StringType })
         ) { navBackStackEntry ->
-            val encodedUri = navBackStackEntry.arguments?.getString("uri")
-            if (encodedUri != null) {
-                val uriString = URLDecoder.decode(
-                    encodedUri,
-                    StandardCharsets.UTF_8.name()
-                )
+            val uriString = navBackStackEntry.arguments?.getString("uri")
+            if (uriString != null) {
                 val uri = uriString.toUri()
                 UnlockScreen(
                     uri = uri,
