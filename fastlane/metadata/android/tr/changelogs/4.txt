@@ -1,0 +1,2 @@
+* KeePassXC ve diğer uygulamalardan seçilen veritabanları sorunsuz açılıyor
+* Veritabanı dosyasına ulaşılamadığında daha anlaşılır bir mesaj gösteriliyor

@@ -1,0 +1,2 @@
+* Databases picked from KeePassXC and other apps unlock reliably
+* A clearer message when the database file cannot be reached
