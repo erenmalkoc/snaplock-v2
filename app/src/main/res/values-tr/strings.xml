@@ -65,12 +65,9 @@
     <string name="theme_dark">Koyu</string>
     <string name="settings_dynamic_color">Dinamik renk</string>
     <string name="settings_dynamic_color_desc">Duvar kağıdı renklerini kullan (Android 12+)</string>
-    <string name="settings_clipboard">Pano</string>
     <string name="settings_clipboard_clear">Panoyu otomatik temizle</string>
-    <string name="settings_clipboard_clear_desc">Kopyalanan şifreyi bir süre sonra panodan sil</string>
+    <string name="settings_clipboard_clear_desc">Kopyalanan parolayı bir süre sonra panodan sil</string>
     <string name="settings_clipboard_timeout">Temizleme süresi</string>
-    <string name="settings_seconds_format">%1$d sn</string>
-    <string name="settings_minutes_format">%1$d dk</string>
     <string name="settings_security">Güvenlik</string>
     <string name="settings_auto_lock">Otomatik kilit</string>
     <string name="settings_auto_lock_desc">Uygulama arka plana alındıktan sonra kilitle</string>
@@ -114,7 +111,7 @@
     <string name="autofill_link_picked">Seçtiğim kaydı %1$s ile hatırla</string>
     <string name="settings_autofill">Otomatik doldurma</string>
     <string name="settings_autofill_enabled">Snaplock, uygulamalarda ve tarayıcılarda giriş bilgilerini dolduruyor.</string>
-    <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın; giriş ekranlarında kayıtlarınız önerilsin ve yeni şifreler kaydedilsin.</string>
+    <string name="settings_autofill_disabled">Snaplock\'u otomatik doldurma hizmeti yapın. Giriş ekranlarında kayıtlarınız önerilir ve yeni parolalar kaydedilir.</string>
     <string name="settings_autofill_enable">Otomatik doldurmayı aç</string>
     <string name="settings_autofill_passkeys_off">Otomatik doldurma açık, ancak geçiş anahtarları ve Android\'in oturum açma ekranı başka bir hizmeti kullanıyor. Bunlar için Snaplock\'u tercih edilen hizmet yapın.</string>
     <string name="settings_autofill_make_preferred">Snaplock\'u tercih edilen hizmet yap</string>
@@ -214,7 +211,7 @@
     <string name="health_expired">Süresi dolmuş</string>
     <string name="health_expired_desc">Son kullanma tarihleri geçti.</string>
     <string name="settings_site_icons">Site simgelerini indir</string>
-    <string name="settings_site_icons_desc">Her web sitesinin simgesini doğrudan o siteden alır ve kasaya kaydeder; diğer KeePass uygulamaları da gösterir. Her site yalnızca kendi simgesi için bir istek görür.</string>
+    <string name="settings_site_icons_desc">Her web sitesinin simgesini doğrudan o siteden alır ve veritabanına kaydeder, böylece diğer KeePass uygulamaları da gösterir. Her site yalnızca kendi simgesi için bu cihazın IP adresinden gelen bir istek görür.</string>
     <string name="site_icons_confirm_title">Site simgeleri indirilsin mi?</string>
     <plurals name="site_icons_confirm_message">
         <item quantity="one">Snaplock simgesi olmayan %d kaydın web sitesine bağlanacak.</item>
@@ -233,14 +230,14 @@
     <string name="settings_auto_site_icons_desc">Web sitesi olan kayıtlar eklendiğinde, içe aktarıldığında veya eşitlendiğinde her seferinde sormadan simgesini alır.</string>
     <string name="settings_online">İnternet (isteğe bağlı)</string>
     <string name="settings_breach_check">Şifreleri bilinen sızıntılarda ara</string>
-    <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her şifrenin SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir; şifrenin kendisi cihazdan çıkmaz.</string>
+    <string name="settings_breach_check_desc">Have I Been Pwned kullanılır. Her parolanın SHA-1 özetinin yalnızca ilk 5 karakteri gönderilir. Parolanın kendisi cihazdan çıkmaz.</string>
     <string name="health_breached">Sızıntılarda bulunan</string>
     <string name="health_breached_desc">Saldırganlar önce bunları dener. Hemen değiştirin.</string>
     <string name="health_breach_off">Bu cihazda kontrol edildi. Sızıntı kontrolü kapalı; ayarlardan açabilirsiniz.</string>
     <string name="health_breach_done">Bu cihazda ve Have I Been Pwned üzerinden (yalnızca özet önekleri) kontrol edildi.</string>
     <string name="health_breach_failed">Bu cihazda kontrol edildi. Sızıntı kontrolü için Have I Been Pwned\'e ulaşılamadı.</string>
     <string name="settings_import">CSV\'den içe aktar</string>
-    <string name="settings_import_desc">Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass veya KeePassXC dışa aktarımlarından kayıt alın ya da başka bir yöneticiye taşıyın.</string>
+    <string name="settings_import_desc">Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass veya KeePassXC dışa aktarımlarından kayıt ekleyin.</string>
     <string name="settings_export">CSV olarak dışa aktar</string>
     <string name="tile_label">Snaplock\'u kilitle</string>
     <string name="entry_passkey_label">Geçiş anahtarı</string>
@@ -279,10 +276,10 @@
     <string name="database_benchmark">Bu cihazda 1 saniyeye ayarla</string>
     <string name="database_benchmarking">Ölçülüyor…</string>
     <string name="database_value_invalid">Geçerli bir sayı girin</string>
-    <string name="database_kdbx3">Bu bir KDBX 3 dosyası; şifrelemesi olduğu gibi kalır.</string>
+    <string name="database_kdbx3">Bu bir KDBX 3 dosyası. Şifrelemesi olduğu gibi kalır.</string>
     <string name="database_settings_save_error">Ayarlar kaydedilemedi.</string>
     <string name="settings_backups">Yedekler</string>
-    <string name="settings_backups_desc">Snaplock her gün ilk kayıttan önce kasa dosyasının bir kopyasını bu cihazda 7 gün saklar. Kopyalar şifrelidir ve kaydedildikleri parolayla açılır.</string>
+    <string name="settings_backups_desc">Snaplock veritabanının günde bir kopyasını yalnızca bu cihazda 7 gün saklar.</string>
     <string name="backups_empty">Henüz yedek yok. İlk yedek, bir sonraki değişiklik kaydedilmeden önce alınır.</string>
     <string name="backup_saved">Yedek kaydedildi</string>
     <string name="backup_error">Yedek kaydedilemedi.</string>
@@ -302,4 +299,32 @@
     <string name="export_warning_message">CSV dosyası tüm şifrelerinizi açık metin olarak içerir. Yalnızca başka bir yöneticiye taşımak için kullanın ve sonra silin.</string>
     <string name="export_done">Dışa aktarıldı</string>
 
+    <string name="settings_data">Veriler</string>
+    <string name="settings_about">Hakkında</string>
+    <string name="settings_fingerprint">Parmak izi ile açma</string>
+    <string name="settings_fingerprint_desc">Veritabanını ana parolanızla açarken, kilit açma ekranındaki seçenekten açabilirsiniz.</string>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d saniye</item>
+        <item quantity="other">%d saniye</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d dakika</item>
+        <item quantity="other">%d dakika</item>
+    </plurals>
+    <string name="settings_version">Sürüm</string>
+    <string name="settings_license">Lisans</string>
+    <string name="settings_license_value">GPL-3.0-or-later</string>
+    <string name="settings_source">Kaynak kodu</string>
+    <string name="settings_source_desc">Projeyi GitHub\'da görüntüleyin</string>
+    <string name="settings_privacy">Gizlilik</string>
+    <string name="settings_privacy_desc">Snaplock her şeyi bu cihazdaki KeePass dosyanızda tutar.</string>
+    <string name="settings_link_error">Bağlantıyı açabilecek bir uygulama yok.</string>
+    <string name="settings_autofill_manual">Android Ayarları\'nı açın, Parolalar, geçiş anahtarları ve otomatik doldurma bölümünden Snaplock\'u seçin.</string>
+    <string name="settings_export_desc">Tüm kayıtları başka bir yöneticiye taşımak için düz metin bir CSV dosyası olarak kaydedin.</string>
+    <string name="site_icons_auto_confirm_title">Simgeler otomatik indirilsin mi?</string>
+    <string name="site_icons_auto_confirm_button">Aç</string>
+    <string name="site_icons_auto_confirm_message">Snaplock, eklediğiniz, içe aktardığınız veya eşitlediğiniz her kaydın web sitesine bağlanıp simgesini alır. Bu siteler cihazınızın IP adresini görür. İstediğiniz zaman kapatabilirsiniz.</string>
+    <string name="backups_restore_hint">Bir kopyayı dosya olarak saklamak için kaydet simgesine dokunun. Geri yüklemek için dosyayı Snaplock\'ta açın. Dosya, kaydedildiği andaki parolayla açılır.</string>
+    <string name="backup_save_copy">Kopyayı kaydet</string>
+    <string name="backups_load_error">Yedekler yüklenemedi.</string>
 </resources>

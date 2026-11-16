@@ -1,33 +1,37 @@
 package com.erenium.snaplock.ui.screens.settings
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tune
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.erenium.snaplock.R
@@ -35,14 +39,17 @@ import com.erenium.snaplock.autofill.AutofillSetup
 import com.erenium.snaplock.autofill.AutofillStatus
 import com.erenium.snaplock.domain.model.ThemeMode
 import com.erenium.snaplock.presentation.settings.SettingsViewModel
-import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
-import com.erenium.snaplock.ui.components.PrimaryButton
-import com.erenium.snaplock.ui.components.SecondaryButton
+import com.erenium.snaplock.ui.components.ChoiceRow
+import com.erenium.snaplock.ui.components.SettingRow
+import com.erenium.snaplock.ui.components.SettingToggleRow
+import com.erenium.snaplock.ui.components.SettingsGroup
 import com.erenium.snaplock.ui.theme.Dimens
+import kotlinx.coroutines.launch
 
 private val ClipboardTimeoutOptions = listOf(15, 30, 60, 120)
 private val AutoLockOptions = listOf(0, 30, 60, 300)
+private const val SOURCE_URL = "https://github.com/erenmalkoc/snaplock-v2"
 
 @Composable
 fun SettingsScreen(
@@ -66,120 +73,33 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
         ) {
             if (AutofillStatus.isSupported()) {
-                AutofillSection()
+                AutofillGroup(snackbarHostState = snackbarHostState)
             }
 
-            SettingsSection(title = stringResource(R.string.settings_database)) {
-                Text(
-                    text = stringResource(R.string.change_password_title),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = stringResource(R.string.settings_change_password_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                SecondaryButton(
-                    icon = Icons.Filled.Password,
-                    text = stringResource(R.string.change_password_title),
-                    onClick = onNavigateToChangePassword,
-                    modifier = Modifier.padding(top = Dimens.spaceMd)
-                )
-                Text(
-                    text = stringResource(R.string.settings_database_settings_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = Dimens.spaceLg)
-                )
-                SecondaryButton(
-                    icon = Icons.Filled.Tune,
-                    text = stringResource(R.string.database_settings_title),
-                    onClick = onNavigateToDatabaseSettings,
-                    modifier = Modifier.padding(top = Dimens.spaceSm)
-                )
-                ImportExportSection(snackbarHostState = snackbarHostState)
-                BackupsSection(snackbarHostState = snackbarHostState)
-            }
-
-            SettingsSection(title = stringResource(R.string.settings_appearance)) {
+            SettingsGroup(title = stringResource(R.string.settings_appearance)) {
                 Text(
                     text = stringResource(R.string.settings_theme),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(bottom = Dimens.spaceSm)
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Dimens.spaceSm),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
-                ) {
-                    ThemeMode.entries.forEach { mode ->
-                        FilterChip(
-                            selected = settings.themeMode == mode,
-                            onClick = { viewModel.onThemeModeChange(mode) },
-                            label = { Text(themeModeLabel(mode)) }
-                        )
-                    }
-                }
-
+                ChoiceRow(
+                    options = ThemeMode.entries,
+                    selected = settings.themeMode,
+                    label = { themeModeLabel(it) },
+                    onSelect = viewModel::onThemeModeChange
+                )
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    ToggleRow(
+                    SettingToggleRow(
                         label = stringResource(R.string.settings_dynamic_color),
                         description = stringResource(R.string.settings_dynamic_color_desc),
                         checked = settings.dynamicColor,
-                        onCheckedChange = viewModel::onDynamicColorChange
-                    )
-                }
-            }
-
-            SettingsSection(title = stringResource(R.string.settings_clipboard)) {
-                ToggleRow(
-                    label = stringResource(R.string.settings_clipboard_clear),
-                    description = stringResource(R.string.settings_clipboard_clear_desc),
-                    checked = settings.clipboardAutoClear,
-                    onCheckedChange = viewModel::onClipboardAutoClearChange
-                )
-                if (settings.clipboardAutoClear) {
-                    Text(
-                        text = stringResource(R.string.settings_clipboard_timeout),
-                        style = MaterialTheme.typography.titleSmall,
+                        onCheckedChange = viewModel::onDynamicColorChange,
                         modifier = Modifier.padding(top = Dimens.spaceSm)
                     )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = Dimens.spaceSm),
-                        horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
-                    ) {
-                        ClipboardTimeoutOptions.forEach { seconds ->
-                            FilterChip(
-                                selected = settings.clipboardTimeoutSeconds == seconds,
-                                onClick = { viewModel.onClipboardTimeoutChange(seconds) },
-                                label = {
-                                    Text(stringResource(R.string.settings_seconds_format, seconds))
-                                }
-                            )
-                        }
-                    }
                 }
             }
 
-            SettingsSection(title = stringResource(R.string.settings_online)) {
-                ToggleRow(
-                    label = stringResource(R.string.settings_breach_check),
-                    description = stringResource(R.string.settings_breach_check_desc),
-                    checked = settings.breachCheckEnabled,
-                    onCheckedChange = viewModel::onBreachCheckChange
-                )
-                SiteIconsSection(snackbarHostState = snackbarHostState)
-                ToggleRow(
-                    label = stringResource(R.string.settings_auto_site_icons),
-                    description = stringResource(R.string.settings_auto_site_icons_desc),
-                    checked = settings.autoSiteIcons,
-                    onCheckedChange = viewModel::onAutoSiteIconsChange
-                )
-            }
-
-            SettingsSection(title = stringResource(R.string.settings_security)) {
+            SettingsGroup(title = stringResource(R.string.settings_security)) {
                 Text(
                     text = stringResource(R.string.settings_auto_lock),
                     style = MaterialTheme.typography.titleSmall
@@ -187,78 +107,161 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_auto_lock_desc),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = Dimens.spaceSm)
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Dimens.spaceSm),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSm)
-                ) {
-                    AutoLockOptions.forEach { seconds ->
-                        FilterChip(
-                            selected = settings.autoLockSeconds == seconds,
-                            onClick = { viewModel.onAutoLockChange(seconds) },
-                            label = { Text(autoLockLabel(seconds)) }
-                        )
-                    }
+                ChoiceRow(
+                    options = AutoLockOptions,
+                    selected = settings.autoLockSeconds,
+                    label = { durationLabel(it) },
+                    onSelect = viewModel::onAutoLockChange
+                )
+                SettingToggleRow(
+                    label = stringResource(R.string.settings_clipboard_clear),
+                    description = stringResource(R.string.settings_clipboard_clear_desc),
+                    checked = settings.clipboardAutoClear,
+                    onCheckedChange = viewModel::onClipboardAutoClearChange,
+                    modifier = Modifier.padding(top = Dimens.spaceMd)
+                )
+                if (settings.clipboardAutoClear) {
+                    Text(
+                        text = stringResource(R.string.settings_clipboard_timeout),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(vertical = Dimens.spaceSm)
+                    )
+                    ChoiceRow(
+                        options = (ClipboardTimeoutOptions + settings.clipboardTimeoutSeconds).distinct().sorted(),
+                        selected = settings.clipboardTimeoutSeconds,
+                        label = { durationLabel(it) },
+                        onSelect = viewModel::onClipboardTimeoutChange
+                    )
                 }
+                SettingRow(
+                    title = stringResource(R.string.settings_fingerprint),
+                    description = stringResource(R.string.settings_fingerprint_desc),
+                    icon = Icons.Filled.Fingerprint,
+                    modifier = Modifier.padding(top = Dimens.spaceSm)
+                )
             }
+
+            SettingsGroup(title = stringResource(R.string.settings_data)) {
+                SettingRow(
+                    title = stringResource(R.string.change_password_title),
+                    description = stringResource(R.string.settings_change_password_desc),
+                    icon = Icons.Filled.Password,
+                    onClick = onNavigateToChangePassword
+                )
+                ImportExportRows(snackbarHostState = snackbarHostState)
+                BackupsRows(snackbarHostState = snackbarHostState)
+            }
+
+            SettingsGroup(title = stringResource(R.string.settings_database)) {
+                SettingRow(
+                    title = stringResource(R.string.database_settings_title),
+                    description = stringResource(R.string.settings_database_settings_desc),
+                    icon = Icons.Filled.Tune,
+                    onClick = onNavigateToDatabaseSettings
+                )
+            }
+
+            SettingsGroup(title = stringResource(R.string.settings_online)) {
+                SettingToggleRow(
+                    label = stringResource(R.string.settings_breach_check),
+                    description = stringResource(R.string.settings_breach_check_desc),
+                    checked = settings.breachCheckEnabled,
+                    onCheckedChange = viewModel::onBreachCheckChange
+                )
+                SiteIconsRows(
+                    snackbarHostState = snackbarHostState,
+                    autoDownload = settings.autoSiteIcons,
+                    onAutoDownloadChange = viewModel::onAutoSiteIconsChange
+                )
+            }
+
+            AboutGroup(snackbarHostState = snackbarHostState)
         }
     }
 }
 
 @Composable
-private fun AutofillSection() {
+private fun AutofillGroup(snackbarHostState: SnackbarHostState) {
     val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
     var setup by remember { mutableStateOf(AutofillStatus.setup(context)) }
-    // The user changes this in system settings, so check again whenever the screen returns.
     LifecycleResumeEffect(Unit) {
         setup = AutofillStatus.setup(context)
         onPauseOrDispose { }
     }
 
-    SettingsSection(title = stringResource(R.string.settings_autofill)) {
-        Text(
-            text = stringResource(
-                when (setup) {
-                    AutofillSetup.ENABLED -> R.string.settings_autofill_enabled
-                    AutofillSetup.PASSKEYS_OFF -> R.string.settings_autofill_passkeys_off
-                    AutofillSetup.DISABLED -> R.string.settings_autofill_disabled
-                }
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    SettingsGroup(title = stringResource(R.string.settings_autofill)) {
         if (setup == AutofillSetup.ENABLED) {
-            Text(
-                text = stringResource(R.string.settings_autofill_chrome_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = Dimens.spaceSm)
+            SettingRow(
+                title = stringResource(R.string.settings_autofill_enabled),
+                description = stringResource(R.string.settings_autofill_chrome_hint),
+                icon = Icons.Filled.Settings
             )
         } else {
-            PrimaryButton(
-                icon = Icons.Filled.Settings,
-                text = stringResource(
+            SettingRow(
+                title = stringResource(
                     if (setup == AutofillSetup.PASSKEYS_OFF) R.string.settings_autofill_make_preferred else R.string.settings_autofill_enable
                 ),
+                description = stringResource(
+                    if (setup == AutofillSetup.PASSKEYS_OFF) R.string.settings_autofill_passkeys_off else R.string.settings_autofill_disabled
+                ),
+                icon = Icons.Filled.Settings,
                 onClick = {
-                    AutofillStatus.enableIntents(context).firstOrNull { intent ->
+                    val opened = AutofillStatus.enableIntents(context).any { intent ->
                         runCatching { context.startActivity(intent) }.isSuccess
                     }
-                },
-                modifier = Modifier.padding(top = Dimens.spaceMd)
+                    if (!opened) {
+                        scope.launch { snackbarHostState.showSnackbar(resources.getString(R.string.settings_autofill_manual)) }
+                    }
+                }
             )
         }
     }
 }
 
 @Composable
-private fun autoLockLabel(seconds: Int): String = when {
-    seconds <= 0 -> stringResource(R.string.auto_lock_immediate)
-    seconds < 60 -> stringResource(R.string.settings_seconds_format, seconds)
-    else -> stringResource(R.string.settings_minutes_format, seconds / 60)
+private fun AboutGroup(snackbarHostState: SnackbarHostState) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
+    val version = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+    }
+
+    SettingsGroup(title = stringResource(R.string.settings_about)) {
+        SettingRow(
+            title = stringResource(R.string.settings_version),
+            description = version,
+            icon = Icons.Filled.Info
+        )
+        SettingRow(
+            title = stringResource(R.string.settings_license),
+            description = stringResource(R.string.settings_license_value),
+            icon = Icons.Filled.Gavel
+        )
+        SettingRow(
+            title = stringResource(R.string.settings_source),
+            description = stringResource(R.string.settings_source_desc),
+            icon = Icons.Filled.Code,
+            onClick = {
+                val opened = runCatching {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, SOURCE_URL.toUri()))
+                }.isSuccess
+                if (!opened) {
+                    scope.launch { snackbarHostState.showSnackbar(resources.getString(R.string.settings_link_error)) }
+                }
+            }
+        )
+        SettingRow(
+            title = stringResource(R.string.settings_privacy),
+            description = stringResource(R.string.settings_privacy_desc),
+            icon = Icons.Filled.PrivacyTip
+        )
+    }
 }
 
 @Composable
@@ -269,46 +272,3 @@ private fun themeModeLabel(mode: ThemeMode): String = stringResource(
         ThemeMode.DARK -> R.string.theme_dark
     }
 )
-
-@Composable
-private fun SettingsSection(
-    title: String,
-    content: @Composable () -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = Dimens.spaceSm)
-        )
-        AppCard(modifier = Modifier.fillMaxWidth()) {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun ToggleRow(
-    label: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Dimens.spaceXs),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}

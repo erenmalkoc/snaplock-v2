@@ -33,7 +33,11 @@ class BackupsViewModel @Inject constructor(
     val messages = _messages.receiveAsFlow()
 
     fun onShowBackups() {
-        viewModelScope.launch { _backups.value = repository.getBackups() }
+        viewModelScope.launch {
+            runCatching { repository.getBackups() }
+                .onSuccess { _backups.value = it }
+                .onFailure { _messages.send(R.string.backups_load_error) }
+        }
     }
 
     fun onDismiss() {

@@ -1,24 +1,23 @@
 package com.erenium.snaplock.ui.screens.settings
 
-import androidx.compose.material.icons.filled.Backup
-import com.erenium.snaplock.ui.components.AppTextButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,15 +30,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.settings.BackupsViewModel
-import com.erenium.snaplock.ui.components.SecondaryButton
+import com.erenium.snaplock.ui.components.AppDialog
+import com.erenium.snaplock.ui.components.SettingRow
 import com.erenium.snaplock.ui.theme.Dimens
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** The daily copies Snaplock keeps of the open vault, each of which can be saved as a file. */
 @Composable
-fun BackupsSection(
+fun BackupsRows(
     snackbarHostState: SnackbarHostState,
     viewModel: BackupsViewModel = hiltViewModel()
 ) {
@@ -57,51 +56,54 @@ fun BackupsSection(
         viewModel.messages.collect { snackbarHostState.showSnackbar(resources.getString(it)) }
     }
 
-    Text(
-        text = stringResource(R.string.settings_backups_desc),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = Dimens.spaceLg)
-    )
-    SecondaryButton(
-        text = stringResource(R.string.settings_backups),
+    SettingRow(
+        title = stringResource(R.string.settings_backups),
+        description = stringResource(R.string.settings_backups_desc),
         icon = Icons.Filled.Backup,
-        onClick = viewModel::onShowBackups,
-        modifier = Modifier.padding(top = Dimens.spaceSm)
+        onClick = viewModel::onShowBackups
     )
 
     backups?.let { list ->
         val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
             .withZone(ZoneId.systemDefault())
-        AlertDialog(
-            onDismissRequest = viewModel::onDismiss,
-            title = { Text(stringResource(R.string.settings_backups)) },
-            text = {
-                if (list.isEmpty()) {
-                    Text(stringResource(R.string.backups_empty))
-                } else {
-                    Column(Modifier.verticalScroll(rememberScrollState())) {
-                        list.forEach { backup ->
-                            ListItem(
-                                headlineContent = { Text(formatter.format(backup.created)) },
-                                supportingContent = { Text(Formatter.formatShortFileSize(context, backup.size)) },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                modifier = Modifier.clickable {
-                                    viewModel.onBackupChosen(backup)
-                                    exportLauncher.launch("snaplock-backup-${backup.created.atZone(ZoneId.systemDefault()).toLocalDate()}.kdbx")
+        val saveCopy = stringResource(R.string.backup_save_copy)
+        AppDialog(
+            title = stringResource(R.string.settings_backups),
+            confirmText = stringResource(R.string.close_button),
+            confirmIcon = Icons.Filled.Close,
+            onConfirm = viewModel::onDismiss,
+            onDismiss = viewModel::onDismiss,
+            dismissText = null
+        ) {
+            if (list.isEmpty()) {
+                Text(stringResource(R.string.backups_empty))
+            } else {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(
+                        text = stringResource(R.string.backups_restore_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = Dimens.spaceSm)
+                    )
+                    list.forEach { backup ->
+                        ListItem(
+                            headlineContent = { Text(formatter.format(backup.created)) },
+                            supportingContent = { Text(Formatter.formatShortFileSize(context, backup.size)) },
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        viewModel.onBackupChosen(backup)
+                                        exportLauncher.launch("snaplock-backup-${backup.created.atZone(ZoneId.systemDefault()).toLocalDate()}.kdbx")
+                                    }
+                                ) {
+                                    Icon(imageVector = Icons.Filled.Save, contentDescription = saveCopy)
                                 }
-                            )
-                        }
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                AppTextButton(
-                    text = stringResource(R.string.close_button),
-                    icon = Icons.Filled.Close,
-                    onClick = viewModel::onDismiss
-                )
             }
-        )
+        }
     }
 }
