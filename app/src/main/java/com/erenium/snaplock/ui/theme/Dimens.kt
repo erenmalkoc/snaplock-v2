@@ -23,4 +23,6 @@ object Dimens {
     val iconXl = 64.dp
     val cardElevation = 2.dp
     val contentMaxWidth = 600.dp
+    val minTouchTarget = 48.dp
+    val logo = 96.dp
 }

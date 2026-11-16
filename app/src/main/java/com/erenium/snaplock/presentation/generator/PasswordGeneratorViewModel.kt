@@ -1,6 +1,8 @@
 package com.erenium.snaplock.presentation.generator
 
 import androidx.lifecycle.ViewModel
+import com.erenium.snaplock.data.datasource.prefs.GeneratorPrefsState
+import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.PassphraseOptions
 import com.erenium.snaplock.domain.model.PasswordOptions
@@ -18,6 +20,10 @@ import javax.inject.Inject
 
 enum class GeneratorMode { PASSWORD, PASSPHRASE }
 
+/** Whether switching [enabled] off would leave no character set on. */
+fun PasswordOptions.isLastActiveSet(enabled: Boolean): Boolean =
+    enabled && listOf(useLowercase, useUppercase, useDigits, useSymbols).count { it } == 1
+
 data class PasswordGeneratorUiState(
     val mode: GeneratorMode = GeneratorMode.PASSWORD,
     val options: PasswordOptions = PasswordOptions(),
@@ -31,10 +37,11 @@ class PasswordGeneratorViewModel @Inject constructor(
     private val generatePasswordUseCase: GeneratePasswordUseCase,
     private val generatePassphraseUseCase: GeneratePassphraseUseCase,
     private val strengthEstimator: PasswordStrengthEstimator,
-    private val clipboardManager: ClipboardManagerHelper
+    private val clipboardManager: ClipboardManagerHelper,
+    private val settingsPrefs: SettingsPrefs
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PasswordGeneratorUiState())
+    private val _uiState = MutableStateFlow(initialState())
     val uiState = _uiState.asStateFlow()
 
     private val _copyEvents = Channel<Unit>(Channel.BUFFERED)
@@ -44,13 +51,38 @@ class PasswordGeneratorViewModel @Inject constructor(
         regenerate()
     }
 
+    private fun initialState(): PasswordGeneratorUiState {
+        val stored = settingsPrefs.readGenerator()
+        return PasswordGeneratorUiState(
+            mode = if (stored.passphraseMode) GeneratorMode.PASSPHRASE else GeneratorMode.PASSWORD,
+            options = stored.password.sanitised(),
+            passphraseOptions = stored.passphrase.sanitised()
+        )
+    }
+
+    private fun PasswordOptions.sanitised(): PasswordOptions = copy(
+        length = length.coerceIn(GeneratePasswordUseCase.MIN_LENGTH, GeneratePasswordUseCase.MAX_LENGTH),
+        useLowercase = useLowercase || !hasAnyCharSet
+    )
+
+    private fun PassphraseOptions.sanitised(): PassphraseOptions = copy(
+        wordCount = wordCount.coerceIn(GeneratePassphraseUseCase.MIN_WORDS, GeneratePassphraseUseCase.MAX_WORDS)
+    )
+
     fun onModeChange(mode: GeneratorMode) {
         _uiState.update { it.copy(mode = mode) }
         regenerate()
+        persist()
     }
 
     fun onLengthChange(length: Int) {
-        updateOptions { it.copy(length = length) }
+        val clamped = length.coerceIn(GeneratePasswordUseCase.MIN_LENGTH, GeneratePasswordUseCase.MAX_LENGTH)
+        _uiState.update { it.copy(options = it.options.copy(length = clamped)) }
+    }
+
+    fun onLengthChangeFinished() {
+        regenerate()
+        persist()
     }
 
     fun onLowercaseChange(enabled: Boolean) {
@@ -69,7 +101,15 @@ class PasswordGeneratorViewModel @Inject constructor(
         updateOptions { it.copy(useSymbols = enabled) }
     }
 
-    fun onWordCountChange(count: Int) = updatePassphrase { it.copy(wordCount = count) }
+    fun onWordCountChange(count: Int) {
+        val clamped = count.coerceIn(GeneratePassphraseUseCase.MIN_WORDS, GeneratePassphraseUseCase.MAX_WORDS)
+        _uiState.update { it.copy(passphraseOptions = it.passphraseOptions.copy(wordCount = clamped)) }
+    }
+
+    fun onWordCountChangeFinished() {
+        regenerate()
+        persist()
+    }
 
     fun onSeparatorChange(separator: String) = updatePassphrase { it.copy(separator = separator) }
 
@@ -99,10 +139,23 @@ class PasswordGeneratorViewModel @Inject constructor(
         if (!candidate.hasAnyCharSet) return
         _uiState.update { it.copy(options = candidate) }
         regenerate()
+        persist()
     }
 
     private fun updatePassphrase(transform: (PassphraseOptions) -> PassphraseOptions) {
         _uiState.update { it.copy(passphraseOptions = transform(it.passphraseOptions)) }
         regenerate()
+        persist()
+    }
+
+    private fun persist() {
+        val state = _uiState.value
+        settingsPrefs.writeGenerator(
+            GeneratorPrefsState(
+                passphraseMode = state.mode == GeneratorMode.PASSPHRASE,
+                password = state.options,
+                passphrase = state.passphraseOptions
+            )
+        )
     }
 }

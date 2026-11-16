@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import android.graphics.drawable.Icon
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.R
@@ -20,10 +22,18 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** What the tile shows for an open or locked vault. */
-internal data class LockTileLook(val state: Int, @param:StringRes val subtitle: Int)
+internal data class LockTileLook(
+    val state: Int,
+    @param:StringRes val subtitle: Int,
+    @param:DrawableRes val icon: Int
+)
 
 internal fun lockTileLook(locked: Boolean): LockTileLook =
-    if (locked) LockTileLook(Tile.STATE_INACTIVE, R.string.tile_locked) else LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked)
+    if (locked) {
+        LockTileLook(Tile.STATE_INACTIVE, R.string.tile_locked, R.drawable.ic_tile_lock)
+    } else {
+        LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked, R.drawable.ic_tile_unlock)
+    }
 
 /**
  * Quick Settings tile: locks an open vault with one tap, or opens Snaplock to unlock it.
@@ -74,7 +84,7 @@ class LockTileService : TileService() {
         val tile = qsTile ?: return
         val look = lockTileLook(locked)
         tile.state = look.state
-        tile.label = getString(R.string.app_name)
+        tile.icon = Icon.createWithResource(this, look.icon)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             tile.subtitle = getString(look.subtitle)
         }

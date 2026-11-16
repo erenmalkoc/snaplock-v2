@@ -1,18 +1,18 @@
 package com.erenium.snaplock.ui.screens.settings
 
-import com.erenium.snaplock.ui.components.AppTextButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileUpload
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,16 +27,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.settings.ImportExportViewModel
-import com.erenium.snaplock.ui.components.SecondaryButton
+import com.erenium.snaplock.presentation.settings.previewTitles
+import com.erenium.snaplock.ui.components.AppDialog
+import com.erenium.snaplock.ui.components.SettingRow
 import com.erenium.snaplock.ui.theme.Dimens
 
-/** Buttons for moving logins in from and out to other password managers. */
 @Composable
-fun ImportExportSection(
+fun ImportExportRows(
     snackbarHostState: SnackbarHostState,
     viewModel: ImportExportViewModel = hiltViewModel()
 ) {
     val pendingImport by viewModel.pendingImport.collectAsState()
+    val isWorking by viewModel.isWorking.collectAsState()
     var confirmExport by remember { mutableStateOf(false) }
     val resources = LocalResources.current
 
@@ -58,72 +60,70 @@ fun ImportExportSection(
         }
     }
 
-    Text(
-        text = stringResource(R.string.settings_import_desc),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = Dimens.spaceLg)
-    )
-    SecondaryButton(
-        text = stringResource(R.string.settings_import),
+    if (isWorking) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Dimens.spaceSm)
+        )
+    }
+    SettingRow(
+        title = stringResource(R.string.settings_import),
+        description = stringResource(R.string.settings_import_desc),
         icon = Icons.Filled.FileDownload,
-        onClick = { importLauncher.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel")) },
-        modifier = Modifier.padding(top = Dimens.spaceSm)
+        onClick = { importLauncher.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel")) }
     )
-    SecondaryButton(
-        text = stringResource(R.string.settings_export),
+    SettingRow(
+        title = stringResource(R.string.settings_export),
+        description = stringResource(R.string.settings_export_desc),
         icon = Icons.Filled.FileUpload,
-        onClick = { confirmExport = true },
-        modifier = Modifier.padding(top = Dimens.spaceSm)
+        onClick = { confirmExport = true }
     )
 
     pendingImport?.let { import ->
         val groupName = stringResource(R.string.import_group_name, import.source)
-        AlertDialog(
-            onDismissRequest = viewModel::onImportDismissed,
-            title = { Text(stringResource(R.string.import_confirm_title, import.source)) },
-            text = {
+        AppDialog(
+            title = stringResource(R.string.import_confirm_title, import.source),
+            confirmText = stringResource(R.string.settings_import),
+            confirmIcon = Icons.Filled.FileDownload,
+            onConfirm = { viewModel.onImportConfirmed(groupName) },
+            onDismiss = viewModel::onImportDismissed
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.spaceSm)) {
                 Text(pluralStringResource(R.plurals.import_confirm_message, import.entries.size, import.entries.size, groupName))
-            },
-            confirmButton = {
-                AppTextButton(
-                    text = stringResource(R.string.settings_import),
-                    icon = Icons.Filled.FileDownload,
-                    onClick = { viewModel.onImportConfirmed(groupName) }
+                val titles = import.previewTitles()
+                if (titles.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.import_preview, titles.joinToString(", ")),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.import_reimport_warning, groupName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            },
-            dismissButton = {
-                AppTextButton(
-                    text = stringResource(R.string.cancel_button),
-                    icon = Icons.Filled.Close,
-                    onClick = viewModel::onImportDismissed
+                Text(
+                    text = stringResource(R.string.import_plaintext_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
-        )
+        }
     }
 
     if (confirmExport) {
-        AlertDialog(
-            onDismissRequest = { confirmExport = false },
-            title = { Text(stringResource(R.string.export_warning_title)) },
-            text = { Text(stringResource(R.string.export_warning_message)) },
-            confirmButton = {
-                AppTextButton(
-                    text = stringResource(R.string.settings_export),
-                    icon = Icons.Filled.FileUpload,
-                    onClick = {
-                        confirmExport = false
-                        exportLauncher.launch("snaplock-export.csv")
-                    }
-                )
+        AppDialog(
+            title = stringResource(R.string.export_warning_title),
+            confirmText = stringResource(R.string.settings_export),
+            confirmIcon = Icons.Filled.FileUpload,
+            onConfirm = {
+                confirmExport = false
+                exportLauncher.launch("snaplock-export.csv")
             },
-            dismissButton = {
-                AppTextButton(
-                    text = stringResource(R.string.cancel_button),
-                    icon = Icons.Filled.Close,
-                    onClick = { confirmExport = false }
-                )
-            }
-        )
+            onDismiss = { confirmExport = false }
+        ) {
+            Text(stringResource(R.string.export_warning_message))
+        }
     }
 }

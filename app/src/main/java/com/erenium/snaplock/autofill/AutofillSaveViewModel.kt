@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SaveOutcome { SAVED, NOTHING_TO_SAVE }
+
 data class AutofillSaveUiState(
     val isLoading: Boolean = true,
     val isLocked: Boolean = true,
@@ -32,7 +34,9 @@ data class AutofillSaveUiState(
     /** Null until the vault is open and compared with the typed login. */
     val decision: SaveDecision? = null,
     val isSaving: Boolean = false,
-    val errorStringId: Int? = null
+    val errorStringId: Int? = null,
+    val loadFailed: Boolean = false,
+    val hasEdits: Boolean = false
 )
 
 @HiltViewModel
@@ -47,17 +51,22 @@ class AutofillSaveViewModel @Inject constructor(
         val password: String = "",
         val decision: SaveDecision? = null,
         val isSaving: Boolean = false,
-        val errorStringId: Int? = null
+        val errorStringId: Int? = null,
+        val loadFailed: Boolean = false
     )
 
+    private var initial = Form()
     private var packageName = ""
     private var webDomain: String? = null
+    private var typedUsername: String? = null
     private var started = false
+
+    val isStarted: Boolean get() = started
     private val form = MutableStateFlow(Form())
-    private val finished = Channel<Unit>(Channel.CONFLATED)
+    private val finished = Channel<SaveOutcome>(Channel.CONFLATED)
 
     /** Emits once the login is stored, or when there was nothing to store. */
-    val done: Flow<Unit> = finished.receiveAsFlow()
+    val done: Flow<SaveOutcome> = finished.receiveAsFlow()
 
     val uiState: StateFlow<AutofillSaveUiState> = combine(
         repository.isLocked(),
@@ -73,7 +82,9 @@ class AutofillSaveViewModel @Inject constructor(
             password = form.password,
             decision = form.decision,
             isSaving = form.isSaving,
-            errorStringId = form.errorStringId
+            errorStringId = form.errorStringId,
+            loadFailed = form.loadFailed,
+            hasEdits = form.title != initial.title || form.username != initial.username || form.password != initial.password
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AutofillSaveUiState())
 
@@ -82,17 +93,30 @@ class AutofillSaveViewModel @Inject constructor(
         started = true
         this.packageName = packageName
         this.webDomain = webDomain
-        form.value = Form(title = title, username = username.orEmpty(), password = password)
+        initial = Form(title = title, username = username.orEmpty(), password = password)
+        form.value = initial
+        this.typedUsername = username
         viewModelScope.launch {
             repository.isLocked().collect { isLocked ->
-                if (isLocked) return@collect
-                val decision = SavePlanner.decide(
-                    repository.getCredentials(), packageName, webDomain, username, password
-                )
-                form.update { it.copy(decision = decision) }
-                if (decision == SaveDecision.AlreadySaved) finished.send(Unit)
+                if (!isLocked) decide()
             }
         }
+    }
+
+    fun onRetry() {
+        form.update { it.copy(loadFailed = false) }
+        viewModelScope.launch { decide() }
+    }
+
+    private suspend fun decide() {
+        runCatching {
+            SavePlanner.decide(repository.getCredentials(), packageName, webDomain, typedUsername, initial.password)
+        }
+            .onSuccess { decision ->
+                form.update { it.copy(decision = decision, loadFailed = false) }
+                if (decision == SaveDecision.AlreadySaved) finished.send(SaveOutcome.NOTHING_TO_SAVE)
+            }
+            .onFailure { form.update { it.copy(loadFailed = true) } }
     }
 
     fun onTitleChange(value: String) = form.update { it.copy(title = value, errorStringId = null) }
@@ -138,7 +162,7 @@ class AutofillSaveViewModel @Inject constructor(
                 )
             }
             result
-                .onSuccess { finished.send(Unit) }
+                .onSuccess { finished.send(SaveOutcome.SAVED) }
                 .onFailure { error -> form.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) } }
         }
     }

@@ -5,7 +5,10 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.R
 import com.erenium.snaplock.data.datasource.local.DocumentFiles
+import com.erenium.snaplock.domain.importer.CsvImport
 import com.erenium.snaplock.domain.importer.ExportedEntry
+import com.erenium.snaplock.domain.importer.ImportedEntry
+import com.erenium.snaplock.presentation.settings.previewTitles
 import com.erenium.snaplock.presentation.settings.ImportExportViewModel
 import com.erenium.snaplock.testing.FakeKdbxRepository
 import com.erenium.snaplock.testing.MainDispatcherRule
@@ -16,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -77,5 +81,40 @@ class ImportExportViewModelTest {
 
         assertEquals(R.string.export_done, eventually { viewModel.messages.first() }.resId)
         assertTrue(target.readText().contains("\"Web\",\"GitHub\",\"octocat\",\"pw\""))
+    }
+
+    @Test
+    fun missingFileIsReportedAsUnreadable() = runTest {
+        viewModel.onImportFilePicked(Uri.fromFile(folder.root.resolve("gone.csv")))
+
+        assertEquals(R.string.import_unreadable, eventually { viewModel.messages.first() }.resId)
+        assertNull(viewModel.pendingImport.value)
+        assertFalse(viewModel.isWorking.value)
+    }
+
+    @Test
+    fun oversizedFileIsReportedAsTooLarge() = runTest {
+        val big = folder.newFile("big.csv")
+        java.io.RandomAccessFile(big, "rw").use { it.setLength(21L * 1024 * 1024) }
+
+        viewModel.onImportFilePicked(Uri.fromFile(big))
+
+        assertEquals(R.string.import_too_large, eventually { viewModel.messages.first() }.resId)
+        assertNull(viewModel.pendingImport.value)
+    }
+
+    @Test
+    fun failedExportHasItsOwnMessage() = runTest {
+        viewModel.onExportTargetPicked(Uri.fromFile(folder.root))
+
+        assertEquals(R.string.export_error, eventually { viewModel.messages.first() }.resId)
+        assertFalse(viewModel.isWorking.value)
+    }
+
+    @Test
+    fun previewListsTheFirstThreeTitles() {
+        val entries = listOf("A", "", "B", "C", "D").map { ImportedEntry(it, null, "pw", null, null, null, null) }
+
+        assertEquals(listOf("A", "B", "C"), CsvImport("Chrome", entries).previewTitles())
     }
 }

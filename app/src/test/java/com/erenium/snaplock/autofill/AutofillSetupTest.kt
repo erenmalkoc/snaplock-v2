@@ -18,6 +18,11 @@ class AutofillSetupTest {
     }
 
     @Test
+    fun anUnknownProviderStateDoesNotClaimPasskeysAreOff() {
+        assertEquals(AutofillSetup.ENABLED, AutofillStatus.setupOf(autofill = true, credentialManager = true, provider = null))
+    }
+
+    @Test
     fun withoutAutofillNothingElseMatters() {
         assertEquals(AutofillSetup.DISABLED, AutofillStatus.setupOf(autofill = false, credentialManager = true, provider = true))
     }

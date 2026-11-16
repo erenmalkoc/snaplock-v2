@@ -5,13 +5,19 @@ import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.testing.testRecentRepository
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.EntryDetail
+import com.erenium.snaplock.domain.repository.KdbxRepository
 import com.erenium.snaplock.testing.FakeKdbxRepository
 import com.erenium.snaplock.testing.MainDispatcherRule
 import java.util.UUID
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -95,6 +101,65 @@ class AutofillSaveViewModelTest {
         assertTrue(repository.entryDetails.getValue(githubUuid).password == "old")
         assertEquals(1, repository.entryDetails.size)
     }
+
+    @Test
+    fun savingReportsThatSomethingWasSaved() = runTest {
+        val viewModel = viewModel()
+        viewModel.start("com.bank.app", null, "Bank", "client", "1234")
+
+        viewModel.onSave()
+
+        assertEquals(SaveOutcome.SAVED, withTimeout(5_000) { viewModel.done.first() })
+    }
+
+    @Test
+    fun identicalLoginReportsNothingToSave() = runTest {
+        withGithubEntry()
+        val viewModel = viewModel()
+
+        viewModel.start(CHROME, "github.com", "github.com", "octocat", "old")
+
+        assertEquals(SaveOutcome.NOTHING_TO_SAVE, withTimeout(5_000) { viewModel.done.first() })
+    }
+
+    @Test
+    fun editedFieldsAreNoticedAndRevertingClearsThem() = runTest {
+        val viewModel = viewModel()
+        val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.start("com.bank.app", null, "Bank", "client", "1234")
+        assertFalse(awaitState(viewModel) { true }.hasEdits)
+
+        viewModel.onTitleChange("Bank 2")
+        awaitState(viewModel) { it.hasEdits }
+
+        viewModel.onTitleChange("Bank")
+        awaitState(viewModel) { !it.hasEdits && it.title == "Bank" }
+        states.cancel()
+        viewModel.viewModelScope.cancel()
+    }
+
+    @Test
+    fun aFailedLookupShowsAnErrorThatRetryCanClear() = runTest {
+        val failing = object : KdbxRepository by repository {
+            var broken = true
+            override suspend fun getCredentials(): List<Credential> =
+                if (broken) throw IllegalStateException("boom") else repository.getCredentials()
+        }
+        val viewModel = AutofillSaveViewModel(failing, RecentDatabasesRepository(context, RecentDatabasesPrefs(context)))
+        val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.start("com.bank.app", null, "Bank", "client", "1234")
+        awaitState(viewModel) { it.loadFailed }
+
+        failing.broken = false
+        viewModel.onRetry()
+
+        assertTrue(awaitState(viewModel) { !it.loadFailed && it.decision != null }.decision != null)
+        states.cancel()
+        viewModel.viewModelScope.cancel()
+    }
+
+    private suspend fun awaitState(viewModel: AutofillSaveViewModel, condition: (AutofillSaveUiState) -> Boolean) =
+        withTimeout(5_000) { viewModel.uiState.first(condition) }
 
     private companion object {
         const val CHROME = "com.android.chrome"

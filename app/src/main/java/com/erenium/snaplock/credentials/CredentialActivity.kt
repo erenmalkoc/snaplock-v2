@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -37,6 +36,7 @@ import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.screens.autofill.AutofillSaveScreen
 import com.erenium.snaplock.ui.screens.autofill.AutofillScreen
 import com.erenium.snaplock.ui.screens.autofill.VaultGate
@@ -67,9 +67,9 @@ class CredentialActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
-        when (intent.getStringExtra(EXTRA_MODE)?.let(Mode::valueOf)) {
+        when (Mode.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_MODE) }) {
             Mode.UNLOCK -> showUnlock()
             Mode.SELECT -> showSelect()
             Mode.SEARCH -> showSearch()
@@ -97,7 +97,7 @@ class CredentialActivity : FragmentActivity() {
     /** Returns the entry the user picked in the system sheet, unlocking first if needed. */
     private fun showSelect() {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent) ?: return finish()
-        val uuid = intent.getStringExtra(EXTRA_UUID)?.let(UUID::fromString) ?: return finish()
+        val uuid = intent.getStringExtra(EXTRA_UUID)?.let { runCatching { UUID.fromString(it) }.getOrNull() } ?: return finish()
         pickerViewModel.start(request.callingAppInfo.packageName, null, fillSingleMatch = false)
         show {
             VaultGate(pickerViewModel, ::openApp, ::finish) {
@@ -150,7 +150,7 @@ class CredentialActivity : FragmentActivity() {
     /** Signs in with the passkey the user picked in the system sheet. */
     private fun showPasskey() {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent) ?: return finish()
-        val uuid = intent.getStringExtra(EXTRA_UUID)?.let(UUID::fromString) ?: return finish()
+        val uuid = intent.getStringExtra(EXTRA_UUID)?.let { runCatching { UUID.fromString(it) }.getOrNull() } ?: return finish()
         val option = request.credentialOptions.filterIsInstance<GetPublicKeyCredentialOption>().firstOrNull()
             ?: return finish()
         // Typing the master password here verifies the user just as a screen lock prompt would.

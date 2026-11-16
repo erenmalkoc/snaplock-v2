@@ -9,11 +9,11 @@ class LockTileTest {
 
     @Test
     fun anOpenVaultShowsAnActiveTileThatLocksIt() {
-        assertEquals(LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked), lockTileLook(locked = false))
+        assertEquals(LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked, R.drawable.ic_tile_unlock), lockTileLook(locked = false))
     }
 
     @Test
     fun aLockedVaultShowsAnInactiveTile() {
-        assertEquals(LockTileLook(Tile.STATE_INACTIVE, R.string.tile_locked), lockTileLook(locked = true))
+        assertEquals(LockTileLook(Tile.STATE_INACTIVE, R.string.tile_locked, R.drawable.ic_tile_lock), lockTileLook(locked = true))
     }
 }

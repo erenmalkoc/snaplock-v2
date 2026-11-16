@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,6 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.screens.autofill.AutofillSaveScreen
 import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,23 +28,29 @@ class AutofillSaveActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
         val requestingPackage = intent.getStringExtra(EXTRA_PACKAGE)
-        val password = intent.getStringExtra(EXTRA_PASSWORD)
-        if (requestingPackage == null || password.isNullOrEmpty()) {
+        if (requestingPackage == null) {
             finish()
             return
         }
         val webDomain = intent.getStringExtra(EXTRA_WEB_DOMAIN)
         val target = webDomain?.takeIf { Browsers.isTrusted(requestingPackage) } ?: appLabel(requestingPackage)
-        viewModel.start(
-            packageName = requestingPackage,
-            webDomain = webDomain,
-            title = target,
-            username = intent.getStringExtra(EXTRA_USERNAME),
-            password = password
-        )
+        if (!viewModel.isStarted) {
+            val password = PendingSaves.take(intent.getStringExtra(EXTRA_TOKEN))
+            if (password.isNullOrEmpty()) {
+                finish()
+                return
+            }
+            viewModel.start(
+                packageName = requestingPackage,
+                webDomain = webDomain,
+                title = target,
+                username = intent.getStringExtra(EXTRA_USERNAME),
+                password = password
+            )
+        }
 
         setContent {
             val settings by settingsPrefs.settings.collectAsState()
@@ -67,7 +73,7 @@ class AutofillSaveActivity : FragmentActivity() {
         private const val EXTRA_PACKAGE = "com.erenium.snaplock.autofill.PACKAGE"
         private const val EXTRA_WEB_DOMAIN = "com.erenium.snaplock.autofill.WEB_DOMAIN"
         private const val EXTRA_USERNAME = "com.erenium.snaplock.autofill.USERNAME"
-        private const val EXTRA_PASSWORD = "com.erenium.snaplock.autofill.PASSWORD"
+        private const val EXTRA_TOKEN = "com.erenium.snaplock.autofill.TOKEN"
 
         fun newIntent(
             context: Context,
@@ -79,6 +85,6 @@ class AutofillSaveActivity : FragmentActivity() {
             .putExtra(EXTRA_PACKAGE, packageName)
             .putExtra(EXTRA_WEB_DOMAIN, webDomain)
             .putExtra(EXTRA_USERNAME, username)
-            .putExtra(EXTRA_PASSWORD, password)
+            .putExtra(EXTRA_TOKEN, PendingSaves.put(password))
     }
 }

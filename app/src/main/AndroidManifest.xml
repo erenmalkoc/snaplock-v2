@@ -32,6 +32,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.SnaplockV2"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -77,6 +78,14 @@
                 android:name="android.autofill"
                 android:resource="@xml/autofill_service" />
         </service>
+
+        <receiver
+            android:name=".ui.ShortcutLocaleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".tile.LockTileService"
