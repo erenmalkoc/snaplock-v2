@@ -170,6 +170,7 @@
     <string name="change_password_description">The database is saved with the new password and key file. Biometric unlock is turned off; turn it on again with the new password.</string>
     <string name="change_password_new">New master password</string>
     <string name="change_password_submit">Change</string>
+    <string name="change_password_key_file_dropped">The database will open with the password alone.</string>
     <string name="entry_otp_label">One-time code</string>
     <string name="entry_form_otp_title">Two-factor authentication (2FA)</string>
     <string name="entry_form_otp_set">Set up</string>

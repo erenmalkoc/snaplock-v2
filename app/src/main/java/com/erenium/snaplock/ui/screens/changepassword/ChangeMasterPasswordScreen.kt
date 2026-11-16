@@ -119,6 +119,14 @@ fun ChangeMasterPasswordScreen(
                     onClick = { keyFileLauncher.launch(arrayOf("*/*")) }
                 )
             }
+            if (state.dropsKeyFile) {
+                Text(
+                    text = stringResource(R.string.change_password_key_file_dropped),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = Dimens.spaceSm)
+                )
+            }
             Spacer(modifier = Modifier.height(Dimens.spaceLg))
             PrimaryButton(
                 text = stringResource(R.string.change_password_submit),

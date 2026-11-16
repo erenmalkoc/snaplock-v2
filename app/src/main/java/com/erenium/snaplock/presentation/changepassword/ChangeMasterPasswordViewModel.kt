@@ -25,8 +25,11 @@ data class ChangeMasterPasswordUiState(
     val keyFileUri: Uri? = null,
     val keyFileName: String? = null,
     val isSaving: Boolean = false,
+    val hadKeyFile: Boolean = false,
     val errorStringId: Int? = null
 ) {
+    val dropsKeyFile: Boolean get() = hadKeyFile && keyFileUri == null
+
     val canSave: Boolean get() = (password.isNotEmpty() || keyFileUri != null) && !isSaving
 }
 
@@ -39,11 +42,21 @@ class ChangeMasterPasswordViewModel @Inject constructor(
     private val recentDatabasesPrefs: RecentDatabasesPrefs
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ChangeMasterPasswordUiState())
+    private val _uiState = MutableStateFlow(currentKeyFileState())
     val uiState = _uiState.asStateFlow()
 
     private val _done = Channel<Unit>(Channel.BUFFERED)
     val done = _done.receiveAsFlow()
+
+    private fun currentKeyFileState(): ChangeMasterPasswordUiState {
+        val keyFile = recentDatabasesPrefs.uris.value.firstOrNull()?.let { keyFilePrefs.get(it) }
+            ?: return ChangeMasterPasswordUiState()
+        return ChangeMasterPasswordUiState(
+            keyFileUri = keyFile,
+            keyFileName = documentFiles.displayName(keyFile),
+            hadKeyFile = true
+        )
+    }
 
     fun onPasswordChange(value: String) = _uiState.update { it.copy(password = value, errorStringId = null) }
 

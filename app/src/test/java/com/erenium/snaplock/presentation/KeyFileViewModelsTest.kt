@@ -138,6 +138,22 @@ class KeyFileViewModelsTest {
     }
 
     @Test
+    fun changingThePasswordStartsFromTheKeyFileTheDatabaseUses() = runTest {
+        val key = keyFile()
+        keyFilePrefs.set(database, key)
+        val recent = RecentDatabasesPrefs(context).apply { add(database) }
+        val viewModel = ChangeMasterPasswordViewModel(
+            ChangeCredentialsUseCase(repository), DocumentFiles(context), keyFilePrefs, encryptedPrefs, recent
+        )
+
+        assertEquals(key, viewModel.uiState.value.keyFileUri)
+        assertTrue(!viewModel.uiState.value.dropsKeyFile)
+
+        viewModel.onClearKeyFile()
+        assertTrue(viewModel.uiState.value.dropsKeyFile)
+    }
+
+    @Test
     fun mismatchedConfirmationIsRejected() = runTest {
         val viewModel = ChangeMasterPasswordViewModel(
             ChangeCredentialsUseCase(repository), DocumentFiles(context), keyFilePrefs, encryptedPrefs, RecentDatabasesPrefs(context)
