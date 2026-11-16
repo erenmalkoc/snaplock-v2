@@ -222,11 +222,19 @@ fun AppNavigation(
             }
         }
         composable(route = NavRoutes.SETTINGS) {
-            SettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
-                onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
-            )
+            if (isLocked) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(NavRoutes.SELECT_FILE) {
+                        popUpTo(NavRoutes.SETTINGS) { inclusive = true }
+                    }
+                }
+            } else {
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
+                    onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
+                )
+            }
         }
         composable(route = NavRoutes.DATABASE_SETTINGS) {
             if (isLocked) {
