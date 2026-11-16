@@ -28,7 +28,8 @@ fun PasswordTextField(
     label: String = stringResource(id = R.string.database_password_label),
     placeholder: String = stringResource(id = R.string.enter_password_placeholder),
     isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null
+    supportingText: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     
@@ -36,6 +37,7 @@ fun PasswordTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
+        enabled = enabled,
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),

@@ -78,7 +78,10 @@ class FakeKdbxRepository : KdbxRepository {
     override suspend fun getCredentials(): List<Credential> =
         if (locked.value) emptyList() else credentials.value
 
+    var saveFailure: Throwable? = null
+
     override suspend fun addEntry(data: EntryFormData): Result<Unit> {
+        saveFailure?.let { return Result.failure(it) }
         savedForms += data
         val uuid = UUID.randomUUID()
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
@@ -87,6 +90,7 @@ class FakeKdbxRepository : KdbxRepository {
     }
 
     override suspend fun updateEntry(uuid: UUID, data: EntryFormData): Result<Unit> {
+        saveFailure?.let { return Result.failure(it) }
         savedForms += data
         entryDetails[uuid] = EntryDetail(uuid, data.title, data.username, data.password, data.url, data.notes, ROOT_GROUP_UUID)
         entries.value = entries.value.map {

@@ -326,4 +326,15 @@
     <string name="otp_hide">Kodu gizle</string>
     <string name="entry_delete_message_permanent">Bu kayıt kalıcı olarak silinecek. Bu işlem geri alınamaz.</string>
     <string name="attachment_remove_title">Bu dosya kaldırılsın mı?</string>
+    <string name="entry_form_duplicate_field">Özel alan adları benzersiz olmalı ve Title, UserName, Password, URL veya Notes olamaz.</string>
+    <string name="entry_form_title_required">Başlık gerekli</string>
+    <string name="entry_form_discard_title">Değişiklikler silinsin mi?</string>
+    <string name="entry_form_discard_message">Bu kayıttaki değişiklikleriniz kaydedilmedi.</string>
+    <string name="entry_form_discard_confirm">Sil</string>
+    <string name="entry_form_keep_editing">Düzenlemeye devam et</string>
+    <string name="entry_form_replace_title">Parola değiştirilsin mi?</string>
+    <string name="entry_form_replace_message">Mevcut parola, yeni üretilen bir parolayla değiştirilecek.</string>
+    <string name="entry_form_replace_confirm">Değiştir</string>
+    <string name="entry_form_generated_label">Üretilen parola</string>
+    <string name="entry_form_saving">Kaydediliyor</string>
 </resources>

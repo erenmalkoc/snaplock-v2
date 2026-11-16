@@ -326,4 +326,15 @@
     <string name="otp_hide">Hide code</string>
     <string name="entry_delete_message_permanent">This entry will be deleted permanently. This cannot be undone.</string>
     <string name="attachment_remove_title">Remove this file?</string>
+    <string name="entry_form_duplicate_field">Custom field names must be unique and cannot be Title, UserName, Password, URL or Notes.</string>
+    <string name="entry_form_title_required">A title is required</string>
+    <string name="entry_form_discard_title">Discard changes?</string>
+    <string name="entry_form_discard_message">Your changes to this entry have not been saved.</string>
+    <string name="entry_form_discard_confirm">Discard</string>
+    <string name="entry_form_keep_editing">Keep editing</string>
+    <string name="entry_form_replace_title">Replace password?</string>
+    <string name="entry_form_replace_message">The current password will be replaced by a newly generated one.</string>
+    <string name="entry_form_replace_confirm">Replace</string>
+    <string name="entry_form_generated_label">Generated password</string>
+    <string name="entry_form_saving">Saving</string>
 </resources>
