@@ -337,4 +337,12 @@
     <string name="entry_form_replace_confirm">Değiştir</string>
     <string name="entry_form_generated_label">Üretilen parola</string>
     <string name="entry_form_saving">Kaydediliyor</string>
+    <string name="recycle_bin_restored">%1$s grubuna geri yüklendi</string>
+    <string name="recycle_bin_restored_fallback">%1$s grubuna geri yüklendi. Özgün grup artık yok.</string>
+    <plurals name="recycle_bin_count">
+        <item quantity="one">Geri dönüşüm kutusunda %d kayıt var</item>
+        <item quantity="other">Geri dönüşüm kutusunda %d kayıt var</item>
+    </plurals>
+    <string name="recycle_bin_deleted_on">%1$s tarihinde silindi</string>
+    <string name="recycle_bin_deleted_unknown">Silinme tarihi bilinmiyor</string>
 </resources>

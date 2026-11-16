@@ -337,4 +337,12 @@
     <string name="entry_form_replace_confirm">Replace</string>
     <string name="entry_form_generated_label">Generated password</string>
     <string name="entry_form_saving">Saving</string>
+    <string name="recycle_bin_restored">Restored to %1$s</string>
+    <string name="recycle_bin_restored_fallback">Restored to %1$s. The original group no longer exists.</string>
+    <plurals name="recycle_bin_count">
+        <item quantity="one">%d entry in the recycle bin</item>
+        <item quantity="other">%d entries in the recycle bin</item>
+    </plurals>
+    <string name="recycle_bin_deleted_on">Deleted %1$s</string>
+    <string name="recycle_bin_deleted_unknown">Deletion date unknown</string>
 </resources>

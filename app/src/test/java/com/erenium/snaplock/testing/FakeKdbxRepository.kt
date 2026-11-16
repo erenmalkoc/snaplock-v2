@@ -120,7 +120,9 @@ class FakeKdbxRepository : KdbxRepository {
         val entry = recycled.value.firstOrNull { it.uuid == uuid }
             ?: return Result.failure(NoSuchElementException(uuid.toString()))
         recycled.value = recycled.value - entry
-        entries.value = entries.value + entry
+        val target = entry.previousGroupUuid?.let { id -> groups.value.firstOrNull { it.uuid == id } }
+            ?: groups.value.first { it.parentUuid == null }
+        entries.value = entries.value + entry.copy(groupUuid = target.uuid, groupName = target.name)
         return Result.success(Unit)
     }
 
