@@ -166,6 +166,7 @@ class CredentialActivity : FragmentActivity() {
                         Verification.VERIFIED -> true
                         Verification.NOT_AVAILABLE -> false
                         Verification.CANCELLED -> return@LaunchedEffect finish()
+                        Verification.FAILED -> return@LaunchedEffect failGet()
                     }
                     if (!verified && assertion.userVerification == "required") return@LaunchedEffect failGet()
                     val caller = runCatching { passkeyCaller(this@CredentialActivity, request.callingAppInfo, option.clientDataHash) }
@@ -201,6 +202,7 @@ class CredentialActivity : FragmentActivity() {
                         Verification.VERIFIED -> true
                         Verification.NOT_AVAILABLE -> false
                         Verification.CANCELLED -> return@LaunchedEffect finish()
+                        Verification.FAILED -> return@LaunchedEffect failCreate()
                     }
                     val caller = runCatching { passkeyCaller(this@CredentialActivity, request.callingAppInfo, passkeyRequest.clientDataHash) }
                         .getOrElse { return@LaunchedEffect failCreate() }

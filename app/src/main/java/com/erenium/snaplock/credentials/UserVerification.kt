@@ -9,7 +9,15 @@ import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-enum class Verification { VERIFIED, NOT_AVAILABLE, CANCELLED }
+enum class Verification { VERIFIED, NOT_AVAILABLE, CANCELLED, FAILED }
+
+/** Backing out of the prompt is the user's choice, while lockouts and hardware errors are failures. */
+internal fun verificationFor(errorCode: Int): Verification = when (errorCode) {
+    BiometricPrompt.ERROR_USER_CANCELED,
+    BiometricPrompt.ERROR_NEGATIVE_BUTTON,
+    BiometricPrompt.ERROR_CANCELED -> Verification.CANCELLED
+    else -> Verification.FAILED
+}
 
 /**
  * Asks for the fingerprint, face or screen lock before a passkey is used, which is what
@@ -31,7 +39,7 @@ suspend fun verifyUser(activity: FragmentActivity, title: String, subtitle: Stri
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    if (continuation.isActive) continuation.resume(Verification.CANCELLED)
+                    if (continuation.isActive) continuation.resume(verificationFor(errorCode))
                 }
             }
         )
