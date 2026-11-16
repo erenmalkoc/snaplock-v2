@@ -32,6 +32,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.SnaplockV2"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

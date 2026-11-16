@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -37,6 +36,7 @@ import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.screens.autofill.AutofillSaveScreen
 import com.erenium.snaplock.ui.screens.autofill.AutofillScreen
 import com.erenium.snaplock.ui.screens.autofill.VaultGate
@@ -67,7 +67,7 @@ class CredentialActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
         when (intent.getStringExtra(EXTRA_MODE)?.let(Mode::valueOf)) {
             Mode.UNLOCK -> showUnlock()

@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.service.autofill.Dataset
 import android.view.autofill.AutofillManager
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
@@ -18,6 +17,7 @@ import androidx.fragment.app.FragmentActivity
 import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.screens.autofill.AutofillScreen
 import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,7 +40,7 @@ class AutofillActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
         val structure = IntentCompat.getParcelableExtra(
             intent,

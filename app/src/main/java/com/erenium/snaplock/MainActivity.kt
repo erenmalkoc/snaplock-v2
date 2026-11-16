@@ -3,7 +3,6 @@ package com.erenium.snaplock
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -14,6 +13,7 @@ import com.erenium.snaplock.presentation.main.AutoLockManager
 import com.erenium.snaplock.presentation.main.AppShortcut
 import com.erenium.snaplock.presentation.main.MainViewModel
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.publishAppShortcuts
 import com.erenium.snaplock.ui.navigation.AppNavigation
 import com.erenium.snaplock.ui.theme.SnaplockTheme
@@ -32,7 +32,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
         publishAppShortcuts(this)
         // A recreated activity has already handled the intent that started it.
@@ -61,6 +61,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleShortcut(intent)
     }
 

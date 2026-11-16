@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,6 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.ui.blockScreenshots
+import com.erenium.snaplock.ui.followAppTheme
 import com.erenium.snaplock.ui.screens.autofill.AutofillSaveScreen
 import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,7 +28,7 @@ class AutofillSaveActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        followAppTheme(settingsPrefs)
         blockScreenshots()
         val requestingPackage = intent.getStringExtra(EXTRA_PACKAGE)
         val password = intent.getStringExtra(EXTRA_PASSWORD)
