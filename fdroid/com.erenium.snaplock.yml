@@ -15,19 +15,16 @@ Repo: https://github.com/erenmalkoc/snaplock-v2.git
 Binaries: https://github.com/erenmalkoc/snaplock-v2/releases/download/v%v/snaplock-%v.apk
 
 Builds:
-  - versionName: 1.1.0
-    versionCode: 3
-    commit: 4ff5c5cfee65dd00e95de120b362cdb386f2b767
+  - versionName: 1.1.1
+    versionCode: 4
+    commit: 96bf4c4149087138cb39b713aa0168d7d3516bdb
     subdir: app
     gradle:
       - yes
-    antifeatures:
-      NonFreeNet:
-        en-US: Optional breach check against Have I Been Pwned (off by default).
 
 AllowedAPKSigningKeys: e66b0d23e679d1d606573be6f705630f9f90e74be084ec4b59d1181ae608b8b7
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.0
-CurrentVersionCode: 3
+CurrentVersion: 1.1.1
+CurrentVersionCode: 4
