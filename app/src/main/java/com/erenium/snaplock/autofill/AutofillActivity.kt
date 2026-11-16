@@ -52,7 +52,7 @@ class AutofillActivity : FragmentActivity() {
             finish()
             return
         }
-        val mode = intent.getStringExtra(EXTRA_MODE)?.let(Mode::valueOf) ?: Mode.SEARCH
+        val mode = Mode.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_MODE) } ?: Mode.SEARCH
         val requestingPackage = structure.packageName
         viewModel.start(requestingPackage, form.webDomain, fillSingleMatch = mode == Mode.UNLOCK)
         val responses = AutofillResponses(this)

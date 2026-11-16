@@ -53,6 +53,8 @@ class AutofillSaveViewModel @Inject constructor(
     private var packageName = ""
     private var webDomain: String? = null
     private var started = false
+
+    val isStarted: Boolean get() = started
     private val form = MutableStateFlow(Form())
     private val finished = Channel<Unit>(Channel.CONFLATED)
 

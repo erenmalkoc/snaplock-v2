@@ -35,18 +35,18 @@ object AutofillStatus {
         provider = isCredentialProvider(context)
     )
 
-    internal fun setupOf(autofill: Boolean, credentialManager: Boolean, provider: Boolean): AutofillSetup = when {
+    internal fun setupOf(autofill: Boolean, credentialManager: Boolean, provider: Boolean?): AutofillSetup = when {
         !autofill -> AutofillSetup.DISABLED
-        credentialManager && !provider -> AutofillSetup.PASSKEYS_OFF
+        credentialManager && provider == false -> AutofillSetup.PASSKEYS_OFF
         else -> AutofillSetup.ENABLED
     }
 
-    private fun isCredentialProvider(context: Context): Boolean {
+    private fun isCredentialProvider(context: Context): Boolean? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return false
-        val manager = context.getSystemService(android.credentials.CredentialManager::class.java) ?: return false
+        val manager = context.getSystemService(android.credentials.CredentialManager::class.java) ?: return null
         return runCatching {
             manager.isEnabledCredentialProviderService(ComponentName(context, SnaplockCredentialProviderService::class.java))
-        }.getOrDefault(false)
+        }.getOrNull()
     }
 
     /**
