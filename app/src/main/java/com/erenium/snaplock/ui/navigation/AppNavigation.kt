@@ -1,7 +1,12 @@
 package com.erenium.snaplock.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -46,6 +51,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import androidx.core.net.toUri
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppNavigation(
     mainViewModel: MainViewModel = hiltViewModel()
@@ -62,7 +68,8 @@ fun AppNavigation(
     // A vault that is still open (the activity was recreated before auto-lock) opens on its entries.
     val startDestination = remember { if (mainViewModel.isLocked.value) NavRoutes.SELECT_FILE else NavRoutes.ENTRY_LIST }
 
-    val slideDuration = 300
+    val spatialSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    val effectsSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
 
     // Locking from anywhere clears the whole back stack, so no screen of the closed vault stays behind.
     val goToSelectFile: () -> Unit = {
@@ -103,28 +110,16 @@ fun AppNavigation(
             modifier = Modifier.fillMaxSize(),
             startDestination = startDestination,
             enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(slideDuration)
-                )
+                slideInHorizontally(animationSpec = spatialSpec) { it / AXIS_FRACTION } + fadeIn(effectsSpec)
             },
             exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(slideDuration)
-                )
+                slideOutHorizontally(animationSpec = spatialSpec) { -it / AXIS_FRACTION } + fadeOut(effectsSpec)
             },
             popEnterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(slideDuration)
-                )
+                slideInHorizontally(animationSpec = spatialSpec) { -it / AXIS_FRACTION } + fadeIn(effectsSpec)
             },
             popExitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(slideDuration)
-                )
+                slideOutHorizontally(animationSpec = spatialSpec) { it / AXIS_FRACTION } + fadeOut(effectsSpec)
             }
         ) {
 
@@ -300,3 +295,5 @@ fun AppNavigation(
         )
     }
 }
+
+private const val AXIS_FRACTION = 8

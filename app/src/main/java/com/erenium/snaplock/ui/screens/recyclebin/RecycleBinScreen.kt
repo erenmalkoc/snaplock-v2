@@ -105,7 +105,7 @@ fun RecycleBinScreen(
                 }
                 items(items = state.entries, key = { it.uuid }) { entry ->
                     ListItem(
-                        modifier = Modifier.clickable { viewModel.onView(entry) },
+                        modifier = Modifier.animateItem().clickable { viewModel.onView(entry) },
                         leadingContent = { EntryAvatar(title = entry.title, icon = entry.icon) },
                         headlineContent = { Text(entry.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         supportingContent = {

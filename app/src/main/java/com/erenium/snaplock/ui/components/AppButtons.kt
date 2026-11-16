@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ private fun RowScope.ButtonLabel(text: String, icon: ImageVector) {
     Text(text)
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PrimaryButton(
     text: String,
@@ -36,6 +38,7 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
+        shapes = ButtonDefaults.shapes(),
         modifier = modifier
             .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier)
             .heightIn(min = Dimens.buttonHeight)
@@ -44,6 +47,7 @@ fun PrimaryButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SecondaryButton(
     text: String,
@@ -56,6 +60,7 @@ fun SecondaryButton(
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
+        shapes = ButtonDefaults.shapes(),
         modifier = modifier
             .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier)
             .heightIn(min = Dimens.buttonHeight)

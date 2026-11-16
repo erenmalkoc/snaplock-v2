@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.components
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -49,10 +50,12 @@ fun PasswordTextField(
         keyboardActions = keyboardActions,
         trailingIcon = {
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                Icon(
-                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                    contentDescription = if (passwordVisible) stringResource(id = R.string.hide_password_hint) else stringResource(id = R.string.show_password_hint)
-                )
+                Crossfade(targetState = passwordVisible, label = "passwordVisibility") { visible ->
+                    Icon(
+                        imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription = if (visible) stringResource(id = R.string.hide_password_hint) else stringResource(id = R.string.show_password_hint)
+                    )
+                }
             }
         },
         isError = isError,

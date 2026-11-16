@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -26,7 +27,7 @@ fun AppCard(
     val elevation = CardDefaults.cardElevation(defaultElevation = Dimens.cardElevation)
     val body: @Composable ColumnScope.() -> Unit = {
         Column(
-            modifier = if (contentPadding) Modifier.padding(Dimens.spaceMd) else Modifier,
+            modifier = Modifier.animateContentSize().then(if (contentPadding) Modifier.padding(Dimens.spaceMd) else Modifier),
             content = content
         )
     }

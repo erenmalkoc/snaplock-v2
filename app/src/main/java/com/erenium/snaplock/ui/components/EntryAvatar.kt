@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.components
 
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Brush
 import android.graphics.BitmapFactory
 import android.util.LruCache
 import androidx.compose.foundation.Image
@@ -61,7 +63,7 @@ fun EntryAvatar(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(avatarColorFor(title)),
+            .background(avatarBrushFor(avatarColorFor(title))),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -72,5 +74,8 @@ fun EntryAvatar(
         )
     }
 }
+
+private fun avatarBrushFor(base: Color): Brush =
+    Brush.linearGradient(listOf(lerp(base, Color.White, 0.16f), lerp(base, Color.Black, 0.14f)))
 
 private const val ICON_SCALE = 0.62f

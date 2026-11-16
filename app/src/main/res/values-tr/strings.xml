@@ -11,12 +11,12 @@
     <string name="database_password_label">Ana parola</string>
     <string name="enter_password_placeholder">Ana parolanızı girin</string>
     <string name="open_button">Aç</string>
-    <string name="opening_database_message">Veritabanı açılıyor...</string>
+    <string name="opening_database_message">Veritabanı açılıyor…</string>
     <string name="cancel_button">İptal</string>
     <string name="close_button">Kapat</string>
     <string name="copy_password_hint">Parolayı kopyala</string>
     <string name="clipboard_label_password">Parola</string>
-    <string name="loading_message">Yükleniyor...</string>
+    <string name="loading_message">Yükleniyor…</string>
     <string name="back_button">Geri</string>
     <string name="entry_username_label">Kullanıcı adı</string>
     <string name="entry_password_label">Parola</string>
@@ -84,7 +84,7 @@
     <string name="create_db_confirm">Ana parolayı onayla</string>
     <string name="create_db_password_mismatch">Parolalar eşleşmiyor.</string>
     <string name="create_db_submit">Konum seç ve oluştur</string>
-    <string name="create_db_progress">Veritabanı oluşturuluyor...</string>
+    <string name="create_db_progress">Veritabanı oluşturuluyor…</string>
     <string name="create_db_error">Veritabanı oluşturulamadı.</string>
     <string name="entry_form_group_label">Grup</string>
     <string name="recent_databases_title">Son kullanılanlar</string>

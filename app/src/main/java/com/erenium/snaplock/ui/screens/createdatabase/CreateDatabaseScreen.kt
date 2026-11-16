@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.createdatabase
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import android.content.Intent
@@ -79,9 +80,10 @@ fun CreateDatabaseScreen(
             return@AppScaffold
         }
 
+        Column(modifier = contentModifier.fillMaxSize()) {
         Column(
-            modifier = contentModifier
-                .fillMaxSize()
+            modifier = Modifier
+                .weight(1f)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
         ) {
@@ -133,11 +135,13 @@ fun CreateDatabaseScreen(
                     .onFocusChanged { if (!it.isFocused) viewModel.onConfirmFocusLost() }
             )
 
+        }
             PrimaryButton(
                 icon = Icons.Filled.Add,
                 text = stringResource(R.string.create_db_submit),
                 onClick = ::launchPicker,
-                enabled = state.canSubmit
+                enabled = state.canSubmit,
+                modifier = Modifier.padding(top = Dimens.spaceMd)
             )
         }
     }

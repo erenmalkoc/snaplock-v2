@@ -245,6 +245,7 @@ fun EntryListScreen(
                         key = { it.uuid }
                     ) { entry ->
                         EntryListItem(
+                            modifier = Modifier.animateItem(),
                             entry = entry,
                             showGroup = state.isSearching,
                             match = state.matches[entry.uuid],
@@ -496,6 +497,7 @@ private fun Breadcrumb(
 
 @Composable
 private fun EntryListItem(
+    modifier: Modifier = Modifier,
     entry: Entry,
     showGroup: Boolean,
     match: SearchMatch?,
@@ -503,7 +505,7 @@ private fun EntryListItem(
     onClick: () -> Unit
 ) {
     AppCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = Dimens.spaceXs),
         contentPadding = false,

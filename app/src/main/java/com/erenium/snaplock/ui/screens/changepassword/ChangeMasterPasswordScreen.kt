@@ -75,9 +75,10 @@ fun ChangeMasterPasswordScreen(
         title = stringResource(R.string.change_password_title),
         onNavigateBack = onNavigateBack
     ) { contentModifier ->
+        Column(modifier = contentModifier.fillMaxSize()) {
         Column(
-            modifier = contentModifier
-                .fillMaxSize()
+            modifier = Modifier
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
@@ -145,11 +146,13 @@ fun ChangeMasterPasswordScreen(
                 )
             }
             Spacer(modifier = Modifier.height(Dimens.spaceLg))
+        }
             PrimaryButton(
                 icon = Icons.Filled.LockReset,
                 text = stringResource(R.string.change_password_submit),
                 onClick = viewModel::onSave,
-                enabled = state.canSave
+                enabled = state.canSave,
+                modifier = Modifier.padding(top = Dimens.spaceMd)
             )
         }
     }
