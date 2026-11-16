@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.screens.entryform
 
+import androidx.activity.result.PickVisualMediaRequest
 import com.erenium.snaplock.ui.components.SecondaryButton
 import com.erenium.snaplock.ui.components.AppTextButton
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -88,7 +89,7 @@ fun EntryFormScreen(
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         result.contents?.let(viewModel::onOtpEntered)
     }
-    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val imageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             scope.launch {
                 val text = qrDecoder.decode(uri)
@@ -261,7 +262,7 @@ fun EntryFormScreen(
                         icon = Icons.Filled.Image,
                         onClick = {
                             qrNotFound = false
-                            imageLauncher.launch("image/*")
+                            imageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         },
                         fillMaxWidth = false
                     )
