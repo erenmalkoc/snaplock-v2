@@ -39,6 +39,38 @@ class DatabaseSettingsViewModelTest {
     }
 
     @Test
+    fun valuesFarAboveSaneLimitsCannotBeSaved() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onIterationsChange("100000")
+        assertTrue(viewModel.uiState.value.iterationsInvalid)
+        assertFalse(viewModel.uiState.value.canSave)
+
+        viewModel.onIterationsChange("8")
+        viewModel.onMemoryChange("4096")
+        assertTrue(viewModel.uiState.value.memoryInvalid)
+        assertFalse(viewModel.uiState.value.canSave)
+
+        viewModel.onMemoryChange("512")
+        assertFalse(viewModel.uiState.value.memoryInvalid)
+        assertTrue(viewModel.uiState.value.canSave)
+    }
+
+    @Test
+    fun aVaultAlreadyAboveTheLimitsCanStillSaveOtherChanges() = runTest {
+        repository.databaseSettings = DatabaseSettings(
+            "Family", true, 10, EncryptionSettings(VaultCipher.AES_256, KdfAlgorithm.ARGON2D, 2000, 2048L * 1024 * 1024, 2)
+        )
+        val viewModel = viewModel()
+
+        viewModel.onNameChange("Work")
+
+        assertFalse(viewModel.uiState.value.iterationsInvalid)
+        assertFalse(viewModel.uiState.value.memoryInvalid)
+        assertTrue(viewModel.uiState.value.canSave)
+    }
+
+    @Test
     fun savesTheEditedSettingsAndCloses() = runTest {
         val viewModel = viewModel()
         viewModel.onNameChange("  Work  ")

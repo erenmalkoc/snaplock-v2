@@ -57,10 +57,23 @@ data class DatabaseSettingsUiState(
             return EncryptionSettings(cipher, kdf, passes, memory, lanes)
         }
 
-    val iterationsInvalid: Boolean get() = iterations.toLongOrNull()?.let { it < 1 } ?: true
+    private val savedSameFamily: EncryptionSettings?
+        get() = saved?.encryption?.takeIf { (it.kdf == KdfAlgorithm.AES_KDF) == !isArgon2 }
+
+    private val maxIterations: Long get() = if (isArgon2) MAX_ARGON2_PASSES else MAX_AES_ROUNDS
+
+    val maxIterationsAllowed: Long get() = maxIterations
+
+    val iterationsInvalid: Boolean
+        get() = iterations.toLongOrNull()?.let {
+            it < 1 || (it > maxIterations && it != savedSameFamily?.iterations)
+        } ?: true
 
     // Whole MiB always cover Argon2's 8 KiB per lane, so any positive amount works.
-    val memoryInvalid: Boolean get() = isArgon2 && (memoryMiB.toLongOrNull()?.let { it < 1 } ?: true)
+    val memoryInvalid: Boolean
+        get() = isArgon2 && (memoryMiB.toLongOrNull()?.let {
+            it < 1 || (it > MAX_MEMORY_MIB && it != savedSameFamily?.let { e -> e.memoryBytes / BYTES_PER_MIB })
+        } ?: true)
 
     val parallelismInvalid: Boolean
         get() = isArgon2 && (parallelism.toIntOrNull()?.let { it !in 1..MAX_ARGON2_PARALLELISM } ?: true)
@@ -74,6 +87,7 @@ data class DatabaseSettingsUiState(
             val encryption = if (original.encryption == null) {
                 null
             } else {
+                if (iterationsInvalid || memoryInvalid || parallelismInvalid) return null
                 encryption?.takeIf { it.problem() == null } ?: return null
             }
             return DatabaseSettings(name.trim(), recycleBinEnabled, historyMaxItems, encryption)
@@ -84,6 +98,9 @@ data class DatabaseSettingsUiState(
 
     companion object {
         const val HIGH_MEMORY_MIB = 256L
+        const val MAX_MEMORY_MIB = 1024L
+        const val MAX_ARGON2_PASSES = 1000L
+        const val MAX_AES_ROUNDS = 100_000_000L
     }
 }
 
@@ -157,8 +174,21 @@ class DatabaseSettingsViewModel @Inject constructor(
         val probe = _uiState.value.copy(iterations = "1").encryption?.takeIf { it.problem() == null } ?: return
         _uiState.update { it.copy(isBenchmarking = true) }
         viewModelScope.launch {
-            val iterations = benchmark.iterationsFor(probe)
-            _uiState.update { it.copy(iterations = iterations.toString(), isBenchmarking = false) }
+            val iterations = try {
+                benchmark.iterationsFor(probe)
+            } catch (e: OutOfMemoryError) {
+                null
+            } catch (e: Exception) {
+                null
+            }
+            _uiState.update { state ->
+                if (iterations == null) {
+                    state.copy(isBenchmarking = false, errorStringId = R.string.database_benchmark_error)
+                } else {
+                    val capped = iterations.coerceIn(1, state.maxIterationsAllowed)
+                    state.copy(iterations = capped.toString(), isBenchmarking = false)
+                }
+            }
         }
     }
 

@@ -273,6 +273,7 @@
     <string name="database_rounds">Rounds</string>
     <string name="database_memory">Memory (MiB)</string>
     <string name="database_memory_warning">This much memory may keep low-end devices from opening the vault.</string>
+    <string name="database_benchmark_error">The speed test could not finish on this device. Try a lower memory value.</string>
     <string name="database_parallelism">Parallelism</string>
     <string name="database_benchmark">Set to 1 second on this device</string>
     <string name="database_benchmarking">Measuring…</string>

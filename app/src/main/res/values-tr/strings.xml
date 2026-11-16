@@ -273,6 +273,7 @@
     <string name="database_rounds">Tur sayısı</string>
     <string name="database_memory">Bellek (MiB)</string>
     <string name="database_memory_warning">Bu kadar bellek, zayıf cihazların kasayı açmasını engelleyebilir.</string>
+    <string name="database_benchmark_error">Hız testi bu cihazda tamamlanamadı. Daha düşük bir bellek değeri deneyin.</string>
     <string name="database_parallelism">Paralellik</string>
     <string name="database_benchmark">Bu cihazda 1 saniyeye ayarla</string>
     <string name="database_benchmarking">Ölçülüyor…</string>
