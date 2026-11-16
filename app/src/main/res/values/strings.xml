@@ -144,7 +144,7 @@
     <string name="group_create">New group</string>
     <string name="group_rename">Rename group</string>
     <string name="group_delete">Delete group</string>
-    <string name="group_delete_message">The group and everything in it will be moved to the recycle bin.</string>
+    <string name="group_delete_message">The group and its entries will move to the recycle bin. You can restore the entries from there, but not the group itself.</string>
     <string name="group_name">Group name</string>
     <plurals name="group_entry_count">
         <item quantity="one">%1$d entry</item>
@@ -302,4 +302,14 @@
     <string name="export_warning_message">The CSV file contains every password in plain text. Use it only to move to another manager, and delete it afterwards.</string>
     <string name="export_done">Exported</string>
 
+    <string name="group_created">Group %1$s created</string>
+    <string name="group_renamed">Group renamed to %1$s</string>
+    <string name="group_moved_to_bin">%1$s moved to the recycle bin</string>
+    <string name="group_deleted">%1$s deleted</string>
+    <string name="group_delete_message_permanent">The group and everything in it will be deleted permanently.</string>
+    <string name="entry_moved_to_bin">%1$s moved to the recycle bin</string>
+    <string name="undo_button">Undo</string>
+    <string name="search_match_url">Matches URL</string>
+    <string name="search_match_notes">Matches notes</string>
+    <string name="entry_add_button">Add entry</string>
 </resources>

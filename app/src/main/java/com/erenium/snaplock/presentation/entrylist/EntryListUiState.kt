@@ -2,6 +2,9 @@ package com.erenium.snaplock.presentation.entrylist
 
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.Group
+import java.util.UUID
+
+enum class SearchMatch { TITLE, USERNAME, URL, NOTES }
 
 data class EntryListUiState(
     /** Entries of the open group, or search results across the whole vault. */
@@ -12,7 +15,13 @@ data class EntryListUiState(
     val currentGroup: Group? = null,
     val query: String = "",
     val isLoading: Boolean = true,
-    val errorStringId: Int? = null
+    val errorStringId: Int? = null,
+    /** Which field of each search result matched; empty outside a search. */
+    val matches: Map<UUID, SearchMatch> = emptyMap(),
+    /** Groups from the root down to the parent of the open group; empty at the root. */
+    val breadcrumb: List<Group> = emptyList(),
+    /** Whether deleting a group moves it to the recycle bin instead of removing it for good. */
+    val recycleBinEnabled: Boolean = true
 ) {
     val isEmpty: Boolean get() = entries.isEmpty() && subgroups.isEmpty()
     val isSearching: Boolean get() = query.isNotBlank()

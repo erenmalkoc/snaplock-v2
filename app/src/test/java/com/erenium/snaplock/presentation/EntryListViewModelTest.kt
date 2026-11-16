@@ -1,7 +1,12 @@
 package com.erenium.snaplock.presentation
 
+import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.usecase.GetRecycleBinEnabledUseCase
+import com.erenium.snaplock.domain.usecase.RestoreEntryUseCase
+import com.erenium.snaplock.presentation.entrylist.SearchMatch
+import java.util.Locale
 import com.erenium.snaplock.domain.usecase.CreateGroupUseCase
 import com.erenium.snaplock.domain.usecase.DeleteGroupUseCase
 import com.erenium.snaplock.domain.usecase.GetEntriesUseCase
@@ -41,8 +46,13 @@ class EntryListViewModelTest {
         GetGroupsUseCase(repository),
         CreateGroupUseCase(repository),
         RenameGroupUseCase(repository),
-        DeleteGroupUseCase(repository)
+        DeleteGroupUseCase(repository),
+        RestoreEntryUseCase(repository),
+        GetRecycleBinEnabledUseCase(repository),
+        recentlyDeleted
     )
+
+    private val recentlyDeleted = RecentlyDeleted()
 
     private suspend fun EntryListViewModel.state(): EntryListUiState = uiState.first { !it.isLoading }
 
@@ -85,6 +95,143 @@ class EntryListViewModelTest {
 
         viewModel.onQueryChange("wor")
         assertEquals(listOf("Work"), viewModel.state().subgroups.map { it.name })
+    }
+
+    private fun withLocale(locale: Locale, block: () -> Unit) {
+        val previous = Locale.getDefault()
+        Locale.setDefault(locale)
+        try {
+            block()
+        } finally {
+            Locale.setDefault(previous)
+        }
+    }
+
+    @Test
+    fun turkishTitlesFollowTheTurkishAlphabet() {
+        withLocale(Locale.forLanguageTag("tr")) {
+            val titles = listOf("Zeytin", "Ördek", "İnci", "Şirket", "Ğ", "Orman", "Irmak", "Çiçek", "Gül", "Cam", "Sera", "Hat")
+            repository.entries.value = titles.map { Entry(UUID.randomUUID(), it, null, root, "Passwords") }
+            repository.groups.value = listOf(Group(root, "Passwords", titles.size))
+
+            runTest {
+                val sorted = viewModel().state().entries.map { it.title }
+                assertEquals(
+                    listOf("Cam", "Çiçek", "Gül", "Ğ", "Hat", "Irmak", "İnci", "Orman", "Ördek", "Sera", "Şirket", "Zeytin"),
+                    sorted
+                )
+            }
+        }
+    }
+
+    @Test
+    fun turkishGroupNamesAreSortedTheSameWay() {
+        withLocale(Locale.forLanguageTag("tr")) {
+            val names = listOf("Şirket", "Sera", "Çay", "Cam")
+            repository.groups.value = listOf(Group(root, "Passwords", 0)) +
+                names.map { Group(UUID.randomUUID(), it, 0, parentUuid = root) }
+
+            runTest {
+                assertEquals(listOf("Cam", "Çay", "Sera", "Şirket"), viewModel().state().subgroups.map { it.name })
+            }
+        }
+    }
+
+    @Test
+    fun backClearsASearchBeforeAnythingElse() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.onOpenGroup(work)
+        viewModel.onQueryChange("birthday")
+        viewModel.state()
+
+        assertTrue(viewModel.onBack())
+        assertEquals("", viewModel.state().query)
+        assertEquals("Work", viewModel.state().currentGroup?.name)
+
+        assertTrue(viewModel.onBack())
+        assertTrue(viewModel.state().isRoot)
+        assertFalse(viewModel.onBack())
+    }
+
+    @Test
+    fun searchResultsSayWhichFieldMatched() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onQueryChange("company")
+        assertEquals(SearchMatch.URL, viewModel.state().matches[vpn.uuid])
+
+        viewModel.onQueryChange("birthday")
+        assertEquals(SearchMatch.NOTES, viewModel.state().matches[bank.uuid])
+
+        viewModel.onQueryChange("octo")
+        assertEquals(SearchMatch.USERNAME, viewModel.state().matches[github.uuid])
+
+        viewModel.onQueryChange("git")
+        assertEquals(SearchMatch.TITLE, viewModel.state().matches[github.uuid])
+
+        viewModel.onQueryChange("")
+        assertTrue(viewModel.state().matches.isEmpty())
+    }
+
+    @Test
+    fun breadcrumbListsTheParentsOfANestedGroup() = runTest {
+        val servers = UUID.randomUUID()
+        repository.groups.value = repository.groups.value + Group(servers, "Servers", 0, parentUuid = work)
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertTrue(viewModel.state().breadcrumb.isEmpty())
+        viewModel.onOpenGroup(servers)
+
+        assertEquals(listOf("Passwords", "Work"), viewModel.state().breadcrumb.map { it.name })
+    }
+
+    @Test
+    fun groupDeletionReportsWhetherTheRecycleBinIsOn() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        assertTrue(viewModel.state().recycleBinEnabled)
+
+        viewModel.onOpenGroup(work)
+        viewModel.state()
+        viewModel.onDeleteCurrentGroup()
+        assertEquals(R.string.group_moved_to_bin to "Work", viewModel.messages.first())
+
+        repository.databaseSettings = repository.databaseSettings?.copy(recycleBinEnabled = false)
+        repository.groups.value = repository.groups.value + Group(work, "Work", 0, parentUuid = root)
+        assertFalse(viewModel.state().recycleBinEnabled)
+        viewModel.onOpenGroup(work)
+        viewModel.onDeleteCurrentGroup()
+        assertEquals(R.string.group_deleted to "Work", viewModel.messages.first())
+    }
+
+    @Test
+    fun groupCreateAndRenameConfirm() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.state()
+
+        viewModel.onCreateGroup(" Servers ")
+        assertEquals(R.string.group_created to "Servers", viewModel.messages.first())
+
+        viewModel.onOpenGroup(work)
+        viewModel.state()
+        viewModel.onRenameCurrentGroup("Office")
+        assertEquals(R.string.group_renamed to "Office", viewModel.messages.first())
+    }
+
+    @Test
+    fun undoBringsARecycledEntryBack() = runTest {
+        repository.recycled.value = listOf(github)
+        repository.entries.value = listOf(bank, vpn)
+        val viewModel = viewModel()
+
+        recentlyDeleted.moved(DeletedEntry(github.uuid, github.title))
+        val event = viewModel.deletedEntries.first()
+        viewModel.onUndoDelete(event.uuid)
+
+        assertTrue(repository.entries.value.any { it.uuid == github.uuid })
     }
 
     @Test

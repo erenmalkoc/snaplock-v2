@@ -144,7 +144,7 @@
     <string name="group_create">Yeni grup</string>
     <string name="group_rename">Grubu yeniden adlandır</string>
     <string name="group_delete">Grubu sil</string>
-    <string name="group_delete_message">Grup ve içindeki her şey geri dönüşüm kutusuna taşınacak.</string>
+    <string name="group_delete_message">Grup ve kayıtları geri dönüşüm kutusuna taşınacak. Kayıtları oradan geri yükleyebilirsiniz, grubun kendisini ise geri yükleyemezsiniz.</string>
     <string name="group_name">Grup adı</string>
     <plurals name="group_entry_count">
         <item quantity="one">%1$d kayıt</item>
@@ -302,4 +302,14 @@
     <string name="export_warning_message">CSV dosyası tüm şifrelerinizi açık metin olarak içerir. Yalnızca başka bir yöneticiye taşımak için kullanın ve sonra silin.</string>
     <string name="export_done">Dışa aktarıldı</string>
 
+    <string name="group_created">%1$s grubu oluşturuldu</string>
+    <string name="group_renamed">Grubun adı %1$s oldu</string>
+    <string name="group_moved_to_bin">%1$s geri dönüşüm kutusuna taşındı</string>
+    <string name="group_deleted">%1$s silindi</string>
+    <string name="group_delete_message_permanent">Grup ve içindeki her şey kalıcı olarak silinecek.</string>
+    <string name="entry_moved_to_bin">%1$s geri dönüşüm kutusuna taşındı</string>
+    <string name="undo_button">Geri al</string>
+    <string name="search_match_url">URL eşleşti</string>
+    <string name="search_match_notes">Notlar eşleşti</string>
+    <string name="entry_add_button">Kayıt ekle</string>
 </resources>
