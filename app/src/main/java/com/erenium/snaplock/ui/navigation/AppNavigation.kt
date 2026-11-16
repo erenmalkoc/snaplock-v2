@@ -2,11 +2,20 @@ package com.erenium.snaplock.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.erenium.snaplock.presentation.main.AppShortcut
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +64,26 @@ fun AppNavigation(
 
     val slideDuration = 300
 
+    // Locking from anywhere clears the whole back stack, so no screen of the closed vault stays behind.
+    val goToSelectFile: () -> Unit = {
+        if (navController.currentDestination?.route != NavRoutes.SELECT_FILE) {
+            navController.navigate(NavRoutes.SELECT_FILE) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+    LaunchedEffect(isLocked) {
+        if (isLocked) goToSelectFile()
+    }
+
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(mainViewModel) {
+        mainViewModel.messages.collect { message ->
+            snackbarHostState.showSnackbar(context.getString(message.id, *message.args.toTypedArray()))
+        }
+    }
+
     LaunchedEffect(shortcut) {
         when (shortcut) {
             AppShortcut.GENERATOR -> {
@@ -68,243 +97,206 @@ fun AppNavigation(
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(slideDuration)
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(slideDuration)
-            )
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(slideDuration)
-            )
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(slideDuration)
-            )
-        }
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavHost(
+            navController = navController,
+            modifier = Modifier.fillMaxSize(),
+            startDestination = startDestination,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(slideDuration)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(slideDuration)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(slideDuration)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(slideDuration)
+                )
+            }
+        ) {
 
-        composable(route = NavRoutes.SELECT_FILE) {
-            SelectFileScreen(
-                onFileSelected = { uri ->
-                    val encodedUri = URLEncoder.encode(
-                        uri.toString(),
-                        StandardCharsets.UTF_8.name()
-                    )
-                    navController.navigate("${NavRoutes.UNLOCK_SCREEN}/$encodedUri")
-                },
-                onCreateDatabase = { navController.navigate(NavRoutes.CREATE_DATABASE) }
-            )
+            composable(route = NavRoutes.SELECT_FILE) {
+                SelectFileScreen(
+                    onFileSelected = { uri ->
+                        val encodedUri = URLEncoder.encode(
+                            uri.toString(),
+                            StandardCharsets.UTF_8.name()
+                        )
+                        navController.navigate("${NavRoutes.UNLOCK_SCREEN}/$encodedUri")
+                    },
+                    onCreateDatabase = { navController.navigate(NavRoutes.CREATE_DATABASE) }
+                )
 
-        }
-        composable(route = NavRoutes.CREATE_DATABASE) {
-            CreateDatabaseScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onDatabaseCreated = {
-                    navController.navigate(NavRoutes.ENTRY_LIST) {
-                        popUpTo(NavRoutes.SELECT_FILE) { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable(
-            route = "${NavRoutes.UNLOCK_SCREEN}/{uri}",
-            arguments = listOf(navArgument("uri") { type = NavType.StringType })
-        ) { navBackStackEntry ->
-            val uriString = navBackStackEntry.arguments?.getString("uri")
-            if (uriString != null) {
-                val uri = uriString.toUri()
-                UnlockScreen(
-                    uri = uri,
-                    onUnlockSuccess = {
+            }
+            composable(route = NavRoutes.CREATE_DATABASE) {
+                CreateDatabaseScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onDatabaseCreated = {
                         navController.navigate(NavRoutes.ENTRY_LIST) {
                             popUpTo(NavRoutes.SELECT_FILE) { inclusive = true }
                         }
-                    },
-                    onNavigateBack = { navController.popBackStack() }
+                    }
                 )
-            } else {
-                navController.popBackStack()
             }
-        }
-        composable(route = NavRoutes.ENTRY_LIST) {
-            // Shortcuts that need an open vault are carried out here, once the entries show.
-            LaunchedEffect(shortcut, isLocked) {
-                if (isLocked) return@LaunchedEffect
-                when (shortcut) {
-                    AppShortcut.NEW_ENTRY -> {
-                        mainViewModel.onShortcutHandled()
-                        navController.navigate(NavRoutes.ENTRY_FORM)
-                    }
-                    AppShortcut.SEARCH -> {
-                        mainViewModel.onShortcutHandled()
-                        focusSearch = true
-                    }
-                    else -> Unit
-                }
-            }
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
-                    }
-                }
-            } else {
-                val twoPane = isTwoPaneWidth()
-                val entryList: @Composable (onEntryClick: (UUID) -> Unit) -> Unit = { onEntryClick ->
-                    EntryListScreen(
-                        focusSearch = focusSearch,
-                        onSearchFocused = { focusSearch = false },
-                        onNavigateToLock = {
-                            navController.navigate(NavRoutes.SELECT_FILE) {
-                                popUpTo(NavRoutes.ENTRY_LIST) { inclusive = true }
+            composable(
+                route = "${NavRoutes.UNLOCK_SCREEN}/{uri}",
+                arguments = listOf(navArgument("uri") { type = NavType.StringType })
+            ) { navBackStackEntry ->
+                val uriString = navBackStackEntry.arguments?.getString("uri")
+                if (uriString != null) {
+                    val uri = uriString.toUri()
+                    UnlockScreen(
+                        uri = uri,
+                        onUnlockSuccess = {
+                            navController.navigate(NavRoutes.ENTRY_LIST) {
+                                popUpTo(NavRoutes.SELECT_FILE) { inclusive = true }
                             }
                         },
-                        onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
-                        onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
-                        onNavigateToHealth = { navController.navigate(NavRoutes.PASSWORD_HEALTH) },
-                        onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
-                        onAddEntry = { groupUuid ->
-                            val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
-                            navController.navigate(route)
-                        },
-                        onEntryClick = onEntryClick,
-                        selectedEntry = selectedEntry.takeIf { twoPane }
+                        onNavigateBack = { navController.popBackStack() },
+                        onReplaceFile = { replacement ->
+                            val encoded = URLEncoder.encode(replacement.toString(), StandardCharsets.UTF_8.name())
+                            navController.navigate("${NavRoutes.UNLOCK_SCREEN}/$encoded") {
+                                popUpTo(navBackStackEntry.destination.id) { inclusive = true }
+                            }
+                        }
+                    )
+                } else {
+                    navController.popBackStack()
+                }
+            }
+            composable(route = NavRoutes.ENTRY_LIST) {
+                // Shortcuts that need an open vault are carried out here, once the entries show.
+                LaunchedEffect(shortcut, isLocked) {
+                    if (isLocked) return@LaunchedEffect
+                    when (shortcut) {
+                        AppShortcut.NEW_ENTRY -> {
+                            mainViewModel.onShortcutHandled()
+                            navController.navigate(NavRoutes.ENTRY_FORM)
+                        }
+                        AppShortcut.SEARCH -> {
+                            mainViewModel.onShortcutHandled()
+                            focusSearch = true
+                        }
+                        else -> Unit
+                    }
+                }
+                if (!isLocked) {
+                    val twoPane = isTwoPaneWidth()
+                    val entryList: @Composable (onEntryClick: (UUID) -> Unit) -> Unit = { onEntryClick ->
+                        EntryListScreen(
+                            focusSearch = focusSearch,
+                            onSearchFocused = { focusSearch = false },
+                            onNavigateToLock = goToSelectFile,
+                            onNavigateToSettings = { navController.navigate(NavRoutes.SETTINGS) },
+                            onNavigateToRecycleBin = { navController.navigate(NavRoutes.RECYCLE_BIN) },
+                            onNavigateToHealth = { navController.navigate(NavRoutes.PASSWORD_HEALTH) },
+                            onNavigateToGenerator = { navController.navigate(NavRoutes.PASSWORD_GENERATOR) },
+                            onAddEntry = { groupUuid ->
+                                val route = if (groupUuid != null) "${NavRoutes.ENTRY_FORM}?group=$groupUuid" else NavRoutes.ENTRY_FORM
+                                navController.navigate(route)
+                            },
+                            onEntryClick = onEntryClick,
+                            selectedEntry = selectedEntry.takeIf { twoPane }
+                        )
+                    }
+                    if (twoPane) {
+                        EntryListDetailLayout(
+                            selectedEntry = selectedEntry,
+                            onSelectEntry = { selectedEntry = it },
+                            onNavigateToEdit = { uuid -> navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid") }
+                        ) { onEntryClick -> entryList(onEntryClick) }
+                    } else {
+                        entryList { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
+                    }
+                }
+            }
+            composable(route = NavRoutes.PASSWORD_HEALTH) {
+                if (!isLocked) {
+                    PasswordHealthScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onEntryClick = { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
                     )
                 }
-                if (twoPane) {
-                    EntryListDetailLayout(
-                        selectedEntry = selectedEntry,
-                        onSelectEntry = { selectedEntry = it },
-                        onNavigateToEdit = { uuid -> navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid") }
-                    ) { onEntryClick -> entryList(onEntryClick) }
-                } else {
-                    entryList { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
+            }
+            composable(route = NavRoutes.RECYCLE_BIN) {
+                if (!isLocked) {
+                    RecycleBinScreen(onNavigateBack = { navController.popBackStack() })
                 }
             }
-        }
-        composable(route = NavRoutes.PASSWORD_HEALTH) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.PASSWORD_HEALTH) { inclusive = true }
-                    }
+            composable(route = NavRoutes.SETTINGS) {
+                if (!isLocked) {
+                    SettingsScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
+                        onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
+                    )
                 }
-            } else {
-                PasswordHealthScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onEntryClick = { uuid -> navController.navigate("${NavRoutes.ENTRY_DETAIL}/$uuid") }
-                )
             }
-        }
-        composable(route = NavRoutes.RECYCLE_BIN) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.RECYCLE_BIN) { inclusive = true }
-                    }
+            composable(route = NavRoutes.DATABASE_SETTINGS) {
+                if (!isLocked) {
+                    DatabaseSettingsScreen(onNavigateBack = { navController.popBackStack() })
                 }
-            } else {
-                RecycleBinScreen(onNavigateBack = { navController.popBackStack() })
             }
-        }
-        composable(route = NavRoutes.SETTINGS) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.SETTINGS) { inclusive = true }
-                    }
+            composable(route = NavRoutes.CHANGE_PASSWORD) {
+                if (!isLocked) {
+                    ChangeMasterPasswordScreen(onNavigateBack = { navController.popBackStack() })
                 }
-            } else {
-                SettingsScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
-                    onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
-                )
             }
-        }
-        composable(route = NavRoutes.DATABASE_SETTINGS) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.DATABASE_SETTINGS) { inclusive = true }
-                    }
-                }
-            } else {
-                DatabaseSettingsScreen(onNavigateBack = { navController.popBackStack() })
+            composable(route = NavRoutes.PASSWORD_GENERATOR) {
+                PasswordGeneratorScreen(onNavigateBack = { navController.popBackStack() })
             }
-        }
-        composable(route = NavRoutes.CHANGE_PASSWORD) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.CHANGE_PASSWORD) { inclusive = true }
-                    }
+            composable(
+                route = "${NavRoutes.ENTRY_DETAIL}/{uuid}",
+                arguments = listOf(navArgument("uuid") { type = NavType.StringType })
+            ) {
+                if (!isLocked) {
+                    EntryDetailScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToEdit = { uuid ->
+                            navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid")
+                        }
+                    )
                 }
-            } else {
-                ChangeMasterPasswordScreen(onNavigateBack = { navController.popBackStack() })
             }
-        }
-        composable(route = NavRoutes.PASSWORD_GENERATOR) {
-            PasswordGeneratorScreen(onNavigateBack = { navController.popBackStack() })
-        }
-        composable(
-            route = "${NavRoutes.ENTRY_DETAIL}/{uuid}",
-            arguments = listOf(navArgument("uuid") { type = NavType.StringType })
-        ) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.ENTRY_DETAIL) { inclusive = true }
-                    }
-                }
-            } else {
-                EntryDetailScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onNavigateToEdit = { uuid ->
-                        navController.navigate("${NavRoutes.ENTRY_FORM}?uuid=$uuid")
+            composable(
+                route = "${NavRoutes.ENTRY_FORM}?uuid={uuid}&group={group}",
+                arguments = listOf(
+                    navArgument("uuid") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("group") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
                     }
                 )
-            }
-
-        }
-        composable(
-            route = "${NavRoutes.ENTRY_FORM}?uuid={uuid}&group={group}",
-            arguments = listOf(
-                navArgument("uuid") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-                navArgument("group") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
+            ) {
+                if (!isLocked) {
+                    EntryFormScreen(onNavigateBack = { navController.popBackStack() })
                 }
-            )
-        ) {
-            if (isLocked) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavRoutes.SELECT_FILE) {
-                        popUpTo(NavRoutes.ENTRY_FORM) { inclusive = true }
-                    }
-                }
-            } else {
-                EntryFormScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .imePadding()
+        )
     }
 }
