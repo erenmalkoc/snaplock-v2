@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
@@ -36,6 +38,7 @@ import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.AppTextButton
 import com.erenium.snaplock.ui.components.PasswordTextField
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.rememberFingerprintPrompt
 import com.erenium.snaplock.ui.theme.Dimens
 
 @Composable
@@ -58,6 +61,16 @@ fun ChangeMasterPasswordScreen(
         viewModel.done.collect { onNavigateBack() }
     }
 
+    val fingerprintPrompt = rememberFingerprintPrompt(
+        subtitle = "",
+        onSucceeded = viewModel::onBiometricSucceeded,
+        onError = { viewModel.onBiometricError() }
+    )
+    LaunchedEffect(state.enrollFingerprint) {
+        if (!state.enrollFingerprint) return@LaunchedEffect
+        viewModel.takeCipher()?.let(fingerprintPrompt::showEnroll)
+    }
+
     AppScaffold(
         title = stringResource(R.string.change_password_title),
         onNavigateBack = onNavigateBack
@@ -78,7 +91,8 @@ fun ChangeMasterPasswordScreen(
                 onValueChange = viewModel::onPasswordChange,
                 label = stringResource(R.string.change_password_new),
                 placeholder = "",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                imeAction = ImeAction.Next
             )
             Spacer(modifier = Modifier.height(Dimens.spaceSm))
             PasswordTextField(
@@ -87,6 +101,7 @@ fun ChangeMasterPasswordScreen(
                 label = stringResource(R.string.create_db_confirm),
                 placeholder = "",
                 modifier = Modifier.fillMaxWidth(),
+                keyboardActions = KeyboardActions(onDone = { viewModel.onSave() }),
                 isError = state.errorStringId != null,
                 supportingText = state.errorStringId?.let { errorId ->
                     { Text(stringResource(errorId), color = MaterialTheme.colorScheme.error) }

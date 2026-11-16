@@ -2,6 +2,7 @@ package com.erenium.snaplock.data.datasource.local
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,10 @@ class DocumentFiles @Inject constructor(
             val stream = context.contentResolver.openOutputStream(uri, "wt") ?: throw IOException("Cannot open $uri")
             stream.use { it.write(content) }
         }
+    }
+
+    suspend fun delete(uri: Uri): Boolean = withContext(Dispatchers.IO) {
+        runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }.getOrDefault(false)
     }
 
     /** The name a provider shows for the file, or a name taken from the URI. */

@@ -22,9 +22,24 @@ class RecentDatabasesPrefs @Inject constructor(@ApplicationContext context: Cont
     private val _uris = MutableStateFlow(readUris())
     val uris: StateFlow<List<Uri>> = _uris.asStateFlow()
 
-    fun add(uri: Uri) = update { current -> listOf(uri) + (current - uri) }
+    fun add(uri: Uri) {
+        update { current -> listOf(uri) + (current - uri) }
+        prefs.edit { putString(openedKey(uri), System.currentTimeMillis().toString()) }
+    }
 
     fun remove(uri: Uri) = update { current -> current - uri }
+
+    /** Puts [uri] back at [index], as it was before [remove]. */
+    fun restore(uri: Uri, index: Int) = update { current ->
+        val without = current - uri
+        without.take(index) + uri + without.drop(index)
+    }
+
+    fun indexOf(uri: Uri): Int = _uris.value.indexOf(uri)
+
+    fun lastOpened(uri: Uri): Long? = prefs.getString(openedKey(uri), null)?.toLongOrNull()
+
+    fun forgetOpened(uri: Uri) = prefs.edit { remove(openedKey(uri)) }
 
     private fun update(transform: (List<Uri>) -> List<Uri>) {
         val next = transform(_uris.value).take(MAX_RECENT)
@@ -39,9 +54,12 @@ class RecentDatabasesPrefs @Inject constructor(@ApplicationContext context: Cont
             ?.map { it.toUri() }
             .orEmpty()
 
+    private fun openedKey(uri: Uri) = OPENED_PREFIX + uri
+
     private companion object {
         const val PREFS_NAME = "snaplock_recent_databases"
         const val KEY_URIS = "uris"
+        const val OPENED_PREFIX = "opened:"
         const val SEPARATOR = "\n"
         const val MAX_RECENT = 5
     }

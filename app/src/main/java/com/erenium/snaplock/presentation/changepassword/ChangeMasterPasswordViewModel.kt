@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
 import com.erenium.snaplock.data.datasource.local.DocumentFiles
-import com.erenium.snaplock.data.datasource.prefs.EncryptedPrefs
+import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.prefs.KeyFilePrefs
-import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
+import com.erenium.snaplock.data.datasource.security.BiometricAvailability
+import com.erenium.snaplock.data.datasource.security.BiometricVault
+import com.erenium.snaplock.data.datasource.security.CipherResult
 import com.erenium.snaplock.domain.usecase.ChangeCredentialsUseCase
+import com.erenium.snaplock.presentation.main.AppMessages
 import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.crypto.Cipher
 import javax.inject.Inject
 
 data class ChangeMasterPasswordUiState(
@@ -26,6 +30,7 @@ data class ChangeMasterPasswordUiState(
     val keyFileName: String? = null,
     val isSaving: Boolean = false,
     val hadKeyFile: Boolean = false,
+    val enrollFingerprint: Boolean = false,
     val errorStringId: Int? = null
 ) {
     val dropsKeyFile: Boolean get() = hadKeyFile && keyFileUri == null
@@ -38,9 +43,13 @@ class ChangeMasterPasswordViewModel @Inject constructor(
     private val changeCredentials: ChangeCredentialsUseCase,
     private val documentFiles: DocumentFiles,
     private val keyFilePrefs: KeyFilePrefs,
-    private val encryptedPrefs: EncryptedPrefs,
-    private val recentDatabasesPrefs: RecentDatabasesPrefs
+    private val sessionCache: SessionCache,
+    private val vault: BiometricVault,
+    private val appMessages: AppMessages
 ) : ViewModel() {
+
+    private var pendingPassword: CharArray? = null
+    private var activeEnrollment = false
 
     private val _uiState = MutableStateFlow(currentKeyFileState())
     val uiState = _uiState.asStateFlow()
@@ -49,7 +58,7 @@ class ChangeMasterPasswordViewModel @Inject constructor(
     val done = _done.receiveAsFlow()
 
     private fun currentKeyFileState(): ChangeMasterPasswordUiState {
-        val keyFile = recentDatabasesPrefs.uris.value.firstOrNull()?.let { keyFilePrefs.get(it) }
+        val keyFile = sessionCache.getUri()?.let { keyFilePrefs.get(it) }
             ?: return ChangeMasterPasswordUiState()
         return ChangeMasterPasswordUiState(
             keyFileUri = keyFile,
@@ -85,14 +94,67 @@ class ChangeMasterPasswordViewModel @Inject constructor(
             }
             changeCredentials(state.password, keyFile)
                 .onSuccess {
-                    // The biometric copy holds the old password, so it would only fail from now on.
-                    encryptedPrefs.clear()
-                    // The open database is always the most recently opened one.
-                    recentDatabasesPrefs.uris.value.firstOrNull()?.let { keyFilePrefs.set(it, state.keyFileUri) }
-                    _done.trySend(Unit)
+                    val database = sessionCache.getUri()
+                    var offerEnrollment = false
+                    if (database != null) {
+                        keyFilePrefs.set(database, state.keyFileUri)
+                        val wasEnabled = vault.isEnabled(database)
+                        vault.disable(database)
+                        if (wasEnabled) {
+                            offerEnrollment = vault.availability() == BiometricAvailability.AVAILABLE
+                            if (!offerEnrollment) appMessages.post(R.string.change_password_fingerprint_off)
+                        }
+                    }
+                    if (offerEnrollment) {
+                        pendingPassword = state.password.toCharArray()
+                        _uiState.update { it.copy(enrollFingerprint = true) }
+                    } else {
+                        _done.trySend(Unit)
+                    }
                 }
                 .onFailure { error -> _uiState.update { it.copy(isSaving = false, errorStringId = error.saveErrorMessage()) } }
         }
+    }
+
+    fun takeCipher(): Cipher? {
+        if (!_uiState.value.enrollFingerprint) return null
+        _uiState.update { it.copy(enrollFingerprint = false) }
+        val result = vault.enrollCipher()
+        if (result is CipherResult.Ready) {
+            activeEnrollment = true
+            return result.cipher
+        }
+        finishWithoutEnrollment()
+        return null
+    }
+
+    fun onBiometricSucceeded(cipher: Cipher) {
+        if (!activeEnrollment) return
+        activeEnrollment = false
+        val database = sessionCache.getUri()
+        val password = pendingPassword
+        pendingPassword = null
+        val sealed = database != null && password != null && vault.seal(database, cipher, password)
+        password?.fill('\u0000')
+        if (sealed) _done.trySend(Unit) else finishWithoutEnrollment()
+    }
+
+    fun onBiometricError() {
+        if (!activeEnrollment) return
+        activeEnrollment = false
+        finishWithoutEnrollment()
+    }
+
+    private fun finishWithoutEnrollment() {
+        pendingPassword?.fill('\u0000')
+        pendingPassword = null
+        appMessages.post(R.string.change_password_fingerprint_off)
+        _done.trySend(Unit)
+    }
+
+    override fun onCleared() {
+        pendingPassword?.fill('\u0000')
+        pendingPassword = null
     }
 
     private companion object {

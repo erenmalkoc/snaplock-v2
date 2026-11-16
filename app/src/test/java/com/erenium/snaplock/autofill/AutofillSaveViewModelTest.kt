@@ -2,8 +2,7 @@ package com.erenium.snaplock.autofill
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.erenium.snaplock.data.datasource.prefs.RecentDatabasesPrefs
-import com.erenium.snaplock.data.repository.RecentDatabasesRepository
+import com.erenium.snaplock.testing.testRecentRepository
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.testing.FakeKdbxRepository
@@ -31,7 +30,7 @@ class AutofillSaveViewModelTest {
 
     private fun viewModel() = AutofillSaveViewModel(
         repository,
-        RecentDatabasesRepository(context, RecentDatabasesPrefs(context))
+        testRecentRepository(context)
     )
 
     private fun withGithubEntry() {

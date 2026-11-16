@@ -30,6 +30,8 @@ class FakeKdbxRepository : KdbxRepository {
     val attachments = mutableMapOf<UUID, MutableMap<String, ByteArray>>()
     /** Key file passed to the last unlockDatabase call. */
     var lastKeyFile: ByteArray? = null
+    /** Password passed to the last unlockDatabase call. */
+    var lastPassword: String? = null
     val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
     /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
@@ -40,15 +42,18 @@ class FakeKdbxRepository : KdbxRepository {
     val backups = mutableMapOf<VaultBackup, ByteArray>()
 
     var unlockFailure: Throwable? = null
+    var createFailure: Throwable? = null
 
     override suspend fun unlockDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
         lastKeyFile = keyFile
+        lastPassword = password.toString()
         unlockFailure?.let { return Result.failure(it) }
         locked.value = false
         return Result.success(Unit)
     }
 
     override suspend fun createDatabase(uri: Uri, password: CharSequence, keyFile: ByteArray?): Result<Unit> {
+        createFailure?.let { return Result.failure(it) }
         locked.value = false
         return Result.success(Unit)
     }
