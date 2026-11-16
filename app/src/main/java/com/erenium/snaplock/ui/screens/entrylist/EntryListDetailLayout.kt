@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -53,6 +54,7 @@ fun EntryListDetailLayout(
                 // One detail model for the pane; it follows the selection.
                 val viewModel: EntryDetailViewModel = hiltViewModel(key = "entry-detail-pane")
                 LaunchedEffect(selectedEntry) { viewModel.show(selectedEntry) }
+                DisposableEffect(viewModel) { onDispose { viewModel.clear() } }
                 EntryDetailScreen(
                     onNavigateBack = { onSelectEntry(null) },
                     onNavigateToEdit = onNavigateToEdit,

@@ -95,7 +95,10 @@ class FakeKdbxRepository : KdbxRepository {
         return Result.success(Unit)
     }
 
+    var deleteFailure: Throwable? = null
+
     override suspend fun deleteEntry(uuid: UUID): Result<Unit> {
+        deleteFailure?.let { return Result.failure(it) }
         val live = entries.value.firstOrNull { it.uuid == uuid }
         if (live != null) {
             entries.value = entries.value - live

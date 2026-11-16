@@ -26,7 +26,7 @@
     <string name="back_button">Geri</string>
     <string name="entry_username_label">Kullanıcı adı</string>
     <string name="entry_password_label">Parola</string>
-    <string name="entry_loading_title">...</string>
+    <string name="entry_loading_title"></string>
     <string name="entry_load_error">Giriş yüklenemedi.</string>
     <string name="untitled_entry">Başlık Yok</string>
     <string name="locked_database_error">Veritabanı kilitli veya yüklenmemiş.</string>
@@ -81,7 +81,7 @@
     <string name="entry_form_save">Kaydet</string>
     <string name="entry_save_error">Kayıt kaydedilemedi.</string>
     <string name="entry_delete_title">Kaydı sil</string>
-    <string name="entry_delete_message">Bu kaydı silmek istediğinize emin misiniz?</string>
+    <string name="entry_delete_message">Bu kayıt geri dönüşüm kutusuna taşınacak. Oradan geri yükleyebilirsiniz.</string>
     <string name="entry_delete_confirm">Sil</string>
     <string name="entry_delete_error">Kayıt silinemedi.</string>
     <string name="vault_changed_elsewhere">Veritabanı dosyası başka bir yerde değiştirilmiş ve birleştirilemiyor. Parolası değişmiş olabilir. Hiçbir şey kaydedilmedi. Veritabanını kilitleyip yeniden açın.</string>
@@ -312,4 +312,18 @@
     <string name="search_match_url">URL eşleşti</string>
     <string name="search_match_notes">Notlar eşleşti</string>
     <string name="entry_add_button">Kayıt ekle</string>
+    <string name="detail_expand">Tam değeri göster</string>
+    <string name="detail_collapse">Daha az göster</string>
+    <plurals name="copied_to_clipboard_clears">
+        <item quantity="one">%1$s kopyalandı. %2$d saniye sonra temizlenecek.</item>
+        <item quantity="other">%1$s kopyalandı. %2$d saniye sonra temizlenecek.</item>
+    </plurals>
+    <plurals name="otp_seconds_left">
+        <item quantity="one">%d saniye kaldı</item>
+        <item quantity="other">%d saniye kaldı</item>
+    </plurals>
+    <string name="otp_show">Kodu göster</string>
+    <string name="otp_hide">Kodu gizle</string>
+    <string name="entry_delete_message_permanent">Bu kayıt kalıcı olarak silinecek. Bu işlem geri alınamaz.</string>
+    <string name="attachment_remove_title">Bu dosya kaldırılsın mı?</string>
 </resources>

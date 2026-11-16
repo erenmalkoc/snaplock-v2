@@ -15,8 +15,11 @@ import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
+import com.erenium.snaplock.domain.usecase.GetRecycleBinEnabledUseCase
 import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
+import com.erenium.snaplock.presentation.DeletedEntry
+import com.erenium.snaplock.presentation.RecentlyDeleted
 import com.erenium.snaplock.presentation.saveErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -32,11 +35,17 @@ import javax.inject.Inject
 data class EntryDetailUiState(
     val entry: EntryDetail? = null,
     val isLoading: Boolean = true,
+    /** Set only while the entry could not be loaded; other failures go through messages. */
     val errorStringId: Int? = null,
     val isPasswordVisible: Boolean = false,
     /** Names of protected custom fields the user chose to show. */
-    val revealedFields: Set<String> = emptySet()
+    val revealedFields: Set<String> = emptySet(),
+    /** Whether deleting the entry moves it to the recycle bin instead of removing it for good. */
+    val recycleBinEnabled: Boolean = true
 )
+
+/** A copied field and the seconds until the clipboard is cleared, if it clears itself. */
+data class CopyEvent(val label: String, val clearSeconds: Int?)
 
 @HiltViewModel
 class EntryDetailViewModel @Inject constructor(
@@ -48,14 +57,15 @@ class EntryDetailViewModel @Inject constructor(
     private val getAttachmentUseCase: GetAttachmentUseCase,
     private val removeAttachmentUseCase: RemoveAttachmentUseCase,
     private val documentFiles: DocumentFiles,
-    private val clipboardManager: ClipboardManagerHelper
+    private val clipboardManager: ClipboardManagerHelper,
+    private val getRecycleBinEnabled: GetRecycleBinEnabledUseCase,
+    private val recentlyDeleted: RecentlyDeleted
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState = _uiState.asStateFlow()
 
-    /** Label of the field just copied, for the confirmation message. */
-    private val _copyEvents = Channel<String>(Channel.BUFFERED)
+    private val _copyEvents = Channel<CopyEvent>(Channel.BUFFERED)
     val copyEvents = _copyEvents.receiveAsFlow()
 
     private val _restoredEvents = Channel<Unit>(Channel.BUFFERED)
@@ -89,19 +99,30 @@ class EntryDetailViewModel @Inject constructor(
         loadEntryDetails()
     }
 
+    /** Forgets the entry, so showing it again later starts hidden and fresh. */
+    fun clear() {
+        loadJob?.cancel()
+        entryUuid = null
+        _uiState.value = EntryDetailUiState()
+    }
+
     private fun loadEntryDetails() {
         val uuid = entryUuid?.let(UUID::fromString) ?: return
         // A slower load for the previous entry must not overwrite this one.
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            // Reloading an entry that is already on screen stays silent: no spinner, no jump.
+            _uiState.update { if (it.entry == null) it.copy(isLoading = true, errorStringId = null) else it }
 
             val result = getEntryDetailsUseCase(uuid)
 
             result.onSuccess { entry ->
-                _uiState.update { it.copy(isLoading = false, entry = entry) }
+                val toBin = getRecycleBinEnabled()
+                _uiState.update {
+                    it.copy(isLoading = false, entry = entry, errorStringId = null, recycleBinEnabled = toBin)
+                }
             }.onFailure {
-                _uiState.update { it.copy(isLoading = false, errorStringId = R.string.entry_load_error) }
+                _uiState.update { it.copy(isLoading = false, entry = null, errorStringId = R.string.entry_load_error) }
             }
         }
     }
@@ -114,26 +135,30 @@ class EntryDetailViewModel @Inject constructor(
         val password = _uiState.value.entry?.password
         if (password.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = password)
-        _copyEvents.trySend(label)
+        copied(label)
     }
 
     fun onCopyUsername(label: String) {
         val username = _uiState.value.entry?.username
         if (username.isNullOrEmpty()) return
         clipboardManager.copyToClipboard(label = label, text = username, sensitive = false)
-        _copyEvents.trySend(label)
+        copied(label)
     }
 
     fun onCopyOtp(label: String) {
         val otp = _uiState.value.entry?.otp ?: return
         clipboardManager.copyToClipboard(label = label, text = Totp.code(otp, System.currentTimeMillis()))
-        _copyEvents.trySend(label)
+        copied(label)
     }
 
     fun onCopyCustomField(field: CustomField) {
         if (field.value.isEmpty()) return
         clipboardManager.copyToClipboard(label = field.name, text = field.value, sensitive = field.isProtected)
-        _copyEvents.trySend(field.name)
+        copied(field.name)
+    }
+
+    private fun copied(label: String) {
+        _copyEvents.trySend(CopyEvent(label, clipboardManager.autoClearSeconds()))
     }
 
     fun toggleFieldVisibility(name: String) {
@@ -150,7 +175,7 @@ class EntryDetailViewModel @Inject constructor(
                     loadEntryDetails()
                     _restoredEvents.trySend(Unit)
                 }
-                .onFailure { error -> _uiState.update { it.copy(errorStringId = error.saveErrorMessage()) } }
+                .onFailure { error -> message(error.saveErrorMessage()) }
         }
     }
 
@@ -194,12 +219,16 @@ class EntryDetailViewModel @Inject constructor(
     }
 
     fun onDelete() {
+        val uuid = currentUuid
+        val title = _uiState.value.entry?.title
         viewModelScope.launch {
-            deleteEntryUseCase(currentUuid)
-                .onSuccess { _deletedEvents.trySend(Unit) }
-                .onFailure { error ->
-                    _uiState.update { it.copy(errorStringId = error.saveErrorMessage(R.string.entry_delete_error)) }
+            val toBin = getRecycleBinEnabled()
+            deleteEntryUseCase(uuid)
+                .onSuccess {
+                    if (toBin && title != null) recentlyDeleted.moved(DeletedEntry(uuid, title))
+                    _deletedEvents.trySend(Unit)
                 }
+                .onFailure { error -> message(error.saveErrorMessage(R.string.entry_delete_error)) }
         }
     }
 

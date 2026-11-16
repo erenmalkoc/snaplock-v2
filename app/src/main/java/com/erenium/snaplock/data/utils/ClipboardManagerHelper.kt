@@ -50,6 +50,10 @@ class ClipboardManagerHelper @Inject constructor(
         }
     }
 
+    /** Seconds until a copied value is removed, or null when auto-clear is off. */
+    fun autoClearSeconds(): Int? =
+        settingsPrefs.settings.value.takeIf { it.clipboardAutoClear }?.clipboardTimeoutSeconds
+
     private fun clearIfStillOurs(token: Long) {
         if (ownedClipToken != token) return
         ownedClipToken = null

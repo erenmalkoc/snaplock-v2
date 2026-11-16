@@ -14,6 +14,7 @@ import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
+import com.erenium.snaplock.domain.usecase.GetRecycleBinEnabledUseCase
 import com.erenium.snaplock.domain.usecase.RemoveAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.RestoreVersionUseCase
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
@@ -59,7 +60,9 @@ class EntryDetailAttachmentsTest {
         GetAttachmentUseCase(repository),
         RemoveAttachmentUseCase(repository),
         documentFiles,
-        ClipboardManagerHelper(context, SettingsPrefs(context))
+        ClipboardManagerHelper(context, SettingsPrefs(context)),
+        GetRecycleBinEnabledUseCase(repository),
+        RecentlyDeleted()
     )
 
     // DocumentFiles runs on a real IO thread, so wait in real time rather than test time.

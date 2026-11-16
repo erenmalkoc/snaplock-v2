@@ -1,7 +1,5 @@
 package com.erenium.snaplock.ui.screens.entrydetail
 
-import com.erenium.snaplock.ui.components.AppTextButton
-import androidx.compose.material.icons.filled.Restore
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +22,7 @@ import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
@@ -33,6 +32,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -45,7 +45,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -55,35 +54,43 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.erenium.snaplock.R
+import com.erenium.snaplock.domain.model.CustomField
+import com.erenium.snaplock.domain.model.EntryVersion
+import com.erenium.snaplock.domain.otp.OtpParameters
+import com.erenium.snaplock.domain.otp.Totp
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
+import com.erenium.snaplock.presentation.entryform.formatExpiryDate
 import com.erenium.snaplock.ui.components.AppCard
 import com.erenium.snaplock.ui.components.AppScaffold
+import com.erenium.snaplock.ui.components.AppTextButton
 import com.erenium.snaplock.ui.components.DetailFieldRow
 import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.theme.Dimens
-import com.erenium.snaplock.domain.model.EntryVersion
-import com.erenium.snaplock.domain.otp.OtpParameters
-import com.erenium.snaplock.domain.otp.Totp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.UUID
@@ -99,32 +106,41 @@ fun EntryDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     val usernameLabel = stringResource(R.string.entry_username_label)
     val passwordLabel = stringResource(R.string.entry_password_label)
-    val copiedTemplate = stringResource(R.string.copied_to_clipboard)
     val openUrlError = stringResource(R.string.open_url_error)
     val restoredMessage = stringResource(R.string.entry_history_restored)
-    var selectedVersion by remember { mutableStateOf<EntryVersion?>(null) }
+    var selectedVersionIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    val resources = LocalResources.current
     LaunchedEffect(viewModel) {
-        viewModel.copyEvents.collect { fieldName ->
-            snackbarHostState.showSnackbar(String.format(copiedTemplate, fieldName))
+        viewModel.copyEvents.collect { event ->
+            val text = if (event.clearSeconds != null) {
+                resources.getQuantityString(
+                    R.plurals.copied_to_clipboard_clears,
+                    event.clearSeconds,
+                    event.label,
+                    event.clearSeconds
+                )
+            } else {
+                resources.getString(R.string.copied_to_clipboard, event.label)
+            }
+            snackbarHostState.showSnackbar(text)
         }
     }
     LaunchedEffect(viewModel) {
         viewModel.restoredEvents.collect { snackbarHostState.showSnackbar(restoredMessage) }
     }
     val context = LocalContext.current
-    val resources = LocalResources.current
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { (resId, argument) ->
             snackbarHostState.showSnackbar(resources.getString(resId, argument))
         }
     }
 
-    var attachmentToSave by remember { mutableStateOf<String?>(null) }
-    var attachmentToRemove by remember { mutableStateOf<String?>(null) }
+    var attachmentToSave by rememberSaveable { mutableStateOf<String?>(null) }
+    var attachmentToRemove by rememberSaveable { mutableStateOf<String?>(null) }
     val addAttachmentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) viewModel.onAddAttachment(uri)
     }
@@ -139,7 +155,7 @@ fun EntryDetailScreen(
     attachmentToRemove?.let { name ->
         AlertDialog(
             onDismissRequest = { attachmentToRemove = null },
-            title = { Text(stringResource(R.string.attachment_remove)) },
+            title = { Text(stringResource(R.string.attachment_remove_title)) },
             text = { Text(stringResource(R.string.attachment_remove_message, name)) },
             confirmButton = {
                 AppTextButton(
@@ -175,14 +191,15 @@ fun EntryDetailScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    val selectedVersion = entry?.history?.firstOrNull { it.index == selectedVersionIndex }
     selectedVersion?.let { version ->
         VersionDialog(
             version = version,
             onRestore = {
-                selectedVersion = null
+                selectedVersionIndex = null
                 viewModel.onRestoreVersion(version.index)
             },
-            onDismiss = { selectedVersion = null }
+            onDismiss = { selectedVersionIndex = null }
         )
     }
 
@@ -190,10 +207,18 @@ fun EntryDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text(stringResource(R.string.entry_delete_title)) },
-            text = { Text(stringResource(R.string.entry_delete_message)) },
+            text = {
+                Text(
+                    stringResource(
+                        if (state.recycleBinEnabled) R.string.entry_delete_message else R.string.entry_delete_message_permanent
+                    )
+                )
+            },
             confirmButton = {
                 AppTextButton(
-                    text = stringResource(R.string.entry_delete_confirm),
+                    text = stringResource(
+                        if (state.recycleBinEnabled) R.string.entry_delete_confirm else R.string.recycle_bin_delete_forever
+                    ),
                     icon = Icons.Filled.Delete,
                     onClick = {
                         showDeleteDialog = false
@@ -233,15 +258,8 @@ fun EntryDetailScreen(
         }
     ) { contentModifier ->
         when {
-            state.isLoading -> {
+            entry == null && state.isLoading -> {
                 LoadingSpinner(modifier = contentModifier.fillMaxSize())
-            }
-
-            state.errorStringId != null -> {
-                ErrorState(
-                    modifier = contentModifier,
-                    message = stringResource(state.errorStringId!!)
-                )
             }
 
             entry != null -> {
@@ -270,16 +288,13 @@ fun EntryDetailScreen(
                         DetailFieldRow(
                             icon = Icons.Filled.Lock,
                             label = passwordLabel,
-                            value = passwordDisplay(entry.password, state.isPasswordVisible)
+                            value = passwordDisplay(entry.password, state.isPasswordVisible),
+                            valueStyle = secretStyle(state.isPasswordVisible)
                         ) {
-                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
-                                Icon(
-                                    imageVector = if (state.isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                    contentDescription = stringResource(
-                                        if (state.isPasswordVisible) R.string.hide_password_hint else R.string.show_password_hint
-                                    )
-                                )
-                            }
+                            VisibilityButton(
+                                visible = state.isPasswordVisible,
+                                onClick = viewModel::togglePasswordVisibility
+                            )
                             CopyButton(
                                 contentDescription = stringResource(R.string.copy_password_hint),
                                 onClick = { viewModel.onCopyPassword(passwordClipboardLabel) }
@@ -312,9 +327,7 @@ fun EntryDetailScreen(
                             DetailFieldRow(
                                 icon = Icons.Filled.Event,
                                 label = stringResource(if (expired) R.string.entry_expired else R.string.entry_form_expires),
-                                value = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                                    .withZone(ZoneOffset.UTC)
-                                    .format(expires),
+                                value = formatExpiryDate(expires),
                                 valueColor = if (expired) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -362,17 +375,13 @@ fun EntryDetailScreen(
                                     icon = if (field.isProtected) Icons.Filled.Lock else Icons.AutoMirrored.Filled.Label,
                                     label = field.name,
                                     value = if (visible) field.value else passwordDisplay(field.value, false),
-                                    singleLineValue = !visible
+                                    valueStyle = if (field.isProtected) secretStyle(visible) else MaterialTheme.typography.bodyLarge
                                 ) {
                                     if (field.isProtected) {
-                                        IconButton(onClick = { viewModel.toggleFieldVisibility(field.name) }) {
-                                            Icon(
-                                                imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                                contentDescription = stringResource(
-                                                    if (visible) R.string.hide_password_hint else R.string.show_password_hint
-                                                )
-                                            )
-                                        }
+                                        VisibilityButton(
+                                            visible = visible,
+                                            onClick = { viewModel.toggleFieldVisibility(field.name) }
+                                        )
                                     }
                                     CopyButton(
                                         contentDescription = stringResource(R.string.copy_field_hint, field.name),
@@ -395,7 +404,7 @@ fun EntryDetailScreen(
                                     Text(Formatter.formatShortFileSize(context, attachment.sizeBytes))
                                 },
                                 trailingContent = {
-                                    Row {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMd)) {
                                         IconButton(onClick = {
                                             attachmentToSave = attachment.name
                                             saveAttachmentLauncher.launch(attachment.name)
@@ -403,7 +412,10 @@ fun EntryDetailScreen(
                                             Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.attachment_save))
                                         }
                                         IconButton(onClick = { attachmentToRemove = attachment.name }) {
-                                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.attachment_remove))
+                                            Icon(
+                                                Icons.Filled.DeleteOutline,
+                                                contentDescription = stringResource(R.string.attachment_remove)
+                                            )
                                         }
                                     }
                                 }
@@ -424,7 +436,7 @@ fun EntryDetailScreen(
                             entry.history.forEachIndexed { index, version ->
                                 if (index > 0) HorizontalDivider()
                                 ListItem(
-                                    modifier = Modifier.clickable { selectedVersion = version },
+                                    modifier = Modifier.clickable { selectedVersionIndex = version.index },
                                     leadingContent = { Icon(Icons.Filled.History, contentDescription = null) },
                                     headlineContent = { Text(formatModified(version)) },
                                     supportingContent = {
@@ -440,6 +452,16 @@ fun EntryDetailScreen(
                     }
                 }
             }
+
+            state.errorStringId != null -> {
+                ErrorState(
+                    modifier = contentModifier,
+                    message = stringResource(state.errorStringId!!),
+                    onRetry = viewModel::reload
+                )
+            }
+
+            else -> LoadingSpinner(modifier = contentModifier.fillMaxSize())
         }
     }
 }
@@ -450,6 +472,7 @@ private fun OtpRow(
     label: String,
     onCopy: (String) -> Unit
 ) {
+    var codeVisible by rememberSaveable { mutableStateOf(true) }
     // Ticks on each second boundary so the code flips exactly when the period ends.
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
@@ -459,19 +482,32 @@ private fun OtpRow(
     }
     val code = remember(otp, now / 1000 / otp.period) { Totp.code(otp, now) }
     val remaining = Totp.secondsRemaining(otp, now)
+    val secondsLeft = pluralStringResource(R.plurals.otp_seconds_left, remaining.toInt(), remaining.toInt())
     DetailFieldRow(
         icon = Icons.Filled.VerifiedUser,
         label = label,
-        value = groupDigits(code),
-        valueStyle = MaterialTheme.typography.titleLarge
+        value = if (codeVisible) groupDigits(code) else "•••  •••",
+        valueStyle = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+        selectable = codeVisible
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(Dimens.iconLg)) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(Dimens.iconLg)
+                .semantics { contentDescription = secondsLeft }
+        ) {
             CircularProgressIndicator(
                 progress = { remaining / otp.period.toFloat() },
                 modifier = Modifier.fillMaxSize(),
                 strokeWidth = 2.dp
             )
             Text(text = remaining.toString(), style = MaterialTheme.typography.labelSmall)
+        }
+        IconButton(onClick = { codeVisible = !codeVisible }) {
+            Icon(
+                imageVector = if (codeVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                contentDescription = stringResource(if (codeVisible) R.string.otp_hide else R.string.otp_show)
+            )
         }
         CopyButton(
             contentDescription = stringResource(R.string.copy_field_hint, label),
@@ -494,8 +530,28 @@ private fun SectionTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = Dimens.spaceXs, top = Dimens.spaceLg, bottom = Dimens.spaceSm)
+        modifier = Modifier
+            .padding(start = Dimens.spaceXs, top = Dimens.spaceLg, bottom = Dimens.spaceSm)
+            .semantics { heading() }
     )
+}
+
+@Composable
+private fun secretStyle(visible: Boolean) =
+    if (visible) {
+        MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace)
+    } else {
+        MaterialTheme.typography.bodyLarge
+    }
+
+@Composable
+private fun VisibilityButton(visible: Boolean, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+            contentDescription = stringResource(if (visible) R.string.hide_password_hint else R.string.show_password_hint)
+        )
+    }
 }
 
 @Composable
@@ -504,24 +560,40 @@ private fun VersionDialog(
     onRestore: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    var passwordVisible by remember { mutableStateOf(false) }
+    var secretsVisible by rememberSaveable { mutableStateOf(false) }
+    val hasSecrets = !version.password.isNullOrEmpty() || version.customFields.any { it.isProtected }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(formatModified(version)) },
         text = {
-            Column {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(version.title, style = MaterialTheme.typography.titleMedium)
                 if (!version.username.isNullOrBlank()) {
-                    Text(version.username, style = MaterialTheme.typography.bodyMedium)
+                    VersionField(stringResource(R.string.entry_username_label), version.username)
                 }
                 if (!version.password.isNullOrEmpty()) {
-                    Text(
-                        text = passwordDisplay(version.password, passwordVisible),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(top = Dimens.spaceXs)
-                            .clickable { passwordVisible = !passwordVisible }
+                    VersionField(
+                        label = stringResource(R.string.entry_password_label),
+                        value = passwordDisplay(version.password, secretsVisible),
+                        monospace = secretsVisible
                     )
+                }
+                if (!version.url.isNullOrBlank()) {
+                    VersionField(stringResource(R.string.entry_url_label), version.url)
+                }
+                if (!version.notes.isNullOrBlank()) {
+                    VersionField(stringResource(R.string.entry_notes_label), version.notes)
+                }
+                version.customFields.forEach { field ->
+                    val shown = !field.isProtected || secretsVisible
+                    VersionField(
+                        label = field.name,
+                        value = if (shown) field.value else passwordDisplay(field.value, false),
+                        monospace = field.isProtected && shown
+                    )
+                }
+                if (hasSecrets) {
+                    VisibilityButton(visible = secretsVisible, onClick = { secretsVisible = !secretsVisible })
                 }
             }
         },
@@ -536,6 +608,23 @@ private fun VersionDialog(
             onClick = onDismiss
         ) }
     )
+}
+
+@Composable
+private fun VersionField(label: String, value: String, monospace: Boolean = false) {
+    Column(modifier = Modifier.padding(top = Dimens.spaceSm)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.let {
+                if (monospace) it.copy(fontFamily = FontFamily.Monospace) else it
+            }
+        )
+    }
 }
 
 @Composable
