@@ -192,8 +192,8 @@
     <string name="health_score">Puan %1$d / 100</string>
     <string name="health_all_good">%1$d parolanın hepsi iyi görünüyor.</string>
     <plurals name="health_affected">
-        <item quantity="one">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
-        <item quantity="other">%2$d şifreden %1$d tanesi ilgilenmenizi bekliyor.</item>
+        <item quantity="one">%2$d parolanın %1$d tanesi ilgilenmenizi bekliyor.</item>
+        <item quantity="other">%2$d parolanın %1$d tanesi ilgilenmenizi bekliyor.</item>
     </plurals>
     <string name="health_weak">Zayıf</string>
     <string name="health_weak_desc">Tahmin etmesi kolay. Üretilmiş parolalarla değiştirin.</string>
