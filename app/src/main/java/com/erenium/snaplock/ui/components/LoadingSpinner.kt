@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.erenium.snaplock.R
 import com.erenium.snaplock.ui.theme.Dimens
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LoadingSpinner(
     modifier: Modifier = Modifier,
@@ -28,8 +30,8 @@ fun LoadingSpinner(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(Dimens.iconLg),
+        LoadingIndicator(
+            modifier = Modifier.size(Dimens.iconXl),
             color = MaterialTheme.colorScheme.primary
         )
 

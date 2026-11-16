@@ -22,4 +22,5 @@ object Dimens {
     val iconLg = 40.dp
     val iconXl = 64.dp
     val cardElevation = 2.dp
+    val contentMaxWidth = 600.dp
 }
