@@ -1,5 +1,7 @@
 package com.erenium.snaplock.ui.screens.generator
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.Column
@@ -145,6 +147,7 @@ private fun PasswordOptionsCards(options: PasswordOptions, viewModel: PasswordGe
             onValueChangeFinished = viewModel::onLengthChangeFinished,
             valueRange = GeneratePasswordUseCase.MIN_LENGTH.toFloat()..GeneratePasswordUseCase.MAX_LENGTH.toFloat(),
             steps = GeneratePasswordUseCase.MAX_LENGTH - GeneratePasswordUseCase.MIN_LENGTH - 1,
+            colors = SliderDefaults.colors(activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
             modifier = Modifier.semantics { stateDescription = lengthState }
         )
     }
@@ -188,6 +191,7 @@ private fun PassphraseOptionsCards(options: PassphraseOptions, viewModel: Passwo
             onValueChangeFinished = viewModel::onWordCountChangeFinished,
             valueRange = GeneratePassphraseUseCase.MIN_WORDS.toFloat()..GeneratePassphraseUseCase.MAX_WORDS.toFloat(),
             steps = GeneratePassphraseUseCase.MAX_WORDS - GeneratePassphraseUseCase.MIN_WORDS - 1,
+            colors = SliderDefaults.colors(activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent),
             modifier = Modifier.semantics { stateDescription = wordsState }
         )
         Text(
