@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,8 +20,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.createdatabase.CreateDatabaseViewModel
@@ -29,6 +32,7 @@ import com.erenium.snaplock.ui.components.AppScaffold
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.components.PasswordTextField
 import com.erenium.snaplock.ui.components.PrimaryButton
+import com.erenium.snaplock.ui.components.StrengthMeter
 import com.erenium.snaplock.ui.theme.Dimens
 
 private const val DEFAULT_DATABASE_FILE_NAME = "snaplock.kdbx"
@@ -54,6 +58,10 @@ fun CreateDatabaseScreen(
             }
         }
     )
+
+    fun launchPicker() {
+        if (viewModel.onSubmit()) createDocumentLauncher.launch(DEFAULT_DATABASE_FILE_NAME)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.createdEvents.collect { onDatabaseCreated() }
@@ -93,42 +101,42 @@ fun CreateDatabaseScreen(
                 onValueChange = viewModel::onPasswordChange,
                 label = stringResource(R.string.create_db_password),
                 placeholder = stringResource(R.string.enter_password_placeholder),
+                imeAction = ImeAction.Next,
                 modifier = Modifier.fillMaxWidth()
             )
+            state.strength?.let { StrengthMeter(it) }
+            if (state.isShort) {
+                Text(
+                    text = stringResource(R.string.create_db_short_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            val showMismatch = state.confirmPassword.isNotEmpty() && !state.passwordsMatch
+            val confirmError = when {
+                state.showMismatch -> R.string.create_db_password_mismatch
+                else -> state.errorStringId
+            }
             PasswordTextField(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
                 label = stringResource(R.string.create_db_confirm),
                 placeholder = stringResource(R.string.enter_password_placeholder),
-                isError = showMismatch || state.errorStringId != null,
-                supportingText = when {
-                    showMismatch -> {
-                        {
-                            Text(
-                                text = stringResource(R.string.create_db_password_mismatch),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    state.errorStringId != null -> {
-                        {
-                            Text(
-                                text = stringResource(state.errorStringId!!),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    else -> null
+                isError = confirmError != null,
+                supportingText = confirmError?.let { errorId ->
+                    { Text(text = stringResource(errorId), color = MaterialTheme.colorScheme.error) }
                 },
-                modifier = Modifier.fillMaxWidth()
+                imeAction = ImeAction.Done,
+                keyboardActions = KeyboardActions(onDone = { launchPicker() }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { if (!it.isFocused) viewModel.onConfirmFocusLost() }
             )
 
             PrimaryButton(
                 icon = Icons.Filled.Add,
                 text = stringResource(R.string.create_db_submit),
-                onClick = { createDocumentLauncher.launch(DEFAULT_DATABASE_FILE_NAME) },
+                onClick = ::launchPicker,
                 enabled = state.canSubmit
             )
         }
