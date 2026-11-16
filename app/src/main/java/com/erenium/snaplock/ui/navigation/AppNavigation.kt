@@ -1,5 +1,6 @@
 package com.erenium.snaplock.ui.navigation
 
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -20,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import com.erenium.snaplock.presentation.main.AppShortcut
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,11 +83,11 @@ fun AppNavigation(
         if (isLocked) goToSelectFile()
     }
 
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(mainViewModel) {
         mainViewModel.messages.collect { message ->
-            snackbarHostState.showSnackbar(context.getString(message.id, *message.args.toTypedArray()))
+            snackbarHostState.showSnackbar(resources.getString(message.id, *message.args.toTypedArray()))
         }
     }
 
