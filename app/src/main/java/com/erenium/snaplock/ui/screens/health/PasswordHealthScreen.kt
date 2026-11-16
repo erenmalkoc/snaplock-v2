@@ -61,7 +61,7 @@ fun PasswordHealthScreen(
     ) { contentModifier ->
         val current = report
         if (current == null) {
-            LoadingSpinner(modifier = contentModifier)
+            LoadingSpinner(modifier = contentModifier.fillMaxSize())
             return@AppScaffold
         }
         LazyColumn(

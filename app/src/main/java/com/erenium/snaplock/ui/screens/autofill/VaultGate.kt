@@ -1,8 +1,10 @@
 package com.erenium.snaplock.ui.screens.autofill
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import com.erenium.snaplock.autofill.AutofillViewModel
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
@@ -18,7 +20,7 @@ fun VaultGate(
     val state by viewModel.uiState.collectAsState()
     val database = state.database
     when {
-        state.isLoading -> LoadingSpinner()
+        state.isLoading -> LoadingSpinner(modifier = Modifier.fillMaxSize())
         state.isLocked && database == null -> NoDatabase(onOpenApp = onOpenApp, onCancel = onCancel)
         state.isLocked && database != null -> UnlockScreen(
             uri = database.uri,

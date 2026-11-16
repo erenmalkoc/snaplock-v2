@@ -62,7 +62,7 @@ fun AutofillScreen(
 
     val database = state.database
     when {
-        state.isLoading -> LoadingSpinner()
+        state.isLoading -> LoadingSpinner(modifier = Modifier.fillMaxSize())
         state.isLocked && database == null -> NoDatabase(onOpenApp = onOpenApp, onCancel = onCancel)
         state.isLocked && database != null -> UnlockScreen(
             uri = database.uri,

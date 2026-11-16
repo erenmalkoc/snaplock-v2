@@ -46,14 +46,14 @@ fun AutofillSaveScreen(
     val database = state.database
     val decision = state.decision
     when {
-        state.isLoading -> LoadingSpinner()
+        state.isLoading -> LoadingSpinner(modifier = Modifier.fillMaxSize())
         state.isLocked && database == null -> NoDatabase(onOpenApp = onOpenApp, onCancel = onCancel)
         state.isLocked && database != null -> UnlockScreen(
             uri = database.uri,
             onUnlockSuccess = {},
             onNavigateBack = onCancel
         )
-        decision == null || decision == SaveDecision.AlreadySaved -> LoadingSpinner()
+        decision == null || decision == SaveDecision.AlreadySaved -> LoadingSpinner(modifier = Modifier.fillMaxSize())
         else -> {
             val update = decision as? SaveDecision.Update
             AppScaffold(

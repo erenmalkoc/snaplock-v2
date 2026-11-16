@@ -64,7 +64,7 @@ fun RecycleBinScreen(
         }
     ) { contentModifier ->
         when {
-            state.isLoading -> LoadingSpinner(modifier = contentModifier)
+            state.isLoading -> LoadingSpinner(modifier = contentModifier.fillMaxSize())
             state.entries.isEmpty() -> EmptyState(
                 modifier = contentModifier,
                 message = stringResource(R.string.recycle_bin_empty),
