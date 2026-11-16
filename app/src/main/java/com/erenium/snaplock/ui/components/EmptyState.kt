@@ -25,7 +25,10 @@ import com.erenium.snaplock.ui.theme.Dimens
 fun EmptyState(
     modifier: Modifier = Modifier,
     message: String = stringResource(R.string.empty_generic_message),
-    icon: ImageVector = Icons.Outlined.Inbox
+    icon: ImageVector = Icons.Outlined.Inbox,
+    actionText: String? = null,
+    actionIcon: ImageVector? = null,
+    onAction: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -47,5 +50,9 @@ fun EmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        if (actionText != null && actionIcon != null && onAction != null) {
+            Spacer(modifier = Modifier.height(Dimens.spaceLg))
+            PrimaryButton(text = actionText, icon = actionIcon, onClick = onAction, fillMaxWidth = false)
+        }
     }
 }
