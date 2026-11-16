@@ -1,5 +1,6 @@
 package com.erenium.snaplock.presentation
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -70,7 +70,7 @@ class PasswordHealthViewModelTest {
         viewModel.refresh()
         // The analysis runs on Dispatchers.Default, so wait in real time.
         val report = withContext(Dispatchers.Default.limitedParallelism(1)) {
-            withTimeout(5_000) { viewModel.report.filterNotNull().first() }
+            awaitReal { viewModel.report.filterNotNull().first() }
         }
 
         assertEquals(listOf("Forum"), report.weak.map { it.title })
@@ -95,12 +95,12 @@ class PasswordHealthViewModelTest {
 
     private suspend fun PasswordHealthViewModel.awaitReport() =
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            withTimeout(5_000) { report.filterNotNull().first() }
+            awaitReal { report.filterNotNull().first() }
         }
 
     private suspend fun PasswordHealthViewModel.awaitIdle() =
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            withTimeout(5_000) { refreshing.first { !it } }
+            awaitReal { refreshing.first { !it } }
         }
 
     @Test

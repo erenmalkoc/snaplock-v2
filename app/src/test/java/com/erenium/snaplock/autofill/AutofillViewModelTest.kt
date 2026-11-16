@@ -1,5 +1,6 @@
 package com.erenium.snaplock.autofill
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.testing.testRecentRepository
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -49,7 +49,7 @@ class AutofillViewModelTest {
         viewModel.onLinkPickedChange(true)
 
         viewModel.onPick(mail)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
 
         assertEquals(listOf("https://mail.example"), stored(mail.uuid).urls)
     }
@@ -61,7 +61,7 @@ class AutofillViewModelTest {
         viewModel.onLinkPickedChange(true)
 
         viewModel.onPick(mail)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
 
         assertEquals(listOf("com.mail.app"), stored(mail.uuid).androidApps)
     }
@@ -73,7 +73,7 @@ class AutofillViewModelTest {
         viewModel.onLinkPickedChange(true)
 
         viewModel.onPick(github)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
 
         assertEquals(listOf("https://github.com"), stored(github.uuid).urls)
         assertEquals(listOf("com.some.app"), stored(github.uuid).androidApps)
@@ -86,10 +86,10 @@ class AutofillViewModelTest {
         viewModel.onLinkPickedChange(true)
 
         viewModel.onPick(github)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
         viewModel.onLinkPickedChange(false)
         viewModel.onPick(mail)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
 
         assertEquals(listOf(github, mail), repository.credentials.value)
     }
@@ -102,7 +102,7 @@ class AutofillViewModelTest {
 
         repository.locked.value = false
 
-        assertEquals(github, withTimeout(5_000) { viewModel.picked.first() })
+        assertEquals(github, awaitReal { viewModel.picked.first() })
     }
 
     @Test
@@ -112,7 +112,7 @@ class AutofillViewModelTest {
 
         assertFalse(viewModel.uiState.value.linkPicked)
         viewModel.onPick(mail)
-        withTimeout(5_000) { viewModel.picked.first() }
+        awaitReal { viewModel.picked.first() }
 
         assertEquals(emptyList<String>(), stored(mail.uuid).urls)
     }
@@ -124,7 +124,7 @@ class AutofillViewModelTest {
         val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         viewModel.start(CHROME, "github.com", fillSingleMatch = false)
 
-        assertTrue(withTimeout(5_000) { viewModel.uiState.first { it.isVaultEmpty } }.isVaultEmpty)
+        assertTrue(awaitReal { viewModel.uiState.first { it.isVaultEmpty } }.isVaultEmpty)
         states.cancel()
         viewModel.viewModelScope.cancel()
     }
@@ -140,12 +140,12 @@ class AutofillViewModelTest {
         val states = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         viewModel.start(CHROME, "github.com", fillSingleMatch = false)
 
-        withTimeout(5_000) { viewModel.uiState.first { it.loadFailed } }
+        awaitReal { viewModel.uiState.first { it.loadFailed } }
 
         failing.broken = false
         viewModel.onRetry()
 
-        val recovered = withTimeout(5_000) { viewModel.uiState.first { !it.loadFailed && it.matches.isNotEmpty() } }
+        val recovered = awaitReal { viewModel.uiState.first { !it.loadFailed && it.matches.isNotEmpty() } }
         assertEquals(listOf(github), recovered.matches)
         states.cancel()
         viewModel.viewModelScope.cancel()

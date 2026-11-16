@@ -1,5 +1,6 @@
 package com.erenium.snaplock.presentation
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import android.net.Uri
 import androidx.biometric.BiometricPrompt
@@ -368,9 +369,7 @@ class UnlockViewModelTest {
         viewModel.onPasswordChange("secret")
 
         viewModel.onUnlockClicked(database)
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-            kotlinx.coroutines.withTimeout(5_000) { viewModel.uiState.first { it.error != null } }
-        }
+        awaitReal { viewModel.uiState.first { it.error != null } }
 
         assertEquals(UnlockError.KEY_FILE_LOST, viewModel.uiState.value.error)
         assertNull(viewModel.uiState.value.keyFileUri)

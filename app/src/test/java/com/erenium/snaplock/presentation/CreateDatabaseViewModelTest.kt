@@ -1,5 +1,6 @@
 package com.erenium.snaplock.presentation
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
@@ -18,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -131,7 +131,7 @@ class CreateDatabaseViewModelTest {
         viewModel.fill("correct horse")
 
         viewModel.onCreate(target)
-        withContext(Dispatchers.Default) { withTimeout(5_000) { viewModel.uiState.first { it.errorStringId != null } } }
+        withContext(Dispatchers.Default) { awaitReal { viewModel.uiState.first { it.errorStringId != null } } }
 
         assertEquals(R.string.create_db_write_error, viewModel.uiState.value.errorStringId)
         assertFalse(viewModel.uiState.value.isCreating)

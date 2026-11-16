@@ -1,5 +1,6 @@
 package com.erenium.snaplock.presentation
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
@@ -25,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -68,7 +68,7 @@ class EntryDetailAttachmentsTest {
     // DocumentFiles runs on a real IO thread, so wait in real time rather than test time.
     private suspend fun nextMessage(viewModel: EntryDetailViewModel) =
         withContext(Dispatchers.Default.limitedParallelism(1)) {
-            withTimeout(5_000) { viewModel.messages.first() }
+            awaitReal { viewModel.messages.first() }
         }
 
     @Test

@@ -1,5 +1,6 @@
 package com.erenium.snaplock.autofill
 
+import com.erenium.snaplock.testing.awaitReal
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.erenium.snaplock.testing.testRecentRepository
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -55,7 +55,7 @@ class AutofillSaveViewModelTest {
         viewModel.start(CHROME, "github.com", "github.com", "octocat", "new")
 
         viewModel.onSave()
-        withTimeout(5_000) { viewModel.done.first() }
+        awaitReal { viewModel.done.first() }
 
         val updated = repository.entryDetails.getValue(githubUuid)
         assertEquals("new", updated.password)
@@ -70,7 +70,7 @@ class AutofillSaveViewModelTest {
         viewModel.start(CHROME, "github.com", "github.com", "octocat", "new")
 
         viewModel.onSave(asNew = true)
-        withTimeout(5_000) { viewModel.done.first() }
+        awaitReal { viewModel.done.first() }
 
         assertEquals(2, repository.entryDetails.size)
         assertEquals("old", repository.entryDetails.getValue(githubUuid).password)
@@ -82,7 +82,7 @@ class AutofillSaveViewModelTest {
         viewModel.start("com.bank.app", null, "Bank", "client", "1234")
 
         viewModel.onSave()
-        withTimeout(5_000) { viewModel.done.first() }
+        awaitReal { viewModel.done.first() }
 
         val saved = repository.entryDetails.values.single()
         assertEquals("Bank", saved.title)
@@ -96,7 +96,7 @@ class AutofillSaveViewModelTest {
         val viewModel = viewModel()
 
         viewModel.start(CHROME, "github.com", "github.com", "octocat", "old")
-        withTimeout(5_000) { viewModel.done.first() }
+        awaitReal { viewModel.done.first() }
 
         assertTrue(repository.entryDetails.getValue(githubUuid).password == "old")
         assertEquals(1, repository.entryDetails.size)
@@ -109,7 +109,7 @@ class AutofillSaveViewModelTest {
 
         viewModel.onSave()
 
-        assertEquals(SaveOutcome.SAVED, withTimeout(5_000) { viewModel.done.first() })
+        assertEquals(SaveOutcome.SAVED, awaitReal { viewModel.done.first() })
     }
 
     @Test
@@ -119,7 +119,7 @@ class AutofillSaveViewModelTest {
 
         viewModel.start(CHROME, "github.com", "github.com", "octocat", "old")
 
-        assertEquals(SaveOutcome.NOTHING_TO_SAVE, withTimeout(5_000) { viewModel.done.first() })
+        assertEquals(SaveOutcome.NOTHING_TO_SAVE, awaitReal { viewModel.done.first() })
     }
 
     @Test
@@ -159,7 +159,7 @@ class AutofillSaveViewModelTest {
     }
 
     private suspend fun awaitState(viewModel: AutofillSaveViewModel, condition: (AutofillSaveUiState) -> Boolean) =
-        withTimeout(5_000) { viewModel.uiState.first(condition) }
+        awaitReal { viewModel.uiState.first(condition) }
 
     private companion object {
         const val CHROME = "com.android.chrome"
