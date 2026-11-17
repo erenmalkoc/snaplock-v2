@@ -1,5 +1,12 @@
 package com.erenium.snaplock.data
 
+import kotlinx.coroutines.test.advanceUntilIdle
+import com.erenium.snaplock.data.datasource.cache.SessionCache
+import app.keemobile.kotpass.models.Meta
+import app.keemobile.kotpass.database.KeePassDatabase
+import app.keemobile.kotpass.database.Credentials
+import app.keemobile.kotpass.cryptography.EncryptedValue
+import android.net.Uri
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -91,5 +98,41 @@ class ClipboardManagerHelperTest {
 
         advanceTimeBy(6_000)
         assertTrue(primaryText().isNullOrEmpty())
+    }
+
+    @Test
+    fun lockingTheVaultClearsAClipSnaplockStillOwns() = runTest(dispatcher) {
+        settings.setClipboardAutoClear(true)
+        settings.setClipboardTimeoutSeconds(120)
+        val session = SessionCache()
+        val helper = ClipboardManagerHelper(context, settings, session)
+        advanceUntilIdle()
+        session.setDatabase(KeePassDatabase.Ver4x.create(rootName = "x", meta = Meta(name = "x"), credentials = Credentials.from(EncryptedValue.fromString("p"))), Uri.parse("content://t/v.kdbx"))
+        advanceUntilIdle()
+
+        helper.copyToClipboard("Password", "s3cret")
+        assertEquals("s3cret", primaryText())
+
+        session.lock()
+        advanceUntilIdle()
+
+        assertTrue(primaryText().isNullOrEmpty())
+    }
+
+    @Test
+    fun lockingLeavesSomethingCopiedLaterAlone() = runTest(dispatcher) {
+        settings.setClipboardAutoClear(true)
+        val session = SessionCache()
+        val helper = ClipboardManagerHelper(context, settings, session)
+        advanceUntilIdle()
+        session.setDatabase(KeePassDatabase.Ver4x.create(rootName = "x", meta = Meta(name = "x"), credentials = Credentials.from(EncryptedValue.fromString("p"))), Uri.parse("content://t/v.kdbx"))
+        advanceUntilIdle()
+
+        helper.copyToClipboard("Password", "s3cret")
+        clipboard.setPrimaryClip(ClipData.newPlainText("other", "my address"))
+        session.lock()
+        advanceUntilIdle()
+
+        assertEquals("my address", primaryText())
     }
 }

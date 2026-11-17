@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
+import com.erenium.snaplock.data.datasource.cache.SessionCache
 import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +20,32 @@ import javax.inject.Singleton
 @Singleton
 class ClipboardManagerHelper @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val settingsPrefs: SettingsPrefs
+    private val settingsPrefs: SettingsPrefs,
+    sessionCache: SessionCache
 ) {
+    constructor(context: Context, settingsPrefs: SettingsPrefs) : this(context, settingsPrefs, SessionCache())
+
     private val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var clearJob: Job? = null
     private var ownedClipToken: Long? = null
+
+    init {
+        scope.launch {
+            var wasLocked = true
+            sessionCache.isLocked.collect { locked ->
+                if (locked && !wasLocked) clearOnLock()
+                wasLocked = locked
+            }
+        }
+    }
+
+    private fun clearOnLock() {
+        if (!settingsPrefs.settings.value.clipboardAutoClear) return
+        val token = ownedClipToken ?: return
+        clearJob?.cancel()
+        clearIfStillOurs(token)
+    }
 
     fun copyToClipboard(label: String, text: String, sensitive: Boolean = true) {
         val clip = ClipData.newPlainText(label, text)
