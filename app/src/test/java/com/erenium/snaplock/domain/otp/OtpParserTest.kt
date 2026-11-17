@@ -8,7 +8,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OtpParserTest {
-
     private val secret = "JBSWY3DPEHPK3PXP"
     private val secretBytes = Base32.decode(secret)!!
 

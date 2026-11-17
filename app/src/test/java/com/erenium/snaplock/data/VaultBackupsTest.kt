@@ -30,7 +30,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class VaultBackupsTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 

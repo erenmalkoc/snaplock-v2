@@ -32,7 +32,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositorySetIconsTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 

@@ -23,7 +23,6 @@ import javax.inject.Inject
 
 private const val BYTES_PER_MIB = 1024L * 1024
 
-/** The values the form edits, compared with a snapshot taken at load to find unsaved edits. */
 data class DatabaseSettingsFields(
     val name: String,
     val recycleBinEnabled: Boolean,
@@ -35,17 +34,14 @@ data class DatabaseSettingsFields(
     val parallelism: String
 )
 
-/** A benchmark result that would make unlocking faster than the user's current setting. */
 data class BenchmarkLowering(val measured: Long, val current: Long)
 
-/** What to do with a benchmark result: [measured] is applied unless it would lower [current]. */
 fun benchmarkOutcome(current: Long?, measured: Long, max: Long): Pair<Long, BenchmarkLowering?> {
     val capped = measured.coerceIn(1, max)
     return if (current != null && capped < current) current to BenchmarkLowering(capped, current) else capped to null
 }
 
 data class DatabaseSettingsUiState(
-    /** The settings as the file holds them; null until loaded. */
     val saved: DatabaseSettings? = null,
     val name: String = "",
     val recycleBinEnabled: Boolean = true,
@@ -60,7 +56,6 @@ data class DatabaseSettingsUiState(
     val errorStringId: Int? = null,
     val loadFailed: Boolean = false,
     val baseline: DatabaseSettingsFields? = null,
-    /** Iterations that unlock in about a second on this device, from the last speed test. */
     val benchmarkIterations: Long? = null,
     val lowering: BenchmarkLowering? = null,
     val confirmEncryptionSave: Boolean = false
@@ -81,7 +76,6 @@ data class DatabaseSettingsUiState(
     val encryptionChanged: Boolean
         get() = saved?.encryption != null && edited?.encryption != saved.encryption
 
-    /** Seconds one unlock takes here with the edited iterations, when a speed test gives the rate. */
     val estimatedUnlockSeconds: Int?
         get() {
             val rate = benchmarkIterations ?: return null
@@ -91,7 +85,6 @@ data class DatabaseSettingsUiState(
 
     val isArgon2: Boolean get() = kdf != KdfAlgorithm.AES_KDF
 
-    /** Null when the file has no editable encryption (KDBX 3) or a value does not parse. */
     val encryption: EncryptionSettings?
         get() {
             val original = saved?.encryption ?: return null
@@ -99,7 +92,6 @@ data class DatabaseSettingsUiState(
             if (!isArgon2) return EncryptionSettings(cipher, kdf, passes, 0, 0)
             val mebibytes = memoryMiB.toLongOrNull() ?: return null
             val lanes = parallelism.toIntOrNull() ?: return null
-            // An unchanged field keeps the exact byte count, which need not be whole MiB.
             val memory = if (original.memoryBytes / BYTES_PER_MIB == mebibytes && original.kdf != KdfAlgorithm.AES_KDF) {
                 original.memoryBytes
             } else {
@@ -120,7 +112,6 @@ data class DatabaseSettingsUiState(
             it < 1 || (it > maxIterations && it != savedSameFamily?.iterations)
         } ?: true
 
-    // Whole MiB always cover Argon2's 8 KiB per lane, so any positive amount works.
     val memoryInvalid: Boolean
         get() = isArgon2 && (memoryMiB.toLongOrNull()?.let {
             it < 1 || (it > MAX_MEMORY_MIB && it != savedSameFamily?.let { e -> e.memoryBytes / BYTES_PER_MIB })
@@ -129,7 +120,6 @@ data class DatabaseSettingsUiState(
     val parallelismInvalid: Boolean
         get() = isArgon2 && (parallelism.toIntOrNull()?.let { it !in 1..MAX_ARGON2_PARALLELISM } ?: true)
 
-    /** High enough that phones with little memory may fail to open the vault. */
     val memoryIsHigh: Boolean get() = isArgon2 && (memoryMiB.toLongOrNull() ?: 0) > HIGH_MEMORY_MIB
 
     val edited: DatabaseSettings?
@@ -155,13 +145,11 @@ data class DatabaseSettingsUiState(
     }
 }
 
-/** Edits the settings stored in the open vault file. */
 @HiltViewModel
 class DatabaseSettingsViewModel @Inject constructor(
     private val repository: KdbxRepository,
     private val benchmark: KdfBenchmark
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(DatabaseSettingsUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -212,7 +200,6 @@ class DatabaseSettingsViewModel @Inject constructor(
 
     fun onCipherChange(cipher: VaultCipher) = _uiState.update { it.copy(cipher = cipher, benchmarkIterations = null, errorStringId = null) }
 
-    /** Passes and rounds mean different amounts of work, so switching families resets the count. */
     fun onKdfChange(kdf: KdfAlgorithm) = _uiState.update { state ->
         val familyChanged = (kdf == KdfAlgorithm.AES_KDF) != (state.kdf == KdfAlgorithm.AES_KDF)
         state.copy(
@@ -238,7 +225,6 @@ class DatabaseSettingsViewModel @Inject constructor(
     fun onParallelismChange(value: String) =
         _uiState.update { it.copy(parallelism = value.digitsOnly(), benchmarkIterations = null, errorStringId = null) }
 
-    /** Sets the iterations that make unlocking take about a second on this device. */
     fun onBenchmark() {
         val probe = _uiState.value.copy(iterations = "1").encryption?.takeIf { it.problem() == null } ?: return
         _uiState.update { it.copy(isBenchmarking = true) }

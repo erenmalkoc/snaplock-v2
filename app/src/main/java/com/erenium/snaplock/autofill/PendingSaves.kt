@@ -4,7 +4,6 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 internal object PendingSaves {
-
     private const val MAX_AGE_MILLIS = 5 * 60 * 1000L
 
     private class Held(val password: String, val storedAt: Long)

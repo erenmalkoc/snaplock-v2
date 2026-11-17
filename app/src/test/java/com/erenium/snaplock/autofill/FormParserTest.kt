@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FormParserTest {
-
     @Test
     fun nativeFormWithAutofillHints() {
         val form = FormParser.parse(

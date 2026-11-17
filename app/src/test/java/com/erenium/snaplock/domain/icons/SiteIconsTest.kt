@@ -11,7 +11,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SiteIconsTest {
-
     @Test
     fun hostsComeFromWebAddressesOnly() {
         assertEquals("www.github.com", SiteHosts.hostOf("https://www.github.com/login?next=/"))

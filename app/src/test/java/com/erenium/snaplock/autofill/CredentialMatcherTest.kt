@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CredentialMatcherTest {
-
     private val github = credential("GitHub", urls = listOf("https://github.com/login"))
     private val exampleWork = credential("Example work", urls = listOf("login.example.com"))
     private val example = credential("Example", urls = listOf("https://www.example.com"))

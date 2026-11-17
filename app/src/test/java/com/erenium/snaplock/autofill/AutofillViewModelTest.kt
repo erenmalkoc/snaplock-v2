@@ -25,7 +25,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class AutofillViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

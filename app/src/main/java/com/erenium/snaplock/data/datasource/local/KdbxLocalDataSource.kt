@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-/** A vault as read from or written to its file; [fingerprint] identifies those exact bytes. */
 class StoredVault(val database: KeePassDatabase, val fingerprint: ByteString)
 
 class KdbxLocalDataSource @Inject constructor(
@@ -61,7 +60,6 @@ class KdbxLocalDataSource @Inject constructor(
                 val credentials = credentialsOf(password, keyFile)
                 val database = KeePassDatabase.Ver4x.create(
                     rootName = rootName,
-                    // kotpass leaves the recycle bin off; KeePass turns it on for new databases.
                     meta = Meta(generator = GENERATOR_NAME, name = rootName, recycleBinEnabled = true),
                     credentials = credentials
                 )
@@ -75,12 +73,9 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 
-    /** Writes [database] over the vault file and returns the fingerprint of what was written. */
     suspend fun saveDatabase(uri: Uri, database: KeePassDatabase): Result<ByteString> {
         return withContext(Dispatchers.IO) {
             try {
-                // Encode first: opening with "wt" truncates the vault, so a failed
-                // encode must happen before the existing file is touched.
                 val bytes = database.encodeToByteArray()
                 keepBackup(uri)
                 writeBytes(uri, bytes)
@@ -92,11 +87,6 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 
-    /**
-     * The vault as its file holds it now, when another app or device (Syncthing, a cloud
-     * drive) wrote to it after [fingerprint] was taken; null when it is unchanged or empty.
-     * A file that no longer opens with [credentials] fails with [VaultChangedElsewhereException].
-     */
     suspend fun readIfChanged(uri: Uri, fingerprint: ByteString?, credentials: Credentials): Result<StoredVault?> {
         return withContext(Dispatchers.IO) {
             try {
@@ -116,14 +106,12 @@ class KdbxLocalDataSource @Inject constructor(
         }
     }
 
-    /** Copies of this vault file from before earlier saves, newest first. */
     suspend fun listBackups(uri: Uri): List<VaultBackup> = withContext(Dispatchers.IO) { backups.list(uri) }
 
     suspend fun readBackup(uri: Uri, id: String): Result<ByteArray> = withContext(Dispatchers.IO) {
         runCatching { backups.read(uri, id) ?: throw NoSuchElementException(id) }
     }
 
-    // A backup that cannot be made must not stop the save it was meant to protect.
     private fun keepBackup(uri: Uri) {
         if (!backups.isDue(uri)) return
         runCatching { backups.keep(uri, readBytes(uri)) }
@@ -146,23 +134,16 @@ class KdbxLocalDataSource @Inject constructor(
     private fun fingerprintOf(bytes: ByteArray): ByteString = bytes.toByteString().sha256()
 }
 
-/** KeePass composite key: password, key file or both; an empty password with a key file means key file only. */
 internal fun credentialsOf(password: CharSequence, keyFile: ByteArray?): Credentials = when {
     keyFile == null -> Credentials.from(EncryptedValue.fromString(password.toString()))
     password.isEmpty() -> Credentials.from(keyFile)
     else -> Credentials.from(EncryptedValue.fromString(password.toString()), keyFile)
 }
 
-/**
- * Every cipher kotpass implements. Its default leaves out Twofish, which KeePassXC and the
- * KeePass Twofish plugin can write, so such vaults would not open without it.
- */
 internal val SUPPORTED_CIPHERS: List<CipherProvider> = BaseCiphers.entries + TwofishCipher
 
-/** Encodes the database into a complete, encrypted KDBX file held in memory. */
 internal fun KeePassDatabase.encodeToByteArray(): ByteArray =
     ByteArrayOutputStream().also { encode(it, cipherProviders = SUPPORTED_CIPHERS) }.toByteArray()
 
-/** Opens a complete, encrypted KDBX file held in memory. */
 internal fun decodeFromByteArray(bytes: ByteArray, credentials: Credentials): KeePassDatabase =
     KeePassDatabase.decode(ByteArrayInputStream(bytes), credentials, cipherProviders = SUPPORTED_CIPHERS)

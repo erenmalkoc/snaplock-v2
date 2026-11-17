@@ -15,15 +15,8 @@ import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Gets a site's sharpest icon and returns it as a PNG of at most [ICON_SIZE] pixels, ready
- * to store as a KeePass custom icon. It reads the icons the home page declares (apple touch
- * icons are usually 180 px) and falls back to the usual fixed paths. Sends no cookies or
- * referrer; only the site, and any server its page links its icons from, sees the requests.
- */
 @Singleton
 class SiteIconClient @Inject constructor() : SiteIconSource {
-
     override suspend fun iconFor(host: String): ByteArray? = withContext(Dispatchers.IO) {
         val declared = fetch("https://$host/", MAX_PAGE_BYTES)
             ?.let { (page, finalUrl) -> IconLinks.parse(page.toString(Charsets.UTF_8), finalUrl) }
@@ -42,7 +35,6 @@ class SiteIconClient @Inject constructor() : SiteIconSource {
             fetch(url, MAX_ICON_BYTES)?.first
         }
 
-    /** The body and the URL it finally came from, after redirects; null on any failure. */
     private fun fetch(address: String, maxBytes: Int): Pair<ByteArray, String>? = runCatching {
         val connection = URL(address).openConnection() as HttpURLConnection
         try {
@@ -50,7 +42,6 @@ class SiteIconClient @Inject constructor() : SiteIconSource {
             connection.readTimeout = TIMEOUT_MILLIS
             connection.instanceFollowRedirects = true
             connection.useCaches = false
-            // Some sites refuse requests without a browser-like agent.
             connection.setRequestProperty("User-Agent", USER_AGENT)
             if (connection.responseCode != HttpURLConnection.HTTP_OK) return@runCatching null
             if (connection.contentLengthLong > maxBytes) return@runCatching null

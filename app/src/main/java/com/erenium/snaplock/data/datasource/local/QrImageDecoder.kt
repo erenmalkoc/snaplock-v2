@@ -15,11 +15,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-/** Reads a QR code from a picture, such as a screenshot of a two-factor setup page. */
 class QrImageDecoder @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-
     suspend fun decode(uri: Uri): String? = withContext(Dispatchers.IO) {
         val bitmap = runCatching {
             context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, scaledOptions(uri)) }
@@ -42,7 +40,6 @@ class QrImageDecoder @Inject constructor(
         return runCatching { reader.decodeWithState(BinaryBitmap(HybridBinarizer(source))).text }.getOrNull()
     }
 
-    // Full-resolution photos can be huge; QR codes still read fine at a couple of thousand pixels.
     private fun scaledOptions(uri: Uri): BitmapFactory.Options {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         runCatching { context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } }

@@ -9,7 +9,6 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class SnaplockApplication : Application() {
-
     @Inject
     lateinit var autoLockManager: AutoLockManager
 

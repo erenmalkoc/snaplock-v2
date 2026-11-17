@@ -21,7 +21,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class DatabaseSettingsViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

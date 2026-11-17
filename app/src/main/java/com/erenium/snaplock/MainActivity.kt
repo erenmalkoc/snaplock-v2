@@ -35,7 +35,6 @@ class MainActivity : FragmentActivity() {
         followAppTheme(settingsPrefs)
         blockScreenshots()
         publishAppShortcuts(this)
-        // A recreated activity has already handled the intent that started it.
         if (savedInstanceState == null) handleShortcut(intent)
         setContent {
             val settings by settingsPrefs.settings.collectAsState()
@@ -67,7 +66,6 @@ class MainActivity : FragmentActivity() {
 
     private fun handleShortcut(intent: Intent?) {
         val shortcut = AppShortcut.fromAction(intent?.action) ?: return
-        // Lets the launcher rank the shortcuts people actually use first.
         ShortcutManagerCompat.reportShortcutUsed(this, shortcut.id)
         mainViewModel.onShortcut(shortcut)
     }

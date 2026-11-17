@@ -29,10 +29,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Custom icons written by KeePassXC and other clients show next to their entries. */
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryIconsTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val sessionCache = SessionCache()
     private val repository = KdbxRepositoryImpl(

@@ -6,8 +6,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class TotpTest {
-
-    // RFC 6238 appendix B: 8-digit codes for the reference secrets.
     private val sha1 = OtpParameters("12345678901234567890".toByteArray(), digits = 8)
     private val sha256 = OtpParameters(
         "12345678901234567890123456789012".toByteArray(), digits = 8, algorithm = OtpAlgorithm.SHA256

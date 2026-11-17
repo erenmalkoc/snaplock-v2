@@ -97,7 +97,6 @@ fun EntryListScreen(
     onEntryClick: (UUID) -> Unit,
     focusSearch: Boolean = false,
     onSearchFocused: () -> Unit = {},
-    /** The entry open beside the list on wide screens, highlighted. */
     selectedEntry: UUID? = null,
     viewModel: EntryListViewModel = hiltViewModel()
 ) {
@@ -421,7 +420,6 @@ private fun GroupListItem(group: Group, onClick: () -> Unit) {
     )
 }
 
-/** The stock Material 3 search field; results filter the list below as the user types. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchBar(

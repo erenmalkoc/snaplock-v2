@@ -10,8 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PassphraseAndStrengthTest {
-
-    /** The wordlist the app ships, read straight from the module's assets. */
     private val eff = object : WordList {
         override val words: List<String> by lazy {
             File("src/main/assets/eff_large_wordlist.txt").readLines().filter { it.isNotBlank() }

@@ -38,9 +38,7 @@ class EntryListViewModel @Inject constructor(
     private val getRecycleBinEnabled: GetRecycleBinEnabledUseCase,
     recentlyDeleted: RecentlyDeleted
 ) : ViewModel() {
-
     private val _query = MutableStateFlow("")
-    /** Null means the root group. */
     private val _currentGroupUuid = MutableStateFlow<UUID?>(null)
     private val _errorStringId = MutableStateFlow<Int?>(null)
 
@@ -58,7 +56,6 @@ class EntryListViewModel @Inject constructor(
             _errorStringId
         ) { entries, groups, query, currentUuid, error ->
             val root = groups.firstOrNull { it.parentUuid == null }
-            // A group that disappeared (deleted elsewhere) falls back to the root.
             val current = groups.firstOrNull { it.uuid == currentUuid } ?: root
             val searching = query.isNotBlank()
             val (visibleEntries, visibleGroups) = if (!searching) {
@@ -99,7 +96,6 @@ class EntryListViewModel @Inject constructor(
         _currentGroupUuid.value = uuid
     }
 
-    /** Goes to the parent group; returns false when already at the root. */
     fun onNavigateUp(): Boolean {
         val parent = uiState.value.currentGroup?.parentUuid ?: return false
         _currentGroupUuid.value = parent

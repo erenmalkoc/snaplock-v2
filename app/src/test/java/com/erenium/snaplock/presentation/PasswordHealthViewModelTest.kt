@@ -34,7 +34,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class PasswordHealthViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -68,7 +67,6 @@ class PasswordHealthViewModelTest {
         val viewModel = PasswordHealthViewModel(useCase, SettingsPrefs(context))
 
         viewModel.refresh()
-        // The analysis runs on Dispatchers.Default, so wait in real time.
         val report = withContext(Dispatchers.Default.limitedParallelism(1)) {
             awaitReal { viewModel.report.filterNotNull().first() }
         }

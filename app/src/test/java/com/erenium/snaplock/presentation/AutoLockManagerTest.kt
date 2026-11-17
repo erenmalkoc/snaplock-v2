@@ -23,7 +23,6 @@ import org.robolectric.RobolectricTestRunner
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class AutoLockManagerTest {
-
     private val dispatcher = StandardTestDispatcher()
 
     @get:Rule

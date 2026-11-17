@@ -3,15 +3,7 @@ package com.erenium.snaplock.autofill
 import com.erenium.snaplock.domain.model.Credential
 import java.net.URI
 
-/** Picks the entries that belong to the app or website asking for autofill. */
 object CredentialMatcher {
-
-    /**
-     * Websites match on their registrable domain, so an entry saved for login.example.com
-     * also fills www.example.com. The web domain is only trusted when a known browser
-     * reports it: any app can show a real site in a WebView and read what gets filled.
-     * Everything else matches on the package name.
-     */
     fun match(
         credentials: List<Credential>,
         packageName: String,
@@ -38,7 +30,6 @@ object CredentialMatcher {
         }
     }
 
-    /** Host of a URL or bare domain, lower case, without a leading "www.". */
     fun hostOf(value: String): String? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) return null
@@ -53,9 +44,6 @@ object CredentialMatcher {
 }
 
 object Domains {
-
-    // Two-label public suffixes common enough to matter; anything else is treated as a
-    // single-label TLD. Not the full public suffix list, which would cost ~200 KB.
     private val multiLabelSuffixes = setOf(
         "com.tr", "net.tr", "org.tr", "edu.tr", "gov.tr", "k12.tr", "bel.tr", "gen.tr", "av.tr",
         "biz.tr", "info.tr", "web.tr", "tsk.tr", "pol.tr",
@@ -78,7 +66,6 @@ object Domains {
 }
 
 object Browsers {
-
     private val trusted = setOf(
         "com.android.chrome", "com.chrome.beta", "com.chrome.dev", "com.chrome.canary",
         "com.google.android.apps.chrome",

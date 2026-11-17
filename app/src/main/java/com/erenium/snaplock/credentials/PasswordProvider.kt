@@ -21,17 +21,11 @@ import com.erenium.snaplock.autofill.CredentialMatcher
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import kotlinx.coroutines.flow.first
 
-/**
- * Answers Android 14+ Credential Manager queries for passwords, and for passkeys through
- * [PasskeyProvider]. Only names and usernames are shown in the system sheet; secrets leave
- * Snaplock once the user picks an entry, through [CredentialActivity].
- */
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasswordProvider(
     private val context: Context,
     private val repository: KdbxRepository
 ) {
-
     suspend fun beginGet(request: BeginGetCredentialRequest): BeginGetCredentialResponse {
         val options = request.beginGetCredentialOptions.filterIsInstance<BeginGetPasswordOption>()
         val passkeyOptions = request.beginGetCredentialOptions.filterIsInstance<BeginGetPublicKeyCredentialOption>()
@@ -46,7 +40,6 @@ class PasswordProvider(
                 )
             )
         }
-        // Apps ask for their own logins, so match on the calling package like autofill does.
         val callingPackage = request.callingAppInfo?.packageName
         val matches = callingPackage
             ?.let { CredentialMatcher.match(repository.getCredentials(), it, webDomain = null) }
@@ -67,7 +60,6 @@ class PasswordProvider(
             }
         }
         val passkeys = PasskeyProvider(context, repository).entries(passkeyOptions)
-        // Searching links a password entry to the app, which only means something for passwords.
         val actions = if (options.isEmpty()) {
             emptyList()
         } else {

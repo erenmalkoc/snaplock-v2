@@ -36,7 +36,6 @@ import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 class CreateDatabaseViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

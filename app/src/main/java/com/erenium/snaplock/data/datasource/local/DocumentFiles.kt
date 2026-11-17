@@ -12,16 +12,13 @@ import java.io.IOException
 import java.io.InputStream
 import javax.inject.Inject
 
-/** A file the user picked, read fully into memory. */
 class PickedDocument(val name: String, val content: ByteArray)
 
 class FileTooLargeException(val maxBytes: Long) : IOException("File is larger than $maxBytes bytes")
 
-/** Reads and writes files the user picks through the system file picker. */
 class DocumentFiles @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-
     suspend fun read(uri: Uri, maxBytes: Long): Result<PickedDocument> = withContext(Dispatchers.IO) {
         runCatching {
             val (name, size) = describe(uri)
@@ -43,7 +40,6 @@ class DocumentFiles @Inject constructor(
         runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }.getOrDefault(false)
     }
 
-    /** The name a provider shows for the file, or a name taken from the URI. */
     fun displayName(uri: Uri): String = describe(uri).first ?: fallbackName(uri)
 
     private fun fallbackName(uri: Uri): String =
@@ -63,7 +59,6 @@ class DocumentFiles @Inject constructor(
         }
     }.getOrNull() ?: (null to null)
 
-    // Providers do not always report a size, so the limit is enforced while reading too.
     private fun InputStream.readAtMost(maxBytes: Long): ByteArray {
         val output = ByteArrayOutputStream()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

@@ -31,7 +31,6 @@ data class AutofillSaveUiState(
     val title: String = "",
     val username: String = "",
     val password: String = "",
-    /** Null until the vault is open and compared with the typed login. */
     val decision: SaveDecision? = null,
     val isSaving: Boolean = false,
     val errorStringId: Int? = null,
@@ -44,7 +43,6 @@ class AutofillSaveViewModel @Inject constructor(
     private val repository: KdbxRepository,
     recentDatabasesRepository: RecentDatabasesRepository
 ) : ViewModel() {
-
     private data class Form(
         val title: String = "",
         val username: String = "",
@@ -65,7 +63,6 @@ class AutofillSaveViewModel @Inject constructor(
     private val form = MutableStateFlow(Form())
     private val finished = Channel<SaveOutcome>(Channel.CONFLATED)
 
-    /** Emits once the login is stored, or when there was nothing to store. */
     val done: Flow<SaveOutcome> = finished.receiveAsFlow()
 
     val uiState: StateFlow<AutofillSaveUiState> = combine(
@@ -125,7 +122,6 @@ class AutofillSaveViewModel @Inject constructor(
 
     fun onPasswordChange(value: String) = form.update { it.copy(password = value, errorStringId = null) }
 
-    /** @param asNew store a new entry even when an existing one could be updated. */
     fun onSave(asNew: Boolean = false) {
         val current = form.value
         if (current.isSaving || current.password.isEmpty()) return

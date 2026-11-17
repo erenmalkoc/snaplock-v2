@@ -21,7 +21,6 @@ class SelectFileViewModel @Inject constructor(
     private val recentDatabasesRepository: RecentDatabasesRepository,
     private val appMessages: AppMessages
 ) : ViewModel() {
-
     val recentDatabases: StateFlow<List<RecentDatabase>> =
         recentDatabasesRepository.entries.stateIn(
             scope = viewModelScope,
@@ -52,7 +51,6 @@ class SelectFileViewModel @Inject constructor(
 
     fun onRemovalDismissed() = commitRemoval()
 
-    /** Keeps lasting access to a picked file and warns when it can only be read. */
     fun onFilePicked(uri: Uri) {
         if (!recentDatabasesRepository.keepAccess(uri)) appMessages.post(R.string.file_read_only)
     }

@@ -12,7 +12,6 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val settingsPrefs: SettingsPrefs
 ) : ViewModel() {
-
     val uiState: StateFlow<AppSettings> = settingsPrefs.settings
 
     fun onThemeModeChange(mode: ThemeMode) = settingsPrefs.setThemeMode(mode)

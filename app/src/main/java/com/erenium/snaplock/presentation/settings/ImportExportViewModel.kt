@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-/** A user-facing result: a string or plural resource, its count and an optional argument. */
 data class ImportExportMessage(val resId: Int, val count: Int? = null, val argument: String? = null)
 
 fun CsvImport.previewTitles(limit: Int = IMPORT_PREVIEW_COUNT): List<String> =
@@ -34,8 +33,6 @@ class ImportExportViewModel @Inject constructor(
     private val repository: KdbxRepository,
     private val documentFiles: DocumentFiles
 ) : ViewModel() {
-
-    /** A parsed file waiting for the user to confirm the import. */
     private val _pendingImport = MutableStateFlow<CsvImport?>(null)
     val pendingImport = _pendingImport.asStateFlow()
 
@@ -69,7 +66,6 @@ class ImportExportViewModel @Inject constructor(
         }
     }
 
-    /** @param groupName the group the entries go into, already localised. */
     fun onImportConfirmed(groupName: String) {
         val import = _pendingImport.value ?: return
         _pendingImport.value = null

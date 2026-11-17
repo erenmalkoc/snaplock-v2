@@ -8,15 +8,9 @@ enum class PasswordStrength { VERY_WEAK, WEAK, FAIR, STRONG, VERY_STRONG }
 
 data class StrengthEstimate(val strength: PasswordStrength, val entropyBits: Double)
 
-/**
- * A quick offline estimate: character-pool entropy, discounted for repeats and runs,
- * with known passwords rated very weak and wordlist passphrases rated by word count.
- * Not a full zxcvbn, but it catches the mistakes people actually make.
- */
 class PasswordStrengthEstimator @Inject constructor(
     private val wordList: WordList
 ) {
-
     private val knownWords: Set<String> by lazy { wordList.words.toHashSet() }
 
     fun estimate(password: String): StrengthEstimate {
@@ -33,7 +27,6 @@ class PasswordStrengthEstimator @Inject constructor(
         if (password.any { it in '0'..'9' }) pool += 10
         if (password.any { it.code < 128 && !it.isLetterOrDigit() }) pool += 33
         if (password.any { it.code >= 128 }) pool += 100
-        // Every character after a repeat or a +/-1 run (aaa, abc, 321) adds almost nothing.
         var effectiveLength = 1.0
         for (i in 1 until password.length) {
             val step = password[i] - password[i - 1]
@@ -45,7 +38,6 @@ class PasswordStrengthEstimator @Inject constructor(
         return effectiveLength * log2(pool.toDouble())
     }
 
-    /** Bits for passwords built from wordlist words, such as generated passphrases. */
     private fun passphraseEntropy(password: String): Double? {
         val parts = password.split(Regex("[^\\p{L}]+")).filter { it.isNotEmpty() }
         if (parts.size < 3 || parts.any { it.lowercase() !in knownWords }) return null
@@ -65,7 +57,6 @@ class PasswordStrengthEstimator @Inject constructor(
     private companion object {
         val KEYBOARD_ROWS = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm", "1234567890", "qazwsxedc")
 
-        // The most used passwords in public breach lists, plus common Turkish ones.
         val COMMON_PASSWORDS = setOf(
             "123456", "123456789", "12345678", "12345", "1234567", "1234567890", "1234", "111111",
             "000000", "123123", "654321", "666666", "121212", "112233", "123321", "987654321",

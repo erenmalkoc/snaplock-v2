@@ -6,7 +6,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FillPlannerTest {
-
     private val logins = (1..8).map { Credential(UUID.randomUUID(), "Login $it", "u$it", "p$it", emptyList(), emptyList()) }
 
     @Test

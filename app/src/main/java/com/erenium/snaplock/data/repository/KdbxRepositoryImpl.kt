@@ -71,16 +71,12 @@ import javax.inject.Inject
 import app.keemobile.kotpass.models.Entry as KotpassEntry
 import app.keemobile.kotpass.models.Group as KotpassGroup
 
-
 class KdbxRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val localDataSource: KdbxLocalDataSource,
     private val sessionCache: SessionCache,
     private val recentDatabasesPrefs: RecentDatabasesPrefs
 ) : KdbxRepository {
-
-    // Serializes edits so two quick saves can neither interleave their writes to the
-    // vault file nor build on the same stale database and drop each other's changes.
     private val writeMutex = Mutex()
 
     override suspend fun getEntryByUuid(uuid: UUID): Result<EntryDetail> {
@@ -122,7 +118,6 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
-    /** Entries with their group, skipping the [excludedGroup] subtree. */
     private fun KotpassGroup.entriesOutside(excludedGroup: UUID?): List<Pair<KotpassGroup, KotpassEntry>> =
         if (uuid == excludedGroup) {
             emptyList()
@@ -130,14 +125,12 @@ class KdbxRepositoryImpl @Inject constructor(
             entries.map { this to it } + groups.flatMap { it.entriesOutside(excludedGroup) }
         }
 
-    /** The recycle bin group, if the database has one that still exists. */
     private fun KeePassDatabase.recycleBin(): UUID? =
         content.meta.recycleBinUuid?.takeIf { content.group.findGroup(it) != null }
 
     private fun KotpassGroup.findGroup(target: UUID): KotpassGroup? =
         if (uuid == target) this else groups.firstNotNullOfOrNull { it.findGroup(target) }
 
-    /** This group's id and the ids of every group and entry below it. */
     private fun KotpassGroup.descendantIds(): List<UUID> =
         listOf(uuid) + entries.map { it.uuid } + groups.flatMap { it.descendantIds() }
 
@@ -280,7 +273,6 @@ class KdbxRepositoryImpl @Inject constructor(
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val historyLimit = database.content.meta.historyMaxItems
         val withUpdatedFields = database.modifyEntry(uuid) {
-            // Keep the previous version, as KeePass does, so an edit can be undone.
             withHistory { copy(fields = data.applyTo(fields)) }
                 .let { if (historyLimit >= 0) it.copy(history = it.history.takeLast(historyLimit)) else it }
         }.let { updated -> data.expiry?.let { expiry -> updated.withEntryTimes(uuid) { it.withExpiry(expiry) } } ?: updated }
@@ -305,14 +297,12 @@ class KdbxRepositoryImpl @Inject constructor(
         val updated = if (!database.content.meta.recycleBinEnabled || alreadyRecycled) {
             database.removeEntry(uuid)
         } else {
-            // A recycle bin id that points at a deleted group would swallow the entry.
             val withValidBin = if (bin == null && database.content.meta.recycleBinUuid != null) {
                 database.modifyMeta { copy(recycleBinUuid = null) }
             } else {
                 database
             }
             withValidBin.withRecycleBin { binUuid ->
-                // moveEntry records the previous group itself.
                 moveEntry(uuid, binUuid).withEntryTimes(uuid) { it.moved() }
             }
         }
@@ -339,8 +329,6 @@ class KdbxRepositoryImpl @Inject constructor(
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
         val bin = database.recycleBin() ?: return Result.success(Unit)
         val binGroup = database.content.group.findGroup(bin) ?: return Result.success(Unit)
-        // Record the removals, as removeEntry does, so syncing with another copy
-        // of the vault does not bring the emptied items back.
         val now = Instant.now()
         val removed = (binGroup.entries.map { it.uuid } + binGroup.groups.flatMap { it.descendantIds() })
             .map { DeletedObject(it, now) }
@@ -383,7 +371,6 @@ class KdbxRepositoryImpl @Inject constructor(
         }
         val now = Instant.now()
         val name = settings.name.trim()
-        // The change times let a sync pick the newer setting when two copies differ.
         val withMeta = database.modifyMeta {
             copy(
                 name = name,
@@ -397,7 +384,6 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(settings.encryption?.let { withMeta.withEncryption(it) } ?: withMeta)
     }
 
-    /** KDBX 3 files keep their encryption; KDBX 4 headers take the new cipher and key derivation. */
     private fun KeePassDatabase.withEncryption(settings: EncryptionSettings): KeePassDatabase {
         val ver4 = this as? KeePassDatabase.Ver4x ?: return this
         if (ver4.header.encryptionSettings() == settings) return this
@@ -439,7 +425,6 @@ class KdbxRepositoryImpl @Inject constructor(
         val entry = database.getEntry { it.uuid == uuid }?.second
             ?: return Result.failure(EntryNotFoundException(uuid))
         if (entry.binaries.none { it.name == name }) return Result.failure(NoSuchElementException(name))
-        // The removed file stays reachable through the entry's history, as in KeePass.
         val updated = database.modifyEntry(uuid) {
             withHistory { copy(binaries = binaries.filterNot { it.name == name }) }
                 .trimmedHistory(database.content.meta.historyMaxItems)
@@ -495,7 +480,6 @@ class KdbxRepositoryImpl @Inject constructor(
         return walk(database.content.group, "", database.recycleBin())
     }
 
-    /** Adds [entry] under the subgroup [path] (created as needed) of this group. */
     private fun KotpassGroup.withEntryAt(path: List<String>, entry: KotpassEntry): KotpassGroup {
         if (path.isEmpty()) return copy(entries = entries + entry)
         val name = path.first()
@@ -554,7 +538,6 @@ class KdbxRepositoryImpl @Inject constructor(
             } else {
                 database
             }
-            // The move time lets a sync tell this move apart from older ones made elsewhere.
             withValidBin.withRecycleBin { binUuid -> moveGroup(uuid, binUuid).withGroupTimes(uuid) { it.moved() } }
         }
         persist(updated)
@@ -575,10 +558,6 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
-    /**
-     * Changes an entry's times. kotpass' modifyEntry keeps the old times (it only bumps the
-     * modification time), so this replaces the entry inside its group instead.
-     */
     private fun KeePassDatabase.withEntryTimes(uuid: UUID, change: (TimeData?) -> TimeData): KeePassDatabase {
         val group = getEntry { it.uuid == uuid }?.first ?: return this
         return modifyGroup(group.uuid) {
@@ -586,7 +565,6 @@ class KdbxRepositoryImpl @Inject constructor(
         }
     }
 
-    /** Changes a group's times without kotpass' modifyGroup, which would keep the old ones. */
     private fun KeePassDatabase.withGroupTimes(uuid: UUID, change: (TimeData?) -> TimeData): KeePassDatabase {
         val parent = content.group.parentOf(uuid) ?: return this
         return modifyGroup(parent.uuid) {
@@ -634,7 +612,6 @@ class KdbxRepositoryImpl @Inject constructor(
     override suspend fun addPasskey(title: String, url: String, passkey: Passkey): Result<UUID> = writeMutex.withLock {
         val database = sessionCache.getDatabase()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        // The same title, username and URL fields KeePassXC fills for its passkeys.
         val fields = listOf(
             FIELD_TITLE to EntryValue.Plain(title),
             FIELD_USERNAME to EntryValue.Plain(passkey.username),
@@ -674,7 +651,6 @@ class KdbxRepositoryImpl @Inject constructor(
         if (entry.toCredential("").urls.any { it.removeSuffix("/").endsWith("://$domain") }) {
             return Result.success(Unit)
         }
-        // The main URL field is what other KeePass clients show; extra sites go in KP2A_URL fields.
         val name = if (entry.fields[FIELD_URL]?.content.isNullOrBlank()) {
             FIELD_URL
         } else {
@@ -686,19 +662,14 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
-    /** [base] if unused, else the first free [base]_1, [base]_2, ... */
     private fun EntryFields.nextFreeName(base: String): String =
         generateSequence(0) { it + 1 }
             .map { if (it == 0) base else "${base}_$it" }
             .first { it !in keys }
 
-    // Call only while holding writeMutex.
     private suspend fun persist(database: KeePassDatabase): Result<Unit> {
         val uri = sessionCache.getUri()
             ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
-        // Another device or app may have written the file since this session last read or
-        // saved it (Syncthing, a cloud drive): merge those changes instead of overwriting
-        // them. The file is still encrypted with the credentials the session opened it with.
         val opened = sessionCache.getDatabase() ?: database
         val external = localDataSource.readIfChanged(uri, sessionCache.getFingerprint(), opened.credentials)
             .getOrElse { return Result.failure(it) }
@@ -781,8 +752,6 @@ class KdbxRepositoryImpl @Inject constructor(
             ?: return Result.success(false)
         val merged = runCatching { VaultMerger.merge(database, external.database) }
             .getOrElse { return Result.failure(VaultChangedElsewhereException(it)) }
-        // Every change made here was saved before the file changed, so the merge only adds
-        // what came from elsewhere; the next edit writes the result.
         sessionCache.setDatabase(merged, uri, external.fingerprint)
         Result.success(true)
     }
@@ -799,5 +768,4 @@ class KdbxRepositoryImpl @Inject constructor(
         const val FIELD_NOTES = "Notes"
         val STANDARD_FIELDS = setOf(FIELD_TITLE, FIELD_USERNAME, FIELD_PASSWORD, FIELD_URL, FIELD_NOTES)
     }
-
 }

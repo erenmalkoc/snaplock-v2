@@ -473,7 +473,6 @@ private fun OtpRow(
     onCopy: (String) -> Unit
 ) {
     var codeVisible by rememberSaveable { mutableStateOf(true) }
-    // Ticks on each second boundary so the code flips exactly when the period ends.
     val now by produceState(System.currentTimeMillis()) {
         while (true) {
             delay(1000 - value % 1000)
@@ -516,7 +515,6 @@ private fun OtpRow(
     }
 }
 
-/** "123456" -> "123 456", "12345678" -> "1234 5678"; Steam codes stay as they are. */
 private fun groupDigits(code: String): String =
     if (code.all(Char::isDigit) && code.length >= 6) {
         code.substring(0, code.length / 2) + " " + code.substring(code.length / 2)

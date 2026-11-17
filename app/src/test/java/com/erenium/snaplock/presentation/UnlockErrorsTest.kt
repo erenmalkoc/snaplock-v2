@@ -17,7 +17,6 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 class UnlockErrorsTest {
-
     private val vault = KeePassDatabase.Ver4x.create("r", Meta(name = "r"), credentialsOf("right", null)).encodeToByteArray()
 
     private fun failureOf(bytes: ByteArray, password: String, keyFile: ByteArray? = null): Throwable =

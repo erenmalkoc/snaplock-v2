@@ -11,7 +11,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class CredentialMapperTest {
-
     @Test
     fun readsLoginFieldsAndEveryUrlField() {
         val credential = entry(

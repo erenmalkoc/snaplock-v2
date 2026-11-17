@@ -43,7 +43,6 @@ import com.erenium.snaplock.ui.components.SecondaryButton
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import com.erenium.snaplock.ui.theme.Dimens
 
-/** Offers to store a login the user just typed into another app or website. */
 @Composable
 fun AutofillSaveScreen(
     viewModel: AutofillSaveViewModel,

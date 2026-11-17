@@ -14,10 +14,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Credential Manager passes WebAuthn JSON; org.json needs Robolectric. */
 @RunWith(RobolectricTestRunner::class)
 class PasskeyAuthenticatorTest {
-
     private val creationJson = """
         {"rp":{"id":"webauthn.io","name":"WebAuthn.io"},
          "user":{"id":"dXNlci0x","name":"octocat","displayName":"The Octocat"},

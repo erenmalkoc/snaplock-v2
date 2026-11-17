@@ -26,10 +26,8 @@ import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.otp.Totp
 
-/** Builds the datasets the system shows in the autofill dropdown and the keyboard strip. */
 @RequiresApi(Build.VERSION_CODES.O)
 internal class AutofillResponses(private val context: Context) {
-
     fun fillResponse(
         form: LoginForm<AutofillId>,
         items: List<FillItem>,
@@ -62,7 +60,6 @@ internal class AutofillResponses(private val context: Context) {
             .build()
     }
 
-    /** Asks the system to offer saving when the user types a new password into the form. */
     private fun saveInfo(form: LoginForm<AutofillId>): SaveInfo? {
         if (form.passwordIds.isEmpty()) return null
         var type = SaveInfo.SAVE_DATA_TYPE_PASSWORD
@@ -73,7 +70,6 @@ internal class AutofillResponses(private val context: Context) {
             .build()
     }
 
-    /** Fills [credential] straight away; also what the unlock and search screens hand back. */
     @SuppressLint("NewApi")
     @Suppress("DEPRECATION")
     fun credentialDataset(
@@ -81,7 +77,6 @@ internal class AutofillResponses(private val context: Context) {
         credential: Credential,
         inline: InlineSpec? = null
     ): Dataset? {
-        // The code is worked out now; it is only valid until the end of the current period.
         val code = credential.otp?.let { Totp.code(it, System.currentTimeMillis()) }
         val values = form.usernameIds.mapNotNull { id -> credential.username?.let { id to it } } +
             form.passwordIds.mapNotNull { id -> credential.password?.let { id to it } } +
@@ -110,7 +105,6 @@ internal class AutofillResponses(private val context: Context) {
     }
 
     private fun authentication(mode: AutofillActivity.Mode): IntentSender {
-        // The system adds the screen's structure to the intent, so it must stay mutable.
         val mutable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
         return PendingIntent.getActivity(
             context,
@@ -137,12 +131,8 @@ internal class AutofillResponses(private val context: Context) {
         return InlineSpec(context, specs[minOf(index, specs.lastIndex)])
     }
 
-    /** One inline (keyboard) suggestion slot. */
     @RequiresApi(Build.VERSION_CODES.R)
     internal class InlineSpec(private val context: Context, private val spec: InlinePresentationSpec) {
-
-        // getSlice() is marked library-internal, yet InlinePresentation needs the slice and the
-        // library offers no other way to get it; Google's own autofill sample does the same.
         @SuppressLint("RestrictedApi")
         fun presentation(title: String, subtitle: String?): InlinePresentation? {
             if (!UiVersions.getVersions(spec.style).contains(UiVersions.INLINE_UI_VERSION_1)) return null

@@ -11,7 +11,6 @@ import kotlin.coroutines.resume
 
 enum class Verification { VERIFIED, NOT_AVAILABLE, CANCELLED, FAILED }
 
-/** Backing out of the prompt is the user's choice, while lockouts and hardware errors are failures. */
 internal fun verificationFor(errorCode: Int): Verification = when (errorCode) {
     BiometricPrompt.ERROR_USER_CANCELED,
     BiometricPrompt.ERROR_NEGATIVE_BUTTON,
@@ -19,11 +18,6 @@ internal fun verificationFor(errorCode: Int): Verification = when (errorCode) {
     else -> Verification.FAILED
 }
 
-/**
- * Asks for the fingerprint, face or screen lock before a passkey is used, which is what
- * lets Snaplock tell sites the user was verified. Devices without a screen lock cannot
- * verify, so the passkey is then used without that flag.
- */
 suspend fun verifyUser(activity: FragmentActivity, title: String, subtitle: String): Verification {
     val authenticators = BIOMETRIC_STRONG or DEVICE_CREDENTIAL
     if (BiometricManager.from(activity).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {

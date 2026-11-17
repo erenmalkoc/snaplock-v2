@@ -23,7 +23,6 @@ data class GeneratorPrefsState(
 
 @Singleton
 class SettingsPrefs @Inject constructor(@ApplicationContext context: Context) {
-
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 

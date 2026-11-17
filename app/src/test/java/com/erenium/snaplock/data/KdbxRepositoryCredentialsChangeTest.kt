@@ -20,7 +20,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryCredentialsChangeTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 

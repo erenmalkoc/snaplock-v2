@@ -30,7 +30,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class RecentDatabasesTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

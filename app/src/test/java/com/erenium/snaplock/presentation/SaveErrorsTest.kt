@@ -7,7 +7,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class SaveErrorsTest {
-
     @Test
     fun aVaultChangedElsewhereGetsItsOwnMessage() {
         val error = VaultChangedElsewhereException(IOException("wrong key"))

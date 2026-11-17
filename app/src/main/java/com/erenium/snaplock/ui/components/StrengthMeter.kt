@@ -19,7 +19,6 @@ import com.erenium.snaplock.ui.theme.Dimens
 import com.erenium.snaplock.ui.theme.extendedColors
 import kotlin.math.roundToInt
 
-/** A bar and a label such as "Strong · 78 bits". */
 @Composable
 fun StrengthMeter(estimate: StrengthEstimate, modifier: Modifier = Modifier) {
     val label = strengthLabel(estimate.strength)

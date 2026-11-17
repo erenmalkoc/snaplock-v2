@@ -26,7 +26,6 @@ data class AutofillUiState(
     val matches: List<Credential> = emptyList(),
     val others: List<Credential> = emptyList(),
     val query: String = "",
-    /** Link the picked entry to this app or site when it was not a match yet. */
     val linkPicked: Boolean = false,
     val isVaultEmpty: Boolean = false,
     val loadFailed: Boolean = false
@@ -37,7 +36,6 @@ class AutofillViewModel @Inject constructor(
     private val repository: KdbxRepository,
     recentDatabasesRepository: RecentDatabasesRepository
 ) : ViewModel() {
-
     private var packageName = ""
     private var webDomain: String? = null
     private var started = false
@@ -54,7 +52,6 @@ class AutofillViewModel @Inject constructor(
     private val loaded = MutableStateFlow(Loaded())
     private val picks = Channel<Credential>(Channel.BUFFERED)
 
-    /** The entry the user chose, or the only match after unlocking. */
     val picked: Flow<Credential> = picks.receiveAsFlow()
 
     val uiState: StateFlow<AutofillUiState> = combine(
@@ -80,10 +77,6 @@ class AutofillViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AutofillUiState())
 
-    /**
-     * @param fillSingleMatch when unlocking for a form that has exactly one matching entry,
-     * fill it without asking.
-     */
     fun start(packageName: String, webDomain: String?, fillSingleMatch: Boolean) {
         if (started) return
         started = true
@@ -128,7 +121,6 @@ class AutofillViewModel @Inject constructor(
         viewModelScope.launch {
             val isMatch = credential in CredentialMatcher.match(loaded.value.credentials, packageName, webDomain)
             if (linkPicked.value && !isMatch) {
-                // Best effort: a failed write must not stop the fill the user asked for.
                 val domain = webDomain?.let(CredentialMatcher::hostOf)
                 if (domain != null && Browsers.isTrusted(packageName)) {
                     repository.linkToSite(credential.uuid, domain)

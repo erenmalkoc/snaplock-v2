@@ -6,7 +6,6 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class CsvImporterTest {
-
     @Test
     fun bitwardenWithQuotesMultilineNotesAndTotp() {
         val csv = "folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp\r\n" +

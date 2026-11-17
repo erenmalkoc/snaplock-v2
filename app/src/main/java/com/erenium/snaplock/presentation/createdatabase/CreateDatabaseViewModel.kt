@@ -55,7 +55,6 @@ class CreateDatabaseViewModel @Inject constructor(
     private val strengthEstimator: PasswordStrengthEstimator,
     private val appMessages: AppMessages
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(CreateDatabaseUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -77,7 +76,6 @@ class CreateDatabaseViewModel @Inject constructor(
         if (_uiState.value.confirmPassword.isNotEmpty()) _uiState.update { it.copy(confirmTouched = true) }
     }
 
-    /** Whether the location picker may open now. A mismatch is reported here, once the user commits. */
     fun onSubmit(): Boolean {
         val state = _uiState.value
         if (!state.canSubmit) return false

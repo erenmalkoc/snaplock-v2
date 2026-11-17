@@ -23,7 +23,6 @@ class FingerprintPrompt internal constructor(
     fun showUnlock(cipher: Cipher) = prompt.authenticate(unlockInfo, BiometricPrompt.CryptoObject(cipher))
 }
 
-/** One system fingerprint prompt for the screen, created once and reused for every request. */
 @Composable
 fun rememberFingerprintPrompt(
     subtitle: String,

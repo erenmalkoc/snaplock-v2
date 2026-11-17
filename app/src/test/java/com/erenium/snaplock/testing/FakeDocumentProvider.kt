@@ -8,9 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 
-/** Answers display name and size queries by document id: ok, empty, or anything else is gone. */
 class FakeDocumentProvider : ContentProvider() {
-
     override fun onCreate(): Boolean = true
 
     override fun query(

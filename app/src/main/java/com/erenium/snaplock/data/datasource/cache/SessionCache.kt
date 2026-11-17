@@ -16,14 +16,12 @@ class SessionCache @Inject constructor() {
 
     private val _isLocked = MutableStateFlow(true)
 
-    /** Readable right away, so a screen created while the vault is open never starts locked. */
     val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
 
     fun getDatabase(): KeePassDatabase? = _database.value
 
     fun getUri(): Uri? = _uri
 
-    /** Identifies the file contents the open database was last read from or saved as. */
     fun getFingerprint(): ByteString? = _fingerprint
 
     val databaseFlow: Flow<KeePassDatabase?> = _database.asStateFlow()

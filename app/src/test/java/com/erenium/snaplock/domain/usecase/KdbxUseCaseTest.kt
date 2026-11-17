@@ -12,7 +12,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class KdbxUseCaseTest {
-
     private val repository = FakeKdbxRepository()
 
     @Test

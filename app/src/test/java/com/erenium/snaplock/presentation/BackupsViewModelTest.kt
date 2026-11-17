@@ -27,7 +27,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class BackupsViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -38,7 +37,6 @@ class BackupsViewModelTest {
     private val repository = FakeKdbxRepository()
     private val viewModel = BackupsViewModel(repository, DocumentFiles(context))
 
-    // File writing happens on a real IO thread, so wait in real time.
     private suspend fun <T> eventually(block: suspend () -> T): T =
         withContext(Dispatchers.Default.limitedParallelism(1)) { withTimeout(5_000) { block() } }
 

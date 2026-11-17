@@ -18,7 +18,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class SiteIconAutoFetcherTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val repository = FakeKdbxRepository().apply { locked.value = false }
     private val asked = mutableListOf<String>()

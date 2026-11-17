@@ -38,7 +38,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class UnlockViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

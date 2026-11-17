@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PasskeyTest {
-
     private val passkey = Passkey("Y3JlZA", "-----BEGIN PRIVATE KEY-----\nAA\n-----END PRIVATE KEY-----", "github.com", "octocat", "dXNlcg")
 
     @Test

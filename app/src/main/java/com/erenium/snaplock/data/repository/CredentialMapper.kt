@@ -7,10 +7,6 @@ import com.erenium.snaplock.domain.otp.OtpParser
 import java.util.UUID
 import app.keemobile.kotpass.models.Entry as KotpassEntry
 
-// Field names other KeePass clients use to link entries to apps and extra sites:
-// KeePassDX stores package names in "AndroidApp", "AndroidApp_1", ...; KeePassXC and
-// Keepass2Android store more URLs in "KP2A_URL", "KP2A_URL_1", ..., where Keepass2Android
-// writes apps as androidapp://<package>.
 internal const val FIELD_URL = "URL"
 internal const val FIELD_ANDROID_APP = "AndroidApp"
 internal const val FIELD_EXTRA_URL = "KP2A_URL"
@@ -42,15 +38,12 @@ internal fun KotpassEntry.toCredential(
     )
 }
 
-/** The entry's custom icon, if it has one the vault still holds. */
 internal fun KotpassEntry.iconFrom(icons: Map<UUID, CustomIcon>): EntryIcon? =
     customIconUuid?.let { id -> icons[id]?.let { EntryIcon(id, it.data) } }
 
-/** Fields that link an entry to apps and extra sites; edited through autofill, not as custom fields. */
 internal fun String.isLinkField(): Boolean =
     isNumberedField(FIELD_ANDROID_APP) || isNumberedField(FIELD_EXTRA_URL)
 
-/** True for [base] itself and for [base]_1, [base]_2, ... */
 private fun String.isNumberedField(base: String): Boolean =
     this == base || (startsWith("${base}_") && substring(base.length + 1).let { suffix ->
         suffix.isNotEmpty() && suffix.all(Char::isDigit)

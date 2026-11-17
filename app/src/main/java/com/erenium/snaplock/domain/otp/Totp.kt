@@ -10,13 +10,11 @@ enum class OtpAlgorithm(val macName: String, val uriName: String) {
     SHA512("HmacSHA512", "SHA512")
 }
 
-/** A time-based one-time password generator (RFC 6238), or its Steam Guard variant. */
 data class OtpParameters(
     val secret: ByteArray,
     val period: Int = DEFAULT_PERIOD,
     val digits: Int = DEFAULT_DIGITS,
     val algorithm: OtpAlgorithm = OtpAlgorithm.SHA1,
-    /** Steam Guard codes: five characters from Steam's own alphabet. */
     val isSteam: Boolean = false,
     val issuer: String? = null,
     val account: String? = null
@@ -36,7 +34,6 @@ data class OtpParameters(
 }
 
 object Totp {
-
     private const val STEAM_ALPHABET = "23456789BCDFGHJKMNPQRTVWXY"
     private const val STEAM_DIGITS = 5
 
@@ -66,14 +63,11 @@ object Totp {
         }
     }
 
-    /** Seconds until the code shown at [timeMillis] changes. */
     fun secondsRemaining(parameters: OtpParameters, timeMillis: Long): Int =
         parameters.period - ((timeMillis / 1000) % parameters.period).toInt()
 }
 
-/** RFC 4648 Base32, tolerant of spaces, lower case and missing padding. */
 object Base32 {
-
     private const val ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 
     fun decode(input: String): ByteArray? {

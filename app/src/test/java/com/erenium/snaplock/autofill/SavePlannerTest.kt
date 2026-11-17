@@ -6,7 +6,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class SavePlannerTest {
-
     private val github = Credential(UUID.randomUUID(), "GitHub", "octocat", "old-pass", listOf("https://github.com"), emptyList())
     private val bank = Credential(UUID.randomUUID(), "Bank", "client", "1234", emptyList(), listOf("com.bank.app"))
 

@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.erenium.snaplock.R
 import com.erenium.snaplock.ui.theme.Dimens
 
-
 @Composable
 fun ErrorState(
     message: String,

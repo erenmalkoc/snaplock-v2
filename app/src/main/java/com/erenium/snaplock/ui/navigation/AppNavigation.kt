@@ -60,18 +60,15 @@ fun AppNavigation(
     val isLocked by mainViewModel.isLocked.collectAsState()
     val shortcut by mainViewModel.pendingShortcut.collectAsState()
     var focusSearch by remember { mutableStateOf(false) }
-    // The entry shown beside the list on wide screens; kept across rotation and folding.
     var selectedEntry by rememberSaveable { mutableStateOf<UUID?>(null) }
     LaunchedEffect(isLocked) {
         if (isLocked) selectedEntry = null
     }
-    // A vault that is still open (the activity was recreated before auto-lock) opens on its entries.
     val startDestination = remember { if (mainViewModel.isLocked.value) NavRoutes.SELECT_FILE else NavRoutes.ENTRY_LIST }
 
     val spatialSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
     val effectsSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
 
-    // Locking from anywhere clears the whole back stack, so no screen of the closed vault stays behind.
     val goToSelectFile: () -> Unit = {
         if (navController.currentDestination?.route != NavRoutes.SELECT_FILE) {
             navController.navigate(NavRoutes.SELECT_FILE) {
@@ -97,8 +94,6 @@ fun AppNavigation(
                 mainViewModel.onShortcutHandled()
                 navController.navigate(NavRoutes.PASSWORD_GENERATOR) { launchSingleTop = true }
             }
-            // While unlocked, return to the entry list, which finishes the shortcut; while
-            // locked it waits there until the user has unlocked.
             AppShortcut.SEARCH, AppShortcut.NEW_ENTRY -> navController.popBackStack(NavRoutes.ENTRY_LIST, inclusive = false)
             else -> Unit
         }
@@ -122,7 +117,6 @@ fun AppNavigation(
                 slideOutHorizontally(animationSpec = spatialSpec) { it / AXIS_FRACTION } + fadeOut(effectsSpec)
             }
         ) {
-
             composable(route = NavRoutes.SELECT_FILE) {
                 SelectFileScreen(
                     onFileSelected = { uri ->
@@ -134,7 +128,6 @@ fun AppNavigation(
                     },
                     onCreateDatabase = { navController.navigate(NavRoutes.CREATE_DATABASE) }
                 )
-
             }
             composable(route = NavRoutes.CREATE_DATABASE) {
                 CreateDatabaseScreen(
@@ -173,7 +166,6 @@ fun AppNavigation(
                 }
             }
             composable(route = NavRoutes.ENTRY_LIST) {
-                // Shortcuts that need an open vault are carried out here, once the entries show.
                 LaunchedEffect(shortcut, isLocked) {
                     if (isLocked) return@LaunchedEffect
                     when (shortcut) {

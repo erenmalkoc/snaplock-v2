@@ -23,11 +23,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Makes Snaplock a password provider for Android 14+ Credential Manager. */
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @AndroidEntryPoint
 class SnaplockCredentialProviderService : CredentialProviderService() {
-
     @Inject
     lateinit var repository: KdbxRepository
 
@@ -60,7 +58,6 @@ class SnaplockCredentialProviderService : CredentialProviderService() {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<Void?, ClearCredentialException>
     ) {
-        // Snaplock keeps no per-app sign-in state to clear.
         callback.onResult(null)
     }
 

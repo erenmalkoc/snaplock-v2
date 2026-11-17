@@ -89,7 +89,6 @@ class UnlockViewModel @Inject constructor(
         _uiState.update { it.copy(biometric = next, useBiometrics = it.useBiometrics && next == BiometricState.AVAILABLE) }
     }
 
-    /** Restores the key file last used with [databaseUri]. */
     fun loadKeyFile(databaseUri: Uri) {
         if (_uiState.value.keyFileUri != null) return
         val keyFile = keyFilePrefs.get(databaseUri) ?: return
@@ -138,7 +137,6 @@ class UnlockViewModel @Inject constructor(
         recentDatabases.remove(uri)
     }
 
-    /** The cipher the system prompt must be bound to, or null when [request] cannot go ahead. */
     fun takeCipher(request: PromptRequest): Cipher? {
         val uri = database
         if (_uiState.value.prompt != request || uri == null) return null

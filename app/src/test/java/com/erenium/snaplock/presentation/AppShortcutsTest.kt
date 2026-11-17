@@ -21,7 +21,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class AppShortcutsTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

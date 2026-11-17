@@ -21,7 +21,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** What the tile shows for an open or locked vault. */
 internal data class LockTileLook(
     val state: Int,
     @param:StringRes val subtitle: Int,
@@ -35,12 +34,8 @@ internal fun lockTileLook(locked: Boolean): LockTileLook =
         LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked, R.drawable.ic_tile_unlock)
     }
 
-/**
- * Quick Settings tile: locks an open vault with one tap, or opens Snaplock to unlock it.
- */
 @AndroidEntryPoint
 class LockTileService : TileService() {
-
     @Inject
     lateinit var isDatabaseLocked: IsDatabaseLockedUseCase
 
@@ -63,12 +58,9 @@ class LockTileService : TileService() {
     }
 
     override fun onClick() {
-        // Read the state now: it may have changed while the panel was closed and the tile
-        // was not listening.
         if (!isDatabaseLocked().value) {
             scope.launch { lockDatabase() }
         } else if (isLocked) {
-            // The device is locked too: open Snaplock once the user has unlocked it.
             unlockAndRun(::openApp)
         } else {
             openApp()

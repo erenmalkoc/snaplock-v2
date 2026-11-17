@@ -12,7 +12,6 @@ import com.erenium.snaplock.ui.components.ErrorState
 import com.erenium.snaplock.ui.components.LoadingSpinner
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 
-/** Shows [content] once the vault is open, unlocking the most recent database first. */
 @Composable
 fun VaultGate(
     viewModel: AutofillViewModel,

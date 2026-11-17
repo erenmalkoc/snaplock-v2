@@ -17,7 +17,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AppModule {
-
     @Binds
     @Singleton
     abstract fun bindKdbxRepository(
@@ -38,5 +37,4 @@ abstract class AppModule {
     abstract fun bindWordList(
         impl: AssetWordList
     ): WordList
-
 }

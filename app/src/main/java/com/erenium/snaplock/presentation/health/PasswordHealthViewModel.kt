@@ -20,8 +20,6 @@ class PasswordHealthViewModel @Inject constructor(
     private val checkPasswordHealth: CheckPasswordHealthUseCase,
     private val settingsPrefs: SettingsPrefs
 ) : ViewModel() {
-
-    /** Null while the check runs. */
     private val _report = MutableStateFlow<HealthReport?>(null)
     val report = _report.asStateFlow()
 
@@ -35,7 +33,6 @@ class PasswordHealthViewModel @Inject constructor(
     private var runs = 0
     private var lastChecked: Pair<Int, Boolean>? = null
 
-    /** Runs again when the screen returns, since the user may have fixed entries meanwhile. */
     fun refresh(force: Boolean = false) {
         job?.cancel()
         val generation = ++runs

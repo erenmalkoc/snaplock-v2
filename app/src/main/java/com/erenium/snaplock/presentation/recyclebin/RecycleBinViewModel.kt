@@ -28,7 +28,6 @@ import javax.inject.Inject
 data class RecycleBinUiState(
     val entries: List<Entry> = emptyList(),
     val isLoading: Boolean = true,
-    /** Entry waiting for the "delete permanently" confirmation. */
     val pendingDelete: Entry? = null,
     val confirmEmpty: Boolean = false,
     val errorStringId: Int? = null,
@@ -43,7 +42,6 @@ class RecycleBinViewModel @Inject constructor(
     private val emptyRecycleBin: EmptyRecycleBinUseCase,
     private val getEntries: GetEntriesUseCase
 ) : ViewModel() {
-
     private data class Dialogs(
         val pendingDelete: Entry? = null,
         val confirmEmpty: Boolean = false,

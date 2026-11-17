@@ -21,7 +21,6 @@ import java.security.SecureRandom
 import java.util.UUID
 import javax.inject.Inject
 
-/** Argon2 1.3, the only version KeePass writes. */
 private const val ARGON2_VERSION = 0x13u
 private const val KDF_SALT_BYTES = 32
 
@@ -32,7 +31,6 @@ internal val VaultCipher.uuid: UUID
         VaultCipher.TWOFISH -> TwofishCipher.uuid
     }
 
-/** The cipher and key derivation of a KDBX 4 header; null for a cipher Snaplock does not know. */
 internal fun DatabaseHeader.Ver4x.encryptionSettings(): EncryptionSettings? {
     val cipher = VaultCipher.entries.firstOrNull { it.uuid == cipherId } ?: return null
     return when (val kdf = kdfParameters) {
@@ -47,7 +45,6 @@ internal fun DatabaseHeader.Ver4x.encryptionSettings(): EncryptionSettings? {
     }
 }
 
-/** Header parameters for [this] key derivation. The salt is replaced again on every save. */
 internal fun EncryptionSettings.kdfParameters(salt: ByteString = randomSalt()): KdfParameters = when (kdf) {
     KdfAlgorithm.AES_KDF -> KdfParameters.Aes(rounds = iterations.toULong(), seed = salt)
     KdfAlgorithm.ARGON2D, KdfAlgorithm.ARGON2ID -> KdfParameters.Argon2(
@@ -64,16 +61,9 @@ internal fun EncryptionSettings.kdfParameters(salt: ByteString = randomSalt()): 
 
 private fun randomSalt(): ByteString = ByteArray(KDF_SALT_BYTES).also { SecureRandom().nextBytes(it) }.toByteString()
 
-/** Times key derivation on this device, to suggest settings that unlock in a chosen time. */
 class KdfBenchmark @Inject constructor() {
-
-    /**
-     * Iterations (Argon2 passes or AES-KDF rounds) that make [settings] take about [targetMillis]
-     * here. Memory and parallelism stay as they are.
-     */
     suspend fun iterationsFor(settings: EncryptionSettings, targetMillis: Long = 1_000): Long =
         withContext(Dispatchers.Default) {
-            // Grow the probe until it runs long enough to measure, then scale it to the target.
             var probe = if (settings.kdf == KdfAlgorithm.AES_KDF) AES_PROBE_ROUNDS else 1L
             var millis = millisFor(settings.copy(iterations = probe))
             while (millis < MIN_PROBE_MILLIS && probe < MAX_PROBE) {
@@ -83,8 +73,6 @@ class KdfBenchmark @Inject constructor() {
             (probe * targetMillis / millis.coerceAtLeast(1)).coerceAtLeast(1)
         }
 
-    // kotpass keeps its key derivation internal, so this saves an empty vault instead:
-    // deriving the key is nearly all of that work.
     private fun millisFor(settings: EncryptionSettings): Long {
         val empty = KeePassDatabase.Ver4x.create(rootName = "", meta = Meta(), credentials = credentials)
         val vault = empty.copy(header = empty.header.copy(kdfParameters = settings.kdfParameters()))

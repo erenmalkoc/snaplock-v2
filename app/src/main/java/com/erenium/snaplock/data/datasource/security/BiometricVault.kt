@@ -22,7 +22,6 @@ class BiometricVault @Inject constructor(
     private val keys: BiometricKeys,
     private val prefs: EncryptedPrefs
 ) {
-
     fun availability(): BiometricAvailability = runCatching { keys.availability() }
         .getOrDefault(BiometricAvailability.UNAVAILABLE)
 

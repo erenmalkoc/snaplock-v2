@@ -20,7 +20,6 @@ import javax.inject.Singleton
 class BiometricCryptoManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) : BiometricKeys {
-
     private val keyStore by lazy { KeyStore.getInstance(KEYSTORE).apply { load(null) } }
 
     override fun availability(): BiometricAvailability =

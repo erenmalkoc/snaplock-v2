@@ -6,7 +6,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LockTileTest {
-
     @Test
     fun anOpenVaultShowsAnActiveTileThatLocksIt() {
         assertEquals(LockTileLook(Tile.STATE_ACTIVE, R.string.tile_unlocked, R.drawable.ic_tile_unlock), lockTileLook(locked = false))

@@ -22,7 +22,6 @@ import org.robolectric.RobolectricTestRunner
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class ClipboardManagerHelperTest {
-
     private val dispatcher = StandardTestDispatcher()
 
     @get:Rule

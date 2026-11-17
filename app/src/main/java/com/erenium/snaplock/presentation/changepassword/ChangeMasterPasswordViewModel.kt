@@ -47,7 +47,6 @@ class ChangeMasterPasswordViewModel @Inject constructor(
     private val vault: BiometricVault,
     private val appMessages: AppMessages
 ) : ViewModel() {
-
     private var pendingPassword: CharArray? = null
     private var activeEnrollment = false
 

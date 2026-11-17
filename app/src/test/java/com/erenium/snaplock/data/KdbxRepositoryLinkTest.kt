@@ -31,7 +31,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryLinkTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 
@@ -60,7 +59,6 @@ class KdbxRepositoryLinkTest {
         sessionCache.setDatabase(filled, Uri.fromFile(file))
     }
 
-    /** Reads the saved file back, so the test covers what other KeePass apps will see. */
     private fun savedFields(): Map<String, String> {
         val reopened = file.inputStream().use {
             KeePassDatabase.decode(it, Credentials.from(EncryptedValue.fromString(PASSWORD)))

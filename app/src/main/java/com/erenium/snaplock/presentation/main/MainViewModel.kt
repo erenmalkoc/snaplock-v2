@@ -21,10 +21,8 @@ class MainViewModel @Inject constructor(
     private val lockDatabaseUseCase: LockDatabaseUseCase,
     appMessages: AppMessages = AppMessages()
 ) : ViewModel() {
-
     val isLocked: StateFlow<Boolean> = isDatabaseLockedUseCase()
 
-    /** Messages raised by screens that are already gone, such as a skipped fingerprint set-up. */
     val messages: Flow<AppMessage> = appMessages.messages
         .filter { System.currentTimeMillis() - it.postedAt < MESSAGE_LIFETIME_MILLIS }
 
@@ -40,7 +38,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    /** A launcher shortcut waiting for its screen, which may need the vault unlocked first. */
     private val _pendingShortcut = MutableStateFlow<AppShortcut?>(null)
     val pendingShortcut = _pendingShortcut.asStateFlow()
 

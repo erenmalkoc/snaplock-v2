@@ -22,7 +22,6 @@ class CheckPasswordHealthUseCase @Inject constructor(
 
     suspend fun auditEntries(): List<AuditEntry> = repository.getAuditEntries()
 
-    /** @param checkBreaches asks the online breach service; only when the user turned it on. */
     suspend operator fun invoke(checkBreaches: Boolean, entries: List<AuditEntry>? = null): HealthReport {
         val audit = entries ?: repository.getAuditEntries()
         val report = sorted(analyzer.analyze(audit))

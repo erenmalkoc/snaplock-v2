@@ -11,7 +11,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ExpiryDatesTest {
-
     private val newYork = ZoneId.of("America/New_York")
     private val istanbul = ZoneId.of("Europe/Istanbul")
 

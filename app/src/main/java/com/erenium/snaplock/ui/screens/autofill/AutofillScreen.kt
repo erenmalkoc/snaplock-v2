@@ -44,10 +44,6 @@ import com.erenium.snaplock.ui.components.SettingToggleRow
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
 import com.erenium.snaplock.ui.theme.Dimens
 
-/**
- * Shown when the user taps a Snaplock suggestion that needs the app: unlocks the most
- * recent database if needed, then lets the user pick the entry to fill.
- */
 @Composable
 fun AutofillScreen(
     viewModel: AutofillViewModel,

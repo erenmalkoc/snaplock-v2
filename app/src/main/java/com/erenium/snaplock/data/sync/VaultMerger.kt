@@ -15,21 +15,9 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-/** The two copies are different vaults, not two versions of one. */
 class UnrelatedVaultException : IllegalArgumentException("The vaults have different root groups")
 
-/**
- * Combines two copies of one vault the way KeePass synchronises them: groups and entries
- * are matched by UUID, the copy changed last wins (the other version of an entry goes into
- * its history), the copy moved last decides where an item lives, and an item deleted after
- * its last change stays deleted.
- *
- * Used when another device or app (Syncthing, a cloud drive, a desktop client) wrote the
- * vault file between opening it here and saving it.
- */
 object VaultMerger {
-
-    /** [local] with [remote]'s changes folded in; keeps [local]'s credentials and header. */
     fun merge(local: KeePassDatabase, remote: KeePassDatabase): KeePassDatabase {
         val localContent = local.content
         val remoteContent = remote.content
@@ -74,8 +62,6 @@ object VaultMerger {
             if (merged != null) entries[uuid] = merged
         }
 
-        // A parent that was deleted, or a move that made two groups each other's parent,
-        // leaves an item without a place in the tree: it goes to the root instead.
         val parents = groups.mapValues { (uuid, placed) -> if (uuid == rootUuid) null else placed.parent }.toMutableMap()
         parents.keys.forEach { uuid ->
             if (uuid == rootUuid) return@forEach
@@ -112,11 +98,8 @@ object VaultMerger {
             .removeUnusedBinaries()
     }
 
-    /** The newer version of an entry, with the older one and both histories as its history. */
     private fun mergeVersions(mine: Entry, theirs: Entry, historyLimit: Int): Entry {
         val (newer, older) = if (theirs.times.modified > mine.times.modified) theirs to mine else mine to theirs
-        // Versions are told apart by their modification time; the newer copy's own
-        // history is kept whole, the older copy only adds versions it lacks.
         val known = newer.history.map { it.times.modified }.toSet() + newer.times.modified
         val missing = (older.history + older.copy(history = emptyList()))
             .filter { it.times.modified !in known }
@@ -128,7 +111,6 @@ object VaultMerger {
     private fun mergeMeta(mine: Meta, theirs: Meta, groups: Set<UUID>): Meta {
         val name = if (theirs.nameChanged.seconds() > mine.nameChanged.seconds()) theirs else mine
         val description = if (theirs.descriptionChanged.seconds() > mine.descriptionChanged.seconds()) theirs else mine
-        // Prefer the newer recycle bin setting, but only one that still points at a group.
         val bin = listOf(mine, theirs)
             .filter { it.recycleBinUuid == null || it.recycleBinUuid in groups }
             .maxByOrNull { it.recycleBinChanged.seconds() } ?: mine
@@ -147,7 +129,6 @@ object VaultMerger {
 
     private class Placed<T>(val item: T, val parent: UUID?)
 
-    /** Every group and entry of one copy by UUID, in tree order, with its parent group. */
     private class Items {
         val groups = LinkedHashMap<UUID, Placed<Group>>()
         val entries = LinkedHashMap<UUID, Placed<Entry>>()
@@ -159,8 +140,6 @@ object VaultMerger {
         }
     }
 
-    // KDBX files keep whole seconds, so a copy read back from disk loses the
-    // sub-second part of times this session set; compare at that precision.
     private fun Instant?.seconds(): Instant = (this ?: Instant.EPOCH).truncatedTo(ChronoUnit.SECONDS)
 
     private val TimeData?.modified: Instant get() = this?.lastModificationTime.seconds()

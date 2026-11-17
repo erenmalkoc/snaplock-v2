@@ -36,7 +36,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryRecycleBinTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 
@@ -122,7 +121,6 @@ class KdbxRepositoryRecycleBinTest {
         val (group, entry) = reopen().getEntry { it.uuid == entryUuid }!!
         assertEquals(webGroup, group.uuid)
         assertNotNull(entry.times)
-        // The move time is recorded (checked in memory: KDBX 4 stores whole seconds only).
         val times = sessionCache.getDatabase()!!.getEntry { it.uuid == entryUuid }!!.second.times!!
         assertTrue(times.locationChanged!!.isAfter(times.creationTime))
         assertEquals(listOf("GitHub"), repository.getEntries().first().map { it.title })
@@ -176,7 +174,6 @@ class KdbxRepositoryRecycleBinTest {
         val saved = reopen()
         assertNull(saved.getEntry { it.uuid == entryUuid })
         assertTrue(repository.getRecycledEntries().first().isEmpty())
-        // Recorded so a sync with an older copy of the vault does not bring it back.
         assertTrue(saved.content.deletedObjects.any { it.id == entryUuid })
     }
 

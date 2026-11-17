@@ -15,13 +15,7 @@ import java.security.interfaces.ECPublicKey
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 
-/**
- * The authenticator side of WebAuthn (https://www.w3.org/TR/webauthn-3/): key pairs,
- * authenticator data, "none" attestation and assertion signatures.
- */
 object WebAuthn {
-
-    /** COSE algorithm id for ECDSA with P-256 and SHA-256, the one every site accepts. */
     const val ES256 = -7
 
     const val FLAG_USER_PRESENT = 0x01
@@ -30,7 +24,6 @@ object WebAuthn {
     const val FLAG_BACKED_UP = 0x10
     const val FLAG_ATTESTED_DATA = 0x40
 
-    /** Snaplock does not attest, so it uses the all-zero authenticator model id. */
     private val AAGUID = ByteArray(16)
     private const val CREDENTIAL_ID_BYTES = 32
     private const val P256_COORDINATE_BYTES = 32
@@ -40,7 +33,6 @@ object WebAuthn {
 
     fun newCredentialId(): ByteArray = ByteArray(CREDENTIAL_ID_BYTES).also { SecureRandom().nextBytes(it) }
 
-    /** The flags byte for a passkey: user present and verified, plus its backup state. */
     fun flags(userVerified: Boolean, passkey: Passkey, attested: Boolean = false): Int =
         FLAG_USER_PRESENT or
             (if (userVerified) FLAG_USER_VERIFIED else 0) or
@@ -48,10 +40,6 @@ object WebAuthn {
             (if (passkey.backupState) FLAG_BACKED_UP else 0) or
             (if (attested) FLAG_ATTESTED_DATA else 0)
 
-    /**
-     * rpIdHash, flags and a zero signature counter (synced passkeys cannot count), followed
-     * on registration by the AAGUID, credential id and COSE public key.
-     */
     fun authenticatorData(rpId: String, flags: Int, attested: AttestedCredential? = null): ByteArray =
         ByteArrayOutputStream().apply {
             write(rpId.encodeUtf8().sha256().toByteArray())
@@ -66,11 +54,9 @@ object WebAuthn {
             }
         }.toByteArray()
 
-    /** A "none" attestation object around [authenticatorData]. */
     fun attestationObject(authenticatorData: ByteArray): ByteArray =
         Cbor.encode(linkedMapOf("fmt" to "none", "attStmt" to emptyMap<String, Any>(), "authData" to authenticatorData))
 
-    /** The EC2 COSE key for a P-256 public key, in CTAP2 canonical key order. */
     fun coseKey(publicKey: ECPublicKey): ByteArray = Cbor.encode(
         linkedMapOf(
             1 to 2,
@@ -81,7 +67,6 @@ object WebAuthn {
         )
     )
 
-    /** Signs authenticator data and the client data hash, as an assertion does. */
     fun sign(privateKey: PrivateKey, authenticatorData: ByteArray, clientDataHash: ByteArray): ByteArray {
         val algorithm = when (privateKey.algorithm) {
             "EC" -> "SHA256withECDSA"
@@ -102,7 +87,6 @@ object WebAuthn {
             privateKey.encoded.toByteString().base64().chunked(PEM_LINE).joinToString("\n") +
             "\n-----END PRIVATE KEY-----"
 
-    /** Reads a PKCS #8 PEM key as KeePassXC writes it: EC P-256, RSA or Ed25519. */
     fun privateKeyFromPem(pem: String): PrivateKey {
         val body = pem.lineSequence().map { it.trim() }.filterNot { it.startsWith("-----") }.joinToString("")
         val der = body.decodeBase64()?.toByteArray() ?: throw IllegalArgumentException("Not a PEM key")
@@ -113,7 +97,6 @@ object WebAuthn {
 
     fun base64Url(bytes: ByteArray): String = bytes.toByteString().base64Url().trimEnd('=')
 
-    /** Decodes base64url (or plain base64), with or without padding. */
     fun fromBase64Url(text: String): ByteArray? = text.trim().decodeBase64()?.toByteArray()
 
     fun sha256(bytes: ByteArray): ByteArray = bytes.toByteString().sha256().toByteArray()
@@ -130,15 +113,9 @@ object WebAuthn {
     private const val PEM_LINE = 64
 }
 
-/** The new credential a registration reports in its authenticator data. */
 class AttestedCredential(val credentialId: ByteArray, val publicKey: ECPublicKey)
 
-/**
- * Deterministic CBOR (RFC 8949) for the few types WebAuthn needs: integers, byte and text
- * strings, arrays and maps. Map entries are written in the order given.
- */
 object Cbor {
-
     fun encode(value: Any): ByteArray = ByteArrayOutputStream().also { write(it, value) }.toByteArray()
 
     private fun write(out: ByteArrayOutputStream, value: Any) {

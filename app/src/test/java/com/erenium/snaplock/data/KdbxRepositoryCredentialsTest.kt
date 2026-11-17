@@ -27,7 +27,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryCredentialsTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val sessionCache = SessionCache()
     private val repository = KdbxRepositoryImpl(

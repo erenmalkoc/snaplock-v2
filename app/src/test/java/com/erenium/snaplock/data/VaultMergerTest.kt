@@ -31,7 +31,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VaultMergerTest {
-
     private val credentials = Credentials.from(EncryptedValue.fromString("master"))
     private val base = KeePassDatabase.Ver4x.create(
         rootName = "Root",
@@ -69,7 +68,6 @@ class VaultMergerTest {
 
         assertEquals("mine", merged.password(github))
         assertEquals(listOf("v1", "theirs"), merged.history(github))
-        // Either side doing the merge reaches the same result.
         val reversed = VaultMerger.merge(remote, local)
         assertEquals("mine", reversed.password(github))
         assertEquals(listOf("v1", "theirs"), reversed.history(github))
@@ -147,7 +145,6 @@ class VaultMergerTest {
 
     @Test
     fun aCopyReadBackFromDiskAddsNoHistory() {
-        // This session's times have sub-second parts the saved file drops.
         val now = Instant.now()
         val local = vault(group(web, "Web", entry(github, "v2", now, history = listOf(entry(github, "v1", T0)))))
         val remote = KeePassDatabase.decode(ByteArrayInputStream(local.encodeToByteArray()), credentials)

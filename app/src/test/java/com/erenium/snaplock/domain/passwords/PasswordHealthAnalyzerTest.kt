@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PasswordHealthAnalyzerTest {
-
     private val analyzer = PasswordHealthAnalyzer(
         PasswordStrengthEstimator(object : WordList {
             override val words = listOf("abacus", "abdomen", "abide")

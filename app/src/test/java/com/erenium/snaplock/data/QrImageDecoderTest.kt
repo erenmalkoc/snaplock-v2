@@ -17,7 +17,6 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class QrImageDecoderTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val decoder = QrImageDecoder(context)
 

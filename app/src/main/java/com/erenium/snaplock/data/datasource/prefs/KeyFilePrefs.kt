@@ -9,10 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Remembers which key file belongs to which database. Stores locations only, never key contents. */
 @Singleton
 class KeyFilePrefs @Inject constructor(@ApplicationContext context: Context) {
-
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 

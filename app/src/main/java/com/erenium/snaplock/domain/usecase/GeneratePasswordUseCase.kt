@@ -5,7 +5,6 @@ import java.security.SecureRandom
 import javax.inject.Inject
 
 class GeneratePasswordUseCase @Inject constructor() {
-
     private val secureRandom = SecureRandom()
 
     operator fun invoke(options: PasswordOptions): String {

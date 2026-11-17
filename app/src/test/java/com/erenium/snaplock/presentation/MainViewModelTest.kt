@@ -18,7 +18,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class MainViewModelTest {
-
     @Test
     fun anOpenVaultIsKnownBeforeAnythingCollects() {
         val repository = FakeKdbxRepository().apply { locked.value = false }

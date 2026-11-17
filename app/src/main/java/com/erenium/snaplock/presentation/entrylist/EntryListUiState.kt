@@ -7,11 +7,8 @@ import java.util.UUID
 enum class SearchMatch { TITLE, USERNAME, URL, NOTES }
 
 data class EntryListUiState(
-    /** Entries of the open group, or search results across the whole vault. */
     val entries: List<Entry> = emptyList(),
-    /** Child groups of the open group, or groups whose name matches the search. */
     val subgroups: List<Group> = emptyList(),
-    /** The open group; null until the vault has loaded. */
     val currentGroup: Group? = null,
     val query: String = "",
     val isLoading: Boolean = true,

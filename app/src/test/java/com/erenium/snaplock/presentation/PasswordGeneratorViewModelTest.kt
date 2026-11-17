@@ -24,7 +24,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class PasswordGeneratorViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

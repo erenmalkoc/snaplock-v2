@@ -9,7 +9,6 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** Software AES-GCM key standing in for the Android Keystore key. */
 class FakeBiometricKeys : BiometricKeys {
     var availability = BiometricAvailability.AVAILABLE
     var invalidated = false

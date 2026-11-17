@@ -2,7 +2,6 @@ package com.erenium.snaplock.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-
 object Dimens {
     val hairline = 1.dp
     val spaceXxs = 2.dp

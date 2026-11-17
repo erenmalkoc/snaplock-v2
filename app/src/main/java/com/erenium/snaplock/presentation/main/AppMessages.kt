@@ -12,7 +12,6 @@ data class AppMessage(
     val postedAt: Long = System.currentTimeMillis()
 )
 
-/** One-shot messages that must outlive the screen that raised them, shown on whichever screen comes next. */
 @Singleton
 class AppMessages @Inject constructor() {
     private val channel = Channel<AppMessage>(Channel.BUFFERED)

@@ -2,32 +2,22 @@ package com.erenium.snaplock.domain.importer
 
 import com.erenium.snaplock.domain.otp.OtpParser
 
-/** One login read from another password manager's export. */
 data class ImportedEntry(
     val title: String,
     val username: String?,
     val password: String?,
     val url: String?,
     val notes: String?,
-    /** Two-factor settings as an otpauth:// URI, normalised from whatever the source wrote. */
     val otpUri: String?,
-    /** Folder, vault or group in the source app; becomes a subgroup. */
     val folder: String?
 )
 
 data class CsvImport(
-    /** Which app the columns look like it came from, for the confirmation message. */
     val source: String,
     val entries: List<ImportedEntry>
 )
 
-/**
- * Reads CSV exports by their header names, so column order and extra columns do not
- * matter: Bitwarden, Chrome and other Chromium browsers, Firefox, 1Password, Proton Pass,
- * LastPass, KeePassXC and similar files all map onto the same fields.
- */
 object CsvImporter {
-
     private val titleColumns = listOf("title", "name")
     private val usernameColumns = listOf("username", "login_username", "user", "login", "user name")
     private val emailColumns = listOf("email", "e-mail")
@@ -37,7 +27,6 @@ object CsvImporter {
     private val otpColumns = listOf("totp", "login_totp", "otpauth", "otp", "one-time password")
     private val folderColumns = listOf("folder", "group", "grouping", "vault", "category")
 
-    /** Null when the file has no recognisable password column. */
     fun parse(text: String): CsvImport? {
         val rows = Csv.parse(text.removePrefix("\uFEFF")).filter { row -> row.any { it.isNotBlank() } }
         if (rows.size < 2) return null
@@ -69,7 +58,6 @@ object CsvImporter {
         return CsvImport(sourceOf(header), entries)
     }
 
-    /** Passwords keep their exact characters, including leading and trailing spaces. */
     private fun index(row: List<String>, column: Int): String? = row.getOrNull(column)?.takeIf { it.isNotEmpty() }
 
     private fun hostOf(url: String): String? =
@@ -87,9 +75,7 @@ object CsvImporter {
     }
 }
 
-/** RFC 4180 CSV: quoted fields may hold commas, quotes ("") and line breaks. */
 object Csv {
-
     fun parse(text: String): List<List<String>> {
         val rows = mutableListOf<List<String>>()
         var row = mutableListOf<String>()

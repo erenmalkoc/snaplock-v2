@@ -6,7 +6,6 @@ import android.view.View
 import android.view.autofill.AutofillId
 import androidx.annotation.RequiresApi
 
-/** Exposes a platform [AssistStructure.ViewNode] to [FormParser]. */
 @RequiresApi(Build.VERSION_CODES.O)
 internal class ViewNodeFormNode(private val node: AssistStructure.ViewNode) : FormNode<AutofillId> {
     override val autofillId: AutofillId? get() = node.autofillId

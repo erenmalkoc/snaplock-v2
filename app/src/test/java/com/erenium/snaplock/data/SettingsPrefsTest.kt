@@ -17,7 +17,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class SettingsPrefsTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test

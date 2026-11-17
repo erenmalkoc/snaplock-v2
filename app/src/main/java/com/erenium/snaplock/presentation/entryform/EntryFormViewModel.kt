@@ -31,7 +31,6 @@ import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 
-/** A custom field being edited; [key] keeps rows stable while names change. */
 data class CustomFieldDraft(
     val key: Long,
     val name: String = "",
@@ -49,12 +48,9 @@ data class EntryFormUiState(
     val url: String = "",
     val notes: String = "",
     val customFields: List<CustomFieldDraft> = emptyList(),
-    /** Current two-factor settings; null when the entry has none. */
     val otp: OtpParameters? = null,
-    /** What the user typed or scanned while adding two-factor settings. */
     val otpInput: String = "",
     val otpInputError: Boolean = false,
-    /** When the password should be replaced; null if it never expires. */
     val expires: Instant? = null,
     val groups: List<Group> = emptyList(),
     val groupPaths: Map<UUID, String> = emptyMap(),
@@ -110,9 +106,7 @@ class EntryFormViewModel @Inject constructor(
     private val generatePasswordUseCase: GeneratePasswordUseCase,
     private val strengthEstimator: PasswordStrengthEstimator
 ) : ViewModel() {
-
     private val entryUuid: UUID? = savedStateHandle.get<String>("uuid")?.let(UUID::fromString)
-    /** Group a new entry goes into: the one open in the list. */
     private val initialGroupUuid: UUID? = savedStateHandle.get<String>("group")?.let(UUID::fromString)
 
     private val _uiState = MutableStateFlow(
@@ -122,7 +116,6 @@ class EntryFormViewModel @Inject constructor(
 
     private var baseline = _uiState.value.snapshot()
     private var nextFieldKey = 0L
-    /** Whether the user touched the two-factor settings; untouched ones keep their stored format. */
     private var otpChanged = false
     private var expiryChanged = false
 
@@ -218,7 +211,6 @@ class EntryFormViewModel @Inject constructor(
 
     fun onOtpInputChange(value: String) = edit { it.copy(otpInput = value, otpInputError = false) }
 
-    /** Takes a setup key or otpauth:// link that was typed, pasted or read from a QR code. */
     fun onOtpEntered(value: String = _uiState.value.otpInput) {
         val parsed = OtpParser.parse(value)
         if (parsed == null) {
@@ -252,8 +244,6 @@ class EntryFormViewModel @Inject constructor(
     }
 
     fun onSave() {
-        // A key typed without pressing its confirm button still counts; a bad one stops the
-        // save so the user sees the error instead of losing the 2FA silently.
         if (_uiState.value.otpInput.isNotBlank()) {
             onOtpEntered()
             if (_uiState.value.otpInputError) return
@@ -300,7 +290,6 @@ class EntryFormViewModel @Inject constructor(
     }
 
     private companion object {
-        /** What "generate" in the form produces: long, every character class. */
         val GENERATED_PASSWORD = PasswordOptions(length = 20, useSymbols = true)
 
         val RESERVED_FIELD_NAMES = setOf("Title", "UserName", "Password", "URL", "Notes")

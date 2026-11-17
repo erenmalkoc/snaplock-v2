@@ -10,11 +10,6 @@ import com.erenium.snaplock.MainActivity
 import com.erenium.snaplock.R
 import com.erenium.snaplock.presentation.main.AppShortcut
 
-/**
- * Publishes the launcher shortcuts (long press on the app icon). They are set from code
- * rather than res/xml so their intents always name this build's package and their labels
- * follow the current language.
- */
 fun publishAppShortcuts(context: Context) {
     val shortcuts = AppShortcut.entries.mapIndexed { rank, shortcut ->
         val (label, longLabel, icon) = when (shortcut) {
@@ -34,7 +29,6 @@ fun publishAppShortcuts(context: Context) {
     ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)
 }
 
-/** Publishes the shortcuts again in the new language when the device language changes. */
 class ShortcutLocaleReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action == Intent.ACTION_LOCALE_CHANGED) publishAppShortcuts(context)

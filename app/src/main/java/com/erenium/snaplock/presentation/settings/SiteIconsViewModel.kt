@@ -15,25 +15,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SiteIconsUiState(
-    /** Entries waiting for the user to allow the download; null when not asking. */
     val confirmCount: Int? = null,
-    /** Sites looked up so far and in total while downloading; null otherwise. */
     val progress: Pair<Int, Int>? = null
 )
 
-/** Runs the opt-in site icon download from the settings screen. */
 @HiltViewModel
 class SiteIconsViewModel @Inject constructor(
     private val downloadSiteIcons: DownloadSiteIconsUseCase
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(SiteIconsUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _messages = Channel<ImportExportMessage>(Channel.BUFFERED)
     val messages = _messages.receiveAsFlow()
 
-    /** Nothing goes online yet: this only counts the entries and asks first. */
     fun onDownloadRequested() {
         if (_uiState.value.progress != null) return
         viewModelScope.launch {

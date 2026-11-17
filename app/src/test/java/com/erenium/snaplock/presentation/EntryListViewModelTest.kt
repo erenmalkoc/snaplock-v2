@@ -27,7 +27,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class EntryListViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

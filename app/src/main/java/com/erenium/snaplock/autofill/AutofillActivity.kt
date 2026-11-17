@@ -23,14 +23,9 @@ import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-/**
- * Opened by the system when the user taps a Snaplock autofill item that needs the app.
- * Hands the chosen entry back as a [Dataset]; nothing is filled if the user backs out.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class AutofillActivity : FragmentActivity() {
-
     enum class Mode { UNLOCK, SEARCH }
 
     @Inject

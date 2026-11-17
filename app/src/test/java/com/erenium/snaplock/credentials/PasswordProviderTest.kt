@@ -26,7 +26,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class PasswordProviderTest {
-
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val bank = Credential(UUID.randomUUID(), "Bank", "client", "1234", emptyList(), listOf(BANK_APP))
     private val other = Credential(UUID.randomUUID(), "Other", "me", "abcd", emptyList(), listOf("com.other.app"))

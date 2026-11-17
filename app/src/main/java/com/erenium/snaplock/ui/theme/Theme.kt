@@ -114,7 +114,6 @@ fun SnaplockV2Theme(
     }
 }
 
-/** Applies the theme and colour choices from the user's settings. */
 @Composable
 fun SnaplockTheme(settings: AppSettings, content: @Composable () -> Unit) {
     val darkTheme = when (settings.themeMode) {

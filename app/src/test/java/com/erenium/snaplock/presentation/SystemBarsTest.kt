@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SystemBarsTest {
-
     @Test
     fun chosenThemeOverridesTheSystemOne() {
         assertTrue(isDarkTheme(ThemeMode.DARK, systemIsDark = false))

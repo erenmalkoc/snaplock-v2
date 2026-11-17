@@ -12,10 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Most recently opened databases first. Only the document URIs are stored, never content. */
 @Singleton
 class RecentDatabasesPrefs @Inject constructor(@ApplicationContext context: Context) {
-
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -29,7 +27,6 @@ class RecentDatabasesPrefs @Inject constructor(@ApplicationContext context: Cont
 
     fun remove(uri: Uri) = update { current -> current - uri }
 
-    /** Puts [uri] back at [index], as it was before [remove]. */
     fun restore(uri: Uri, index: Int) = update { current ->
         val without = current - uri
         without.take(index) + uri + without.drop(index)

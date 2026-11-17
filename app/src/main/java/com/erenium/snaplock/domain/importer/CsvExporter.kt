@@ -1,8 +1,6 @@
 package com.erenium.snaplock.domain.importer
 
-/** One entry as it goes into a CSV export. */
 data class ExportedEntry(
-    /** Group path below the root, "/"-separated; empty for the root group. */
     val group: String,
     val title: String,
     val username: String?,
@@ -12,9 +10,7 @@ data class ExportedEntry(
     val otpUri: String?
 )
 
-/** Writes KeePassXC's CSV layout, which other managers import too. */
 object CsvExporter {
-
     private val header = listOf("Group", "Title", "Username", "Password", "URL", "Notes", "TOTP")
 
     fun write(entries: List<ExportedEntry>): String = buildString {

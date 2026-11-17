@@ -20,7 +20,6 @@ import javax.inject.Inject
 
 enum class GeneratorMode { PASSWORD, PASSPHRASE }
 
-/** Whether switching [enabled] off would leave no character set on. */
 fun PasswordOptions.isLastActiveSet(enabled: Boolean): Boolean =
     enabled && listOf(useLowercase, useUppercase, useDigits, useSymbols).count { it } == 1
 
@@ -40,7 +39,6 @@ class PasswordGeneratorViewModel @Inject constructor(
     private val clipboardManager: ClipboardManagerHelper,
     private val settingsPrefs: SettingsPrefs
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(initialState())
     val uiState = _uiState.asStateFlow()
 

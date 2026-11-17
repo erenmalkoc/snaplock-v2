@@ -37,7 +37,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class EntryDetailPaneTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

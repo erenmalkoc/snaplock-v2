@@ -35,10 +35,8 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Saving after another device or app (Syncthing, a cloud drive) wrote the vault file. */
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositorySyncTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 
@@ -58,7 +56,6 @@ class KdbxRepositorySyncTest {
         return repository.getEntries().first().single().uuid
     }
 
-    /** What another KeePass app does: open the file, change it, write it back. */
     private fun changeElsewhere(change: KeePassDatabase.() -> KeePassDatabase) {
         val database = file.inputStream().use { KeePassDatabase.decode(it, credentials(PASSWORD)) }
         file.writeBytes(database.change().encodeToByteArray())

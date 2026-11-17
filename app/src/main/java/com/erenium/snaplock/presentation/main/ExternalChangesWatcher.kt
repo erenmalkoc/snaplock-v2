@@ -12,16 +12,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Picks up changes another device or app made to the open vault while Snaplock was in the
- * background, so the lists show them without locking and reopening. A file that can no
- * longer be read is left for the next save to report.
- */
 @Singleton
 class ExternalChangesWatcher @Inject constructor(
     private val reloadIfChanged: ReloadIfChangedUseCase
 ) : DefaultLifecycleObserver {
-
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     fun start() {

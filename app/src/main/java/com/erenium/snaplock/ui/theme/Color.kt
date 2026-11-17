@@ -3,7 +3,6 @@ package com.erenium.snaplock.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
-
 val md_light_primary = Color(0xFF006D41)
 val md_light_onPrimary = Color(0xFFFFFFFF)
 val md_light_primaryContainer = Color(0xFF84FAB5)

@@ -37,7 +37,6 @@ data class EntryDetailUiState(
     val isLoading: Boolean = true,
     val errorStringId: Int? = null,
     val isPasswordVisible: Boolean = false,
-    /** Names of protected custom fields the user chose to show. */
     val revealedFields: Set<String> = emptySet(),
     val recycleBinEnabled: Boolean = true
 )
@@ -58,7 +57,6 @@ class EntryDetailViewModel @Inject constructor(
     private val getRecycleBinEnabled: GetRecycleBinEnabledUseCase,
     private val recentlyDeleted: RecentlyDeleted
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -68,15 +66,12 @@ class EntryDetailViewModel @Inject constructor(
     private val _restoredEvents = Channel<Unit>(Channel.BUFFERED)
     val restoredEvents = _restoredEvents.receiveAsFlow()
 
-    /** Short confirmations and errors: a string resource and its optional argument. */
     private val _messages = Channel<Pair<Int, String?>>(Channel.BUFFERED)
     val messages = _messages.receiveAsFlow()
 
     private val _deletedEvents = Channel<Unit>(Channel.BUFFERED)
     val deletedEvents = _deletedEvents.receiveAsFlow()
 
-    // The navigation argument on phones; the pane beside the list on wide screens has none
-    // and picks its entry with show().
     private var entryUuid: String? = savedStateHandle["uuid"]
     private var loadJob: Job? = null
 
@@ -88,7 +83,6 @@ class EntryDetailViewModel @Inject constructor(
 
     fun reload() = loadEntryDetails()
 
-    /** Switches to another entry, starting from a clean state. */
     fun show(uuid: UUID) {
         if (entryUuid == uuid.toString()) return
         entryUuid = uuid.toString()
@@ -104,7 +98,6 @@ class EntryDetailViewModel @Inject constructor(
 
     private fun loadEntryDetails() {
         val uuid = entryUuid?.let(UUID::fromString) ?: return
-        // A slower load for the previous entry must not overwrite this one.
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             _uiState.update { if (it.entry == null) it.copy(isLoading = true, errorStringId = null) else it }
@@ -228,7 +221,6 @@ class EntryDetailViewModel @Inject constructor(
     }
 
     private companion object {
-        // Attachments live inside the vault file, so a size cap keeps it quick to open and sync.
         const val MAX_ATTACHMENT_BYTES = 20L * 1024 * 1024
     }
 }

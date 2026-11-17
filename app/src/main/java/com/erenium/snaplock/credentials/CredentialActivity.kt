@@ -45,15 +45,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.util.UUID
 import javax.inject.Inject
 
-/**
- * Credential Manager's way into the vault: unlocks it for the system sheet, hands over the
- * entry the user picked there, lets the user search for another one, stores a password
- * an app asked to save, and creates and signs in with passkeys.
- */
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @AndroidEntryPoint
 class CredentialActivity : FragmentActivity() {
-
     private enum class Mode { UNLOCK, SELECT, SEARCH, CREATE, PASSKEY, CREATE_PASSKEY }
 
     @Inject
@@ -80,7 +74,6 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Unlocks, then gives the system sheet the matching entries. */
     private fun showUnlock() {
         val request = PendingIntentHandler.retrieveBeginGetCredentialRequest(intent) ?: return finish()
         pickerViewModel.start(request.callingAppInfo?.packageName.orEmpty(), null, fillSingleMatch = false)
@@ -94,7 +87,6 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Returns the entry the user picked in the system sheet, unlocking first if needed. */
     private fun showSelect() {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent) ?: return finish()
         val uuid = intent.getStringExtra(EXTRA_UUID)?.let { runCatching { UUID.fromString(it) }.getOrNull() } ?: return finish()
@@ -109,7 +101,6 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Lets the user pick any entry; the app gets linked to it for next time. */
     private fun showSearch() {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent) ?: return finish()
         val callingPackage = request.callingAppInfo.packageName
@@ -125,7 +116,6 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Stores a password an app asked Credential Manager to save. */
     private fun showCreate() {
         val request = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent) ?: return finish()
         val passwordRequest = request.callingRequest as? CreatePasswordRequest ?: return finish()
@@ -147,13 +137,11 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Signs in with the passkey the user picked in the system sheet. */
     private fun showPasskey() {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent) ?: return finish()
         val uuid = intent.getStringExtra(EXTRA_UUID)?.let { runCatching { UUID.fromString(it) }.getOrNull() } ?: return finish()
         val option = request.credentialOptions.filterIsInstance<GetPublicKeyCredentialOption>().firstOrNull()
             ?: return finish()
-        // Typing the master password here verifies the user just as a screen lock prompt would.
         val unlockedHere = repository.isLocked().value
         pickerViewModel.start(request.callingAppInfo.packageName, null, fillSingleMatch = false)
         show {
@@ -183,7 +171,6 @@ class CredentialActivity : FragmentActivity() {
         }
     }
 
-    /** Creates a passkey a site asked for and keeps it in its own entry. */
     private fun showCreatePasskey() {
         val request = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent) ?: return finish()
         val passkeyRequest = request.callingRequest as? CreatePublicKeyCredentialRequest ?: return finish()
@@ -269,7 +256,6 @@ class CredentialActivity : FragmentActivity() {
     companion object {
         private const val EXTRA_MODE = "com.erenium.snaplock.credentials.MODE"
         private const val EXTRA_UUID = "com.erenium.snaplock.credentials.UUID"
-        // Keeps passkey intents apart from password ones for the same entry.
         private const val PASSKEY_REQUEST_CODES = 0x5A5A0000
 
         fun unlockIntent(context: Context): PendingIntent = pendingIntent(context, Mode.UNLOCK, 1)
@@ -286,7 +272,6 @@ class CredentialActivity : FragmentActivity() {
         fun selectIntent(context: Context, uuid: UUID): PendingIntent =
             pendingIntent(context, Mode.SELECT, uuid.hashCode()) { putExtra(EXTRA_UUID, uuid.toString()) }
 
-        // Mutable: the system adds the request to the intent before starting the activity.
         private fun pendingIntent(
             context: Context,
             mode: Mode,

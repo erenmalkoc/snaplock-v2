@@ -5,11 +5,9 @@ import com.erenium.snaplock.domain.passwords.WordList
 import java.security.SecureRandom
 import javax.inject.Inject
 
-/** Diceware-style passphrases: each word adds log2(word count) bits, about 12.9 with the EFF list. */
 class GeneratePassphraseUseCase @Inject constructor(
     private val wordList: WordList
 ) {
-
     private val secureRandom = SecureRandom()
 
     operator fun invoke(options: PassphraseOptions): String {

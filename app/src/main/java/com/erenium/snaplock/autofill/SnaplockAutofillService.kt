@@ -20,14 +20,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Offers vault entries in other apps' login forms. While the vault is locked it offers a
- * single "unlock" item; values only leave Snaplock after the user picks an item.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class SnaplockAutofillService : AutofillService() {
-
     @Inject
     lateinit var repository: KdbxRepository
 
@@ -74,7 +69,6 @@ class SnaplockAutofillService : AutofillService() {
     }
 
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-        // Multi-page logins put the username and password on different screens.
         val structures = request.fillContexts.map { it.structure }
         val forms = structures.map { it.parseLoginForm() }.asReversed()
         val password = forms.firstNotNullOfOrNull { it.password }

@@ -51,7 +51,6 @@ fun CreateDatabaseScreen(
         contract = ActivityResultContracts.CreateDocument("application/octet-stream"),
         onResult = { uri ->
             if (uri != null) {
-                // Keep access after a restart so the database shows up in the recent list
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 runCatching { context.contentResolver.takePersistableUriPermission(uri, flags) }
@@ -134,7 +133,6 @@ fun CreateDatabaseScreen(
                     .fillMaxWidth()
                     .onFocusChanged { if (!it.isFocused) viewModel.onConfirmFocusLost() }
             )
-
         }
             PrimaryButton(
                 icon = Icons.Filled.Add,

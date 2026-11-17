@@ -9,14 +9,8 @@ import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Have I Been Pwned's Pwned Passwords range API with k-anonymity: only the first five hex
- * characters of the password's SHA-1 leave the device, and padded responses hide how many
- * hashes matched. https://haveibeenpwned.com/API/v3#PwnedPasswords
- */
 @Singleton
 class PwnedPasswordsClient @Inject constructor() : BreachChecker {
-
     override suspend fun breachCount(password: String): Result<Int> = withContext(Dispatchers.IO) {
         runCatching {
             val hash = sha1Hex(password)
@@ -43,7 +37,6 @@ class PwnedPasswordsClient @Inject constructor() : BreachChecker {
             MessageDigest.getInstance("SHA-1").digest(password.toByteArray(Charsets.UTF_8))
                 .joinToString("") { "%02X".format(it) }
 
-        /** Reads "SUFFIX:COUNT" lines; padding lines have a count of 0. */
         fun countIn(body: String, suffix: String): Int =
             body.lineSequence()
                 .map { it.trim() }

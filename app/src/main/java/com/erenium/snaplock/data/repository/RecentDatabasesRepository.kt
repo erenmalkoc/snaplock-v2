@@ -27,10 +27,8 @@ class RecentDatabasesRepository @Inject constructor(
     private val keyFilePrefs: KeyFilePrefs,
     private val vault: BiometricVault
 ) {
-
     private val probeTrigger = MutableStateFlow(0)
 
-    /** Recent databases that are still accessible, newest first. */
     val recentDatabases: Flow<List<RecentDatabase>> = prefs.uris
         .map { uris ->
             val granted = context.contentResolver.persistedUriPermissions
@@ -41,7 +39,6 @@ class RecentDatabasesRepository @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
 
-    /** Every remembered database, newest first, each checked for whether its file can still be read. */
     val entries: Flow<List<RecentDatabase>> = combine(prefs.uris, probeTrigger) { uris, _ -> uris }
         .map { uris ->
             val permissions = context.contentResolver.persistedUriPermissions.associateBy { it.uri }
@@ -55,7 +52,6 @@ class RecentDatabasesRepository @Inject constructor(
 
     fun add(uri: Uri) = prefs.add(uri)
 
-    /** Takes lasting access to a picked database. Returns false when only reading could be kept. */
     fun keepAccess(uri: Uri): Boolean {
         val resolver = context.contentResolver
         val both = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -64,7 +60,6 @@ class RecentDatabasesRepository @Inject constructor(
         return false
     }
 
-    /** Hides [uri] from the list but keeps everything needed to bring it back. */
     fun hide(uri: Uri): Int {
         val index = prefs.indexOf(uri)
         prefs.remove(uri)
@@ -73,7 +68,6 @@ class RecentDatabasesRepository @Inject constructor(
 
     fun restore(uri: Uri, index: Int) = prefs.restore(uri, index)
 
-    /** Forgets [uri] for good: its access grant, remembered key file and fingerprint copy. */
     fun forget(uri: Uri) {
         prefs.remove(uri)
         prefs.forgetOpened(uri)
@@ -137,7 +131,6 @@ class RecentDatabasesRepository @Inject constructor(
     }
 }
 
-/** The folder a storage document id points into, or null for opaque ids such as msf:123. */
 internal fun folderOfDocumentId(documentId: String): String? {
     val path = documentId.substringAfter(':', "")
     if (!path.contains('/')) return null

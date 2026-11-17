@@ -22,7 +22,6 @@ import com.erenium.snaplock.ui.components.EmptyState
 import com.erenium.snaplock.ui.screens.entrydetail.EntryDetailScreen
 import java.util.UUID
 
-/** Wide enough for the list and an entry side by side: tablets and unfolded foldables. */
 private val TwoPaneMinWidth = 720.dp
 
 @Composable
@@ -31,10 +30,6 @@ fun isTwoPaneWidth(): Boolean {
     return width >= TwoPaneMinWidth
 }
 
-/**
- * The entry list with the selected entry beside it. Phones keep opening entries as their
- * own screen; this is only used when [isTwoPaneWidth] holds.
- */
 @Composable
 fun EntryListDetailLayout(
     selectedEntry: UUID?,
@@ -51,7 +46,6 @@ fun EntryListDetailLayout(
             if (selectedEntry == null) {
                 EmptyState(message = stringResource(R.string.entry_pick_one), icon = Icons.Outlined.Key)
             } else {
-                // One detail model for the pane; it follows the selection.
                 val viewModel: EntryDetailViewModel = hiltViewModel(key = "entry-detail-pane")
                 LaunchedEffect(selectedEntry) { viewModel.show(selectedEntry) }
                 DisposableEffect(viewModel) { onDispose { viewModel.clear() } }

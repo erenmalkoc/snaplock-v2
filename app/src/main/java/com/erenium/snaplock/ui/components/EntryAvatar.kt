@@ -26,7 +26,6 @@ import com.erenium.snaplock.domain.model.EntryIcon
 import com.erenium.snaplock.ui.theme.Dimens
 import com.erenium.snaplock.ui.theme.avatarColorFor
 
-// Many entries share one icon and lists rebind rows while scrolling, so decode each once.
 private val decodedIcons = LruCache<EntryIcon, ImageBitmap>(128)
 
 private fun EntryIcon.decoded(): ImageBitmap? =
@@ -34,7 +33,6 @@ private fun EntryIcon.decoded(): ImageBitmap? =
         ?.asImageBitmap()
         ?.also { decodedIcons.put(this, it) }
 
-/** The entry's custom icon when it has one that decodes, else a coloured initial. */
 @Composable
 fun EntryAvatar(
     title: String,
@@ -44,8 +42,6 @@ fun EntryAvatar(
 ) {
     val bitmap = remember(icon) { icon?.decoded() }
     if (bitmap != null) {
-        // Site icons are drawn for light browser tabs, so many vanish on a dark disc: always
-        // show them on white, outlined so the disc still stands out on light cards.
         Box(
             modifier = modifier
                 .size(size)

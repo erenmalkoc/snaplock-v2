@@ -17,10 +17,8 @@ import com.erenium.snaplock.ui.theme.SnaplockTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-/** Opened after the system asks whether to save a login typed into another app or site. */
 @AndroidEntryPoint
 class AutofillSaveActivity : FragmentActivity() {
-
     @Inject
     lateinit var settingsPrefs: SettingsPrefs
 

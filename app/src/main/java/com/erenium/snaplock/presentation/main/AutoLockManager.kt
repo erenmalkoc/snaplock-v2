@@ -15,17 +15,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Locks the database once no Snaplock screen is visible, after the configured delay.
- * Watches the whole process rather than one activity, so screens opened for autofill
- * or other system integrations follow the same rule.
- */
 @Singleton
 class AutoLockManager @Inject constructor(
     private val lockDatabaseUseCase: LockDatabaseUseCase,
     private val settingsPrefs: SettingsPrefs
 ) : DefaultLifecycleObserver {
-
     private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     private var lockJob: Job? = null
     private var stoppedAt: Long? = null

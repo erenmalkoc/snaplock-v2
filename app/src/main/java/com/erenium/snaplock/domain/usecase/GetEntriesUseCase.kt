@@ -11,6 +11,4 @@ class GetEntriesUseCase @Inject constructor(
     operator fun invoke(): Flow<List<Entry>> {
         return repository.getEntries()
     }
-
-
 }

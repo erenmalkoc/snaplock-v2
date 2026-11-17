@@ -23,12 +23,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Saves databases the way the app does ([encodeToByteArray]) and opens them again with
- * kotpass, so a kotpass upgrade or fork that breaks the KDBX round trip fails here first.
- */
 class KotpassRoundTripTest {
-
     @Test
     fun savedDatabaseOpensWithSamePassword() {
         val bytes = newDatabase().encodeToByteArray()

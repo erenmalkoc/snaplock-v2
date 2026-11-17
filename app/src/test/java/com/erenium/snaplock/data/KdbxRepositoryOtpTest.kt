@@ -36,7 +36,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KdbxRepositoryOtpTest {
-
     @get:Rule
     val folder = TemporaryFolder()
 

@@ -19,26 +19,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-/** In-memory [KdbxRepository] for tests; every entry lives in one root group. */
 class FakeKdbxRepository : KdbxRepository {
     val entries = MutableStateFlow<List<Entry>>(emptyList())
     val locked = MutableStateFlow(true)
     val entryDetails = mutableMapOf<UUID, EntryDetail>()
     val credentials = MutableStateFlow<List<Credential>>(emptyList())
     val recycled = MutableStateFlow<List<Entry>>(emptyList())
-    /** Attachment contents by entry and file name. */
     val attachments = mutableMapOf<UUID, MutableMap<String, ByteArray>>()
-    /** Key file passed to the last unlockDatabase call. */
     var lastKeyFile: ByteArray? = null
-    /** Password passed to the last unlockDatabase call. */
     var lastPassword: String? = null
     val groups = MutableStateFlow(listOf(Group(ROOT_GROUP_UUID, "Passwords", 0)))
-    /** Every form passed to addEntry or updateEntry, in order. */
     val savedForms = mutableListOf<EntryFormData>()
-    /** How many times reloadIfChanged was called. */
     var reloads = 0
     var databaseSettings: DatabaseSettings? = DatabaseSettings("Passwords", true, 10, null)
-    /** Backup files by id; listed newest first by their creation time. */
     val backups = mutableMapOf<VaultBackup, ByteArray>()
 
     var unlockFailure: Throwable? = null
@@ -209,7 +202,6 @@ class FakeKdbxRepository : KdbxRepository {
         return Result.success(uuid)
     }
 
-    /** Icons passed to setEntryIcons, by entry. */
     val iconsSet = mutableMapOf<UUID, ByteArray>()
 
     override suspend fun setEntryIcons(icons: Map<UUID, ByteArray>): Result<Unit> {

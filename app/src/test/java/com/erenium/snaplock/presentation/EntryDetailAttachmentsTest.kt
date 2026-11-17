@@ -37,7 +37,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class EntryDetailAttachmentsTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -65,7 +64,6 @@ class EntryDetailAttachmentsTest {
         RecentlyDeleted()
     )
 
-    // DocumentFiles runs on a real IO thread, so wait in real time rather than test time.
     private suspend fun nextMessage(viewModel: EntryDetailViewModel) =
         withContext(Dispatchers.Default.limitedParallelism(1)) {
             awaitReal { viewModel.messages.first() }

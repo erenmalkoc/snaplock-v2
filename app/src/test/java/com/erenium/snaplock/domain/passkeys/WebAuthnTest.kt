@@ -11,7 +11,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WebAuthnTest {
-
     private fun hex(bytes: ByteArray) = bytes.toByteString().hex()
 
     @Test
@@ -55,7 +54,6 @@ class WebAuthnTest {
         assertArrayEquals(id, data.copyOfRange(55, 55 + id.size))
         val cose = data.copyOfRange(55 + id.size, data.size)
         assertArrayEquals(WebAuthn.coseKey(publicKey), cose)
-        // kty 2 (EC2), alg -7 (ES256), crv 1 (P-256), then x and y as 32-byte strings.
         assertEquals("a5010203262001215820", hex(cose.copyOfRange(0, 10)))
         assertEquals(77, cose.size)
     }

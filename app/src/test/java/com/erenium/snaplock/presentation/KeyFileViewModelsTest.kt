@@ -41,7 +41,6 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class KeyFileViewModelsTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -77,7 +76,6 @@ class KeyFileViewModelsTest {
     private fun keyFile(content: String = "key material"): Uri =
         Uri.fromFile(folder.newFile("vault.key").apply { writeText(content) })
 
-    // DocumentFiles reads on a real IO thread, so wait in real time.
     private suspend fun <T> eventually(block: suspend () -> T): T =
         withContext(Dispatchers.Default.limitedParallelism(1)) { withTimeout(5_000) { block() } }
 

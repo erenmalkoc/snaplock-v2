@@ -12,14 +12,11 @@ import androidx.credentials.provider.PublicKeyCredentialEntry
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.repository.KdbxRepository
 
-/** The passkey half of Snaplock's Credential Manager answers; the vault must be open. */
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyProvider(
     private val context: Context,
     private val repository: KdbxRepository
 ) {
-
-    /** One entry per stored passkey the site asked for; signing happens in [CredentialActivity]. */
     suspend fun entries(options: List<BeginGetPublicKeyCredentialOption>): List<CredentialEntry> {
         if (options.isEmpty()) return emptyList()
         val stored = repository.getPasskeys()

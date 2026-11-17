@@ -4,15 +4,9 @@ import okio.ByteString.Companion.decodeBase64
 import java.net.URLDecoder
 import java.net.URLEncoder
 
-/**
- * Reads TOTP settings from the fields KeePass clients use and writes them back as an
- * otpauth:// URI in the "otp" field, which KeePassXC, KeePassDX and Keepass2Android read.
- */
 object OtpParser {
-
     const val FIELD_OTP = "otp"
 
-    // KeePass 2.47+ native fields.
     private const val TIME_OTP = "TimeOtp-"
     private const val TIME_OTP_BASE32 = "TimeOtp-Secret-Base32"
     private const val TIME_OTP_HEX = "TimeOtp-Secret-Hex"
@@ -22,11 +16,9 @@ object OtpParser {
     private const val TIME_OTP_LENGTH = "TimeOtp-Length"
     private const val TIME_OTP_ALGORITHM = "TimeOtp-Algorithm"
 
-    // KeeOtp / TrayTOTP, still written by older KeePassXC versions.
     private const val LEGACY_SEED = "TOTP Seed"
     private const val LEGACY_SETTINGS = "TOTP Settings"
 
-    /** True for every field that holds TOTP settings, so the editor can leave them out. */
     fun isOtpField(name: String): Boolean =
         name == FIELD_OTP || name.startsWith(TIME_OTP) || name == LEGACY_SEED || name == LEGACY_SETTINGS
 
@@ -36,7 +28,6 @@ object OtpParser {
         return legacy(fields)
     }
 
-    /** Accepts an otpauth:// or steam:// URI, KeePassXC's old "key=...&step=..." form, or a bare Base32 secret. */
     fun parse(value: String): OtpParameters? {
         val text = value.trim()
         return when {
@@ -58,7 +49,6 @@ object OtpParser {
     }
 
     fun toUri(parameters: OtpParameters): String {
-        // Issuer and account are encoded on their own; the colon between them stays literal.
         val label = listOfNotNull(parameters.issuer, parameters.account).joinToString(":") { encode(it) }
             .ifEmpty { "Snaplock" }
         val query = buildList {
@@ -117,7 +107,6 @@ object OtpParser {
         ).takeIf { it.isValid() }
     }
 
-    /** "SHA1", "sha256", "HMAC-SHA-512" and similar spellings. */
     private fun algorithmOf(value: String?): OtpAlgorithm? {
         val normalized = value?.uppercase()?.filter { it.isLetterOrDigit() }?.removePrefix("HMAC") ?: return null
         return OtpAlgorithm.entries.firstOrNull { it.uriName == normalized }
