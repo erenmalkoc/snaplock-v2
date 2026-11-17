@@ -1,0 +1,2 @@
+* Changing the master password keeps the key file and clears only that database's fingerprint copy
+* The clipboard is cleared when the vault locks

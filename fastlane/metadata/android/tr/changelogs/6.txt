@@ -1,0 +1,2 @@
+* Ana parola değiştirilince anahtar dosyası korunuyor, yalnızca o veritabanının parmak izi kopyası siliniyor
+* Kasa kilitlenince pano temizleniyor
