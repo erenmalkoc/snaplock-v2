@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okio.ByteString
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class SessionCache @Inject constructor() {
     private val _database = MutableStateFlow<KeePassDatabase?>(null)
     private var _uri: Uri? = null
