@@ -335,6 +335,7 @@ fun EntryDetailScreen(
                             OtpRow(
                                 otp = otp,
                                 label = stringResource(R.string.entry_otp_label),
+                                advancing = state.isAdvancingOtp,
                                 onCopy = viewModel::onCopyOtp,
                                 onNext = viewModel::onNextOtp
                             )
@@ -489,11 +490,12 @@ fun EntryDetailScreen(
 private fun OtpRow(
     otp: OtpParameters,
     label: String,
+    advancing: Boolean,
     onCopy: (String) -> Unit,
     onNext: () -> Unit
 ) {
     if (otp.isHotp) {
-        HotpRow(otp = otp, label = label, onCopy = onCopy, onNext = onNext)
+        HotpRow(otp = otp, label = label, advancing = advancing, onCopy = onCopy, onNext = onNext)
     } else {
         TotpRow(otp = otp, label = label, onCopy = onCopy)
     }
@@ -503,6 +505,7 @@ private fun OtpRow(
 private fun HotpRow(
     otp: OtpParameters,
     label: String,
+    advancing: Boolean,
     onCopy: (String) -> Unit,
     onNext: () -> Unit
 ) {
@@ -515,8 +518,12 @@ private fun HotpRow(
         valueStyle = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
         selectable = codeVisible
     ) {
-        IconButton(onClick = onNext) {
-            Icon(imageVector = Icons.Filled.Refresh, contentDescription = stringResource(R.string.otp_next))
+        IconButton(onClick = onNext, enabled = !advancing) {
+            if (advancing) {
+                CircularProgressIndicator(modifier = Modifier.size(Dimens.iconSm), strokeWidth = 2.dp)
+            } else {
+                Icon(imageVector = Icons.Filled.Refresh, contentDescription = stringResource(R.string.otp_next))
+            }
         }
         IconButton(onClick = { codeVisible = !codeVisible }) {
             Icon(

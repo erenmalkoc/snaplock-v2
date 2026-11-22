@@ -23,11 +23,13 @@ import com.erenium.snaplock.testing.FakeKdbxRepository
 import com.erenium.snaplock.testing.MainDispatcherRule
 import com.erenium.snaplock.testing.awaitReal
 import java.util.UUID
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -90,7 +92,44 @@ class EntryDetailOtpTest {
 
         assertEquals(R.string.otp_next_failed, nextMessage(viewModel).first)
         assertEquals(4L, viewModel.uiState.value.entry!!.otp!!.counter)
+        assertFalse(viewModel.uiState.value.isAdvancingOtp)
         assertTrue(repository.advancedCounters.isEmpty())
+    }
+
+    @Test
+    fun theNextCodeShowsAtOnceAndTheButtonStaysBusyUntilTheCounterIsSaved() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        repository.advanceGate = gate
+        val viewModel = viewModel()
+
+        viewModel.onNextOtp()
+
+        assertEquals(5L, viewModel.uiState.value.entry!!.otp!!.counter)
+        assertTrue(viewModel.uiState.value.isAdvancingOtp)
+        assertTrue(repository.advancedCounters.isEmpty())
+
+        viewModel.onNextOtp()
+        gate.complete(Unit)
+
+        assertEquals(listOf(uuid), repository.advancedCounters)
+        assertEquals(5L, viewModel.uiState.value.entry!!.otp!!.counter)
+        assertFalse(viewModel.uiState.value.isAdvancingOtp)
+    }
+
+    @Test
+    fun aSaveThatFailsAfterTheCodeChangedBringsTheOldCounterBack() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        repository.advanceGate = gate
+        repository.advanceFailure = IllegalStateException("The file is read only")
+        val viewModel = viewModel()
+
+        viewModel.onNextOtp()
+        assertEquals(5L, viewModel.uiState.value.entry!!.otp!!.counter)
+        gate.complete(Unit)
+
+        assertEquals(R.string.otp_next_failed, nextMessage(viewModel).first)
+        assertEquals(4L, viewModel.uiState.value.entry!!.otp!!.counter)
+        assertFalse(viewModel.uiState.value.isAdvancingOtp)
     }
 
     @Test

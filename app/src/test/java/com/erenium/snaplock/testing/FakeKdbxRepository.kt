@@ -14,6 +14,7 @@ import com.erenium.snaplock.domain.passkeys.Passkey
 import com.erenium.snaplock.domain.passkeys.StoredPasskey
 import com.erenium.snaplock.domain.passwords.AuditEntry
 import com.erenium.snaplock.domain.repository.KdbxRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -217,8 +218,10 @@ class FakeKdbxRepository : KdbxRepository {
 
     val advancedCounters = mutableListOf<UUID>()
     var advanceFailure: Throwable? = null
+    var advanceGate: CompletableDeferred<Unit>? = null
 
     override suspend fun advanceHotpCounter(uuid: UUID): Result<Long> {
+        advanceGate?.await()
         advanceFailure?.let { return Result.failure(it) }
         val detail = entryDetails[uuid] ?: return Result.failure(NoSuchElementException(uuid.toString()))
         val otp = detail.otp?.takeIf { it.isHotp } ?: return Result.failure(IllegalArgumentException("no counter based code"))

@@ -39,7 +39,8 @@ data class EntryDetailUiState(
     val errorStringId: Int? = null,
     val isPasswordVisible: Boolean = false,
     val revealedFields: Set<String> = emptySet(),
-    val recycleBinEnabled: Boolean = true
+    val recycleBinEnabled: Boolean = true,
+    val isAdvancingOtp: Boolean = false
 )
 
 data class CopyEvent(val label: String, val clearSeconds: Int?)
@@ -142,11 +143,19 @@ class EntryDetailViewModel @Inject constructor(
     }
 
     fun onNextOtp() {
-        val uuid = _uiState.value.entry?.uuid ?: return
+        val state = _uiState.value
+        val entry = state.entry ?: return
+        val otp = entry.otp?.takeIf { it.isHotp } ?: return
+        if (state.isAdvancingOtp) return
+        // Storing the counter re-encrypts the vault and can take seconds. The next code shows at once,
+        // the button stays busy until it is saved, and a failed save brings the old counter back.
+        _uiState.update {
+            it.copy(entry = entry.copy(otp = otp.copy(counter = (otp.counter ?: 0L) + 1)), isAdvancingOtp = true)
+        }
         viewModelScope.launch {
-            advanceHotpCounter(uuid)
-                .onSuccess { loadEntryDetails() }
-                .onFailure { _messages.trySend(R.string.otp_next_failed to null) }
+            val saved = advanceHotpCounter(entry.uuid)
+            _uiState.update { it.copy(entry = if (saved.isSuccess) it.entry else entry, isAdvancingOtp = false) }
+            saved.onFailure { _messages.trySend(R.string.otp_next_failed to null) }
         }
     }
 
