@@ -662,6 +662,22 @@ class KdbxRepositoryImpl @Inject constructor(
         persist(updated)
     }
 
+    override suspend fun advanceHotpCounter(uuid: UUID): Result<Long> = writeMutex.withLock {
+        val database = sessionCache.getDatabase()
+            ?: return Result.failure(IllegalStateException(context.getString(R.string.locked_database_error)))
+        val entry = database.getEntry { it.uuid == uuid }?.second
+            ?: return Result.failure(EntryNotFoundException(uuid))
+        val advance = OtpParser.advanceCounter(entry.fields.entries.associate { it.key to it.value.content })
+            ?: return Result.failure(IllegalArgumentException("The entry has no counter based code"))
+        val value = if (entry.fields[advance.field] is EntryValue.Encrypted) {
+            EntryValue.Encrypted(EncryptedValue.fromString(advance.value))
+        } else {
+            EntryValue.Plain(advance.value)
+        }
+        val updated = database.modifyEntry(uuid) { copy(fields = fields.plus(advance.field to value)) }
+        persist(updated).map { advance.counter }
+    }
+
     private fun EntryFields.nextFreeName(base: String): String =
         generateSequence(0) { it + 1 }
             .map { if (it == 0) base else "${base}_$it" }

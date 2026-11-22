@@ -87,4 +87,6 @@ interface KdbxRepository {
     suspend fun linkToApp(uuid: UUID, packageName: String): Result<Unit>
 
     suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit>
+
+    suspend fun advanceHotpCounter(uuid: UUID): Result<Long>
 }

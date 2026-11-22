@@ -215,6 +215,15 @@ class FakeKdbxRepository : KdbxRepository {
     override suspend fun linkToSite(uuid: UUID, domain: String): Result<Unit> =
         updateCredential(uuid) { copy(urls = (urls + "https://$domain").distinct()) }
 
+    val advancedCounters = mutableListOf<UUID>()
+    var advanceFailure: Throwable? = null
+
+    override suspend fun advanceHotpCounter(uuid: UUID): Result<Long> {
+        advanceFailure?.let { return Result.failure(it) }
+        advancedCounters += uuid
+        return Result.success(advancedCounters.size.toLong())
+    }
+
     private fun updateCredential(uuid: UUID, change: Credential.() -> Credential): Result<Unit> {
         if (credentials.value.none { it.uuid == uuid }) return Result.failure(NoSuchElementException(uuid.toString()))
         credentials.value = credentials.value.map { if (it.uuid == uuid) it.change() else it }

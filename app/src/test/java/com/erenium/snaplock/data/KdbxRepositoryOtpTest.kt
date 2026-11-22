@@ -47,13 +47,15 @@ class KdbxRepositoryOtpTest {
     private val entryUuid = UUID.randomUUID()
     private lateinit var file: File
 
-    private fun open(fields: Map<String, String>) {
+    private fun open(fields: Map<String, String>, protectedNames: Set<String> = emptySet()) {
         val database = KeePassDatabase.Ver4x.create(
             rootName = "Root",
             meta = Meta(recycleBinEnabled = true),
             credentials = Credentials.from(EncryptedValue.fromString(PASSWORD))
         )
-        val values = fields.mapValues { EntryValue.Plain(it.value) } + ("Title" to EntryValue.Plain("GitHub"))
+        val values = fields.mapValues {
+            if (it.key in protectedNames) EntryValue.Encrypted(EncryptedValue.fromString(it.value)) else EntryValue.Plain(it.value)
+        } + ("Title" to EntryValue.Plain("GitHub"))
         val filled = database.modifyGroup(database.content.group.uuid) {
             copy(entries = entries + Entry(uuid = entryUuid, fields = EntryFields(values)))
         }
@@ -61,9 +63,11 @@ class KdbxRepositoryOtpTest {
         sessionCache.setDatabase(filled, Uri.fromFile(file))
     }
 
-    private fun savedFields(): Map<String, EntryValue> = file.inputStream().use {
+    private fun savedEntry(): Entry = file.inputStream().use {
         KeePassDatabase.decode(it, Credentials.from(EncryptedValue.fromString(PASSWORD)))
-    }.getEntry { it.uuid == entryUuid }!!.second.fields
+    }.getEntry { it.uuid == entryUuid }!!.second
+
+    private fun savedFields(): Map<String, EntryValue> = savedEntry().fields
 
     private fun form(otpUri: String?, customFields: List<CustomField>? = null) =
         EntryFormData("GitHub", "octocat", "pw", null, null, null, customFields, otpUri)
@@ -111,6 +115,50 @@ class KdbxRepositoryOtpTest {
 
         assertNull(savedFields()["otp"])
         assertNull(repository.getEntryByUuid(entryUuid).getOrThrow().otp)
+    }
+
+    @Test
+    fun advancingACounterBasedUriSavesTheNextCounterAndKeepsItProtected() = runTest {
+        open(mapOf("otp" to "otpauth://hotp/GitHub:octocat?secret=$SECRET&counter=4&digits=8"), protectedNames = setOf("otp"))
+
+        val next = repository.advanceHotpCounter(entryUuid).getOrThrow()
+
+        assertEquals(5L, next)
+        val field = savedFields()["otp"]!!
+        assertEquals("otpauth://hotp/GitHub:octocat?secret=$SECRET&digits=8&counter=5", field.content)
+        assertTrue(field is EntryValue.Encrypted)
+        assertEquals(5L, repository.getEntryByUuid(entryUuid).getOrThrow().otp!!.counter)
+    }
+
+    @Test
+    fun advancingWritesNoHistoryEntry() = runTest {
+        open(mapOf("otp" to "otpauth://hotp/GitHub?secret=$SECRET&counter=0"))
+
+        repeat(3) { repository.advanceHotpCounter(entryUuid).getOrThrow() }
+
+        assertEquals(3L, repository.getEntryByUuid(entryUuid).getOrThrow().otp!!.counter)
+        assertTrue(savedEntry().history.isEmpty())
+    }
+
+    @Test
+    fun advancingKeePassHmacOtpFieldsBumpsTheirCounter() = runTest {
+        open(mapOf("HmacOtp-Secret-Base32" to SECRET, "HmacOtp-Counter" to "3"))
+
+        assertEquals(4L, repository.advanceHotpCounter(entryUuid).getOrThrow())
+
+        val fields = savedFields()
+        assertEquals("4", fields["HmacOtp-Counter"]?.content)
+        assertEquals(SECRET, fields["HmacOtp-Secret-Base32"]?.content)
+        assertEquals(listOf("Title"), fields.keys.filter { !it.startsWith("HmacOtp-") })
+    }
+
+    @Test
+    fun advancingATimeBasedCodeOrAMissingEntryFails() = runTest {
+        open(mapOf("otp" to "otpauth://totp/GitHub?secret=$SECRET"))
+
+        assertTrue(repository.advanceHotpCounter(entryUuid).isFailure)
+        assertTrue(repository.advanceHotpCounter(UUID.randomUUID()).isFailure)
+        assertEquals(false, repository.getEntryByUuid(entryUuid).getOrThrow().otp!!.isHotp)
     }
 
     private companion object {
