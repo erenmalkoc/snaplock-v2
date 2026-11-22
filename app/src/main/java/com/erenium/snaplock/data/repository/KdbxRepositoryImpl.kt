@@ -113,7 +113,9 @@ class KdbxRepositoryImpl @Inject constructor(
                 username = entry.fields[FIELD_USERNAME]?.content,
                 password = entry.fields[FIELD_PASSWORD]?.content,
                 modified = entry.times?.lastModificationTime,
-                expires = entry.times?.takeIf { it.expires }?.expiryTime
+                expires = entry.times?.takeIf { it.expires }?.expiryTime,
+                url = entry.fields[FIELD_URL]?.content?.takeIf { it.isNotBlank() },
+                hasOtp = OtpParser.fromFields(entry.fields.entries.associate { it.key to it.value.content }) != null
             )
         }
     }

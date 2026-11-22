@@ -11,7 +11,9 @@ data class AuditEntry(
     val username: String?,
     val password: String?,
     val modified: Instant?,
-    val expires: Instant?
+    val expires: Instant?,
+    val url: String? = null,
+    val hasOtp: Boolean = false
 )
 
 enum class BreachCheck { OFF, DONE, INCOMPLETE, FAILED }
@@ -23,7 +25,10 @@ data class HealthReport(
     val old: List<AuditEntry>,
     val expired: List<AuditEntry>,
     val breached: List<AuditEntry> = emptyList(),
-    val breachCheck: BreachCheck = BreachCheck.OFF
+    val breachCheck: BreachCheck = BreachCheck.OFF,
+    // Logins on sites that offer authenticator codes but have none yet. A tip, not a flaw, so
+    // they stay out of the affected count and the score.
+    val noTwoFactor: List<AuditEntry> = emptyList()
 ) {
     val affected: Set<UUID> =
         (weak + reused.flatten() + old + expired + breached).map { it.uuid }.toSet()

@@ -5,6 +5,7 @@ import com.erenium.snaplock.domain.passwords.BreachCheck
 import com.erenium.snaplock.domain.passwords.BreachChecker
 import com.erenium.snaplock.domain.passwords.HealthReport
 import com.erenium.snaplock.domain.passwords.PasswordHealthAnalyzer
+import com.erenium.snaplock.domain.passwords.TwoFactorDirectory
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import com.erenium.snaplock.domain.text.localeComparator
 import kotlinx.coroutines.currentCoroutineContext
@@ -16,7 +17,8 @@ import javax.inject.Inject
 class CheckPasswordHealthUseCase @Inject constructor(
     private val repository: KdbxRepository,
     private val analyzer: PasswordHealthAnalyzer,
-    private val breachChecker: BreachChecker
+    private val breachChecker: BreachChecker,
+    private val twoFactorDirectory: TwoFactorDirectory
 ) {
     private val knownBreachCounts = ConcurrentHashMap<String, Int>()
 
@@ -24,7 +26,7 @@ class CheckPasswordHealthUseCase @Inject constructor(
 
     suspend operator fun invoke(checkBreaches: Boolean, entries: List<AuditEntry>? = null): HealthReport {
         val audit = entries ?: repository.getAuditEntries()
-        val report = sorted(analyzer.analyze(audit))
+        val report = sorted(analyzer.analyze(audit)).copy(noTwoFactor = withoutTwoFactor(audit))
         if (!checkBreaches) return report
 
         val passwords = audit.mapNotNull { it.password?.takeIf(String::isNotEmpty) }.distinct()
@@ -63,6 +65,9 @@ class CheckPasswordHealthUseCase @Inject constructor(
                 .sortedWith(compareByDescending<List<AuditEntry>> { it.size }.then { a, b -> byTitle.compare(a.first(), b.first()) })
         )
     }
+
+    private fun withoutTwoFactor(audit: List<AuditEntry>): List<AuditEntry> =
+        audit.filter { !it.hasOtp && twoFactorDirectory.offersTotp(it.url) }.sortedWith(byTitle())
 
     private fun byTitle(): Comparator<AuditEntry> = compareBy(localeComparator()) { it.title }
 

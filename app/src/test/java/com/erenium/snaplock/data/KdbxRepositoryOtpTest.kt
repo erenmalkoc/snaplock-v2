@@ -47,6 +47,7 @@ class KdbxRepositoryOtpTest {
     )
     private val entryUuid = UUID.randomUUID()
     private lateinit var file: File
+    private var openedVaults = 0
 
     private fun open(fields: Map<String, String>, protectedNames: Set<String> = emptySet()) {
         val database = KeePassDatabase.Ver4x.create(
@@ -60,7 +61,7 @@ class KdbxRepositoryOtpTest {
         val filled = database.modifyGroup(database.content.group.uuid) {
             copy(entries = entries + Entry(uuid = entryUuid, fields = EntryFields(values)))
         }
-        file = folder.newFile("vault.kdbx")
+        file = folder.newFile("vault${openedVaults++}.kdbx")
         sessionCache.setDatabase(filled, Uri.fromFile(file))
     }
 
@@ -72,6 +73,24 @@ class KdbxRepositoryOtpTest {
 
     private fun form(otpUri: String?, customFields: List<CustomField>? = null) =
         EntryFormData("GitHub", "octocat", "pw", null, null, null, customFields, otpUri)
+
+    @Test
+    fun auditEntriesCarryTheAddressAndWhetherAOneTimeCodeIsSet() = runTest {
+        open(mapOf("URL" to "https://github.com", "otp" to "otpauth://totp/x?secret=$SECRET"))
+        val withCode = repository.getAuditEntries().single()
+
+        open(mapOf("URL" to "https://example.com", "TimeOtp-Secret-Base32" to SECRET))
+        val keePassStyle = repository.getAuditEntries().single()
+
+        open(mapOf("URL" to "  "))
+        val without = repository.getAuditEntries().single()
+
+        assertEquals("https://github.com", withCode.url)
+        assertTrue(withCode.hasOtp)
+        assertTrue(keePassStyle.hasOtp)
+        assertNull(without.url)
+        assertEquals(false, without.hasOtp)
+    }
 
     @Test
     fun theListCarriesOnlyPlainCustomFieldsNeverProtectedOnesOrOneTimeCodes() = runTest {

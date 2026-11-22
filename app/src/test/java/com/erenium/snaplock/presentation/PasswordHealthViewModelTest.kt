@@ -9,6 +9,7 @@ import com.erenium.snaplock.domain.passwords.BreachCheck
 import com.erenium.snaplock.domain.passwords.BreachChecker
 import com.erenium.snaplock.domain.passwords.PasswordHealthAnalyzer
 import com.erenium.snaplock.domain.passwords.PasswordStrengthEstimator
+import com.erenium.snaplock.domain.passwords.TwoFactorDomains
 import com.erenium.snaplock.domain.passwords.WordList
 import com.erenium.snaplock.domain.usecase.CheckPasswordHealthUseCase
 import com.erenium.snaplock.presentation.health.PasswordHealthViewModel
@@ -56,7 +57,7 @@ class PasswordHealthViewModelTest {
     private val analyzer = PasswordHealthAnalyzer(PasswordStrengthEstimator(object : WordList {
         override val words = emptyList<String>()
     }))
-    private val useCase = CheckPasswordHealthUseCase(repository, analyzer, breachChecker)
+    private val useCase = CheckPasswordHealthUseCase(repository, analyzer, breachChecker, TwoFactorDomains(emptySet()))
 
     private fun entry(title: String, password: String) =
         AuditEntry(UUID.randomUUID(), title, "me", password, Instant.now(), null)
