@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.VerifiedUser
@@ -80,6 +81,7 @@ import com.erenium.snaplock.domain.model.EntryVersion
 import com.erenium.snaplock.domain.otp.Hotp
 import com.erenium.snaplock.domain.otp.OtpParameters
 import com.erenium.snaplock.domain.otp.Totp
+import com.erenium.snaplock.domain.share.QrShare
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
 import com.erenium.snaplock.presentation.entryform.formatExpiryDate
 import com.erenium.snaplock.ui.components.AppCard
@@ -109,6 +111,8 @@ fun EntryDetailScreen(
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showQrDialog by rememberSaveable { mutableStateOf(false) }
+    val canShareQr = remember(entry) { entry != null && QrShare.options(entry).isNotEmpty() }
 
     val usernameLabel = stringResource(R.string.entry_username_label)
     val passwordLabel = stringResource(R.string.entry_password_label)
@@ -238,12 +242,24 @@ fun EntryDetailScreen(
         )
     }
 
+    if (showQrDialog && entry != null) {
+        QrShareDialog(entry = entry, onDismiss = { showQrDialog = false })
+    }
+
     AppScaffold(
         title = entry?.title ?: stringResource(R.string.entry_loading_title),
         onNavigateBack = onNavigateBack,
         snackbarHostState = snackbarHostState,
         actions = {
             if (entry != null) {
+                if (canShareQr) {
+                    IconButton(onClick = { showQrDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.QrCode2,
+                            contentDescription = stringResource(R.string.qr_share_title)
+                        )
+                    }
+                }
                 IconButton(onClick = { onNavigateToEdit(entry.uuid) }) {
                     Icon(
                         imageVector = Icons.Filled.Edit,
