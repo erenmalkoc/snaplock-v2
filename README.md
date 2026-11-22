@@ -202,3 +202,7 @@ See [LICENSE](LICENSE).
 The passphrase generator uses the [EFF large wordlist](https://www.eff.org/dice) by the
 Electronic Frontier Foundation, licensed under
 [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
+
+The libraries in the release build are listed in the app under Settings, Open source licenses.
+They are under Apache-2.0 or MIT, apart from the Android desugar JDK libs, which are GPL-2.0
+with the Classpath Exception.
