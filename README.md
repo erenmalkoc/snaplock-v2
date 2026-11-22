@@ -188,6 +188,12 @@ Release builds enable code and resource shrinking, with project rules in
 
 </details>
 
+## Contributing
+
+Bug reports, translations and pull requests are welcome. Read
+[CONTRIBUTING.md](CONTRIBUTING.md) first, and report security problems privately as described
+in [SECURITY.md](SECURITY.md).
+
 ## License
 
 Snaplock is free software licensed under the GNU General Public License v3.0 or later.
