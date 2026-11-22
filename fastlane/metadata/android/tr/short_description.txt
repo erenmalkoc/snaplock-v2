@@ -1,1 +1,1 @@
-Çevrimdışı, KeePass uyumlu parola yöneticisi
+KeePass uyumlu parola yöneticisi. Hesap yok, izleyici yok

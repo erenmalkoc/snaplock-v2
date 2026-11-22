@@ -2,6 +2,6 @@
 * Passwords and passkeys in the Android 14+ sign-in sheet, KeePassXC compatible
 * Groups, custom fields, attachments, history, recycle bin and key files
 * 2FA codes, passphrases, strength meter and password health check
-* Merges changes from other devices before saving; daily backups
-* CSV import and export; database and encryption settings
+* Merges changes from other devices before saving, plus daily backups
+* CSV import and export, plus database and encryption settings
 * Site icons, Quick Settings tile, shortcuts and a tablet layout

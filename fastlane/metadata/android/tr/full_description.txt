@@ -1,29 +1,19 @@
-Snaplock, Android'in bir parçası gibi hissettiren açık kaynaklı, KeePass uyumlu bir parola yöneticisidir. Doğrudan kendi şifreli .kdbx dosyanız üzerinde çalışır: dosyayı cihazda tutun ya da istediğiniz uygulamayla eşitleyin; aynı kasayı diğer cihazlarınızda KeePassXC, KeePass veya KeePassDX ile kullanın.
+Snaplock, Android'in bir parçası gibi hissettiren açık kaynaklı, KeePass uyumlu bir parola yöneticisidir. Doğrudan kendi şifreli .kdbx dosyanız üzerinde çalışır: dosyayı cihazda tutun ya da istediğiniz uygulamayla eşitleyin ve aynı veritabanını diğer cihazlarınızda KeePassXC, KeePass veya KeePassDX ile kullanın.
 
 Her şey çevrimdışı çalışır. İki isteğe bağlı özellik yalnızca siz açtıktan sonra internete çıkar: parolanın SHA-1 özetinin yalnızca ilk 5 karakterini gönderen Have I Been Pwned sızıntı denetimi ve her web sitesinden yalnızca kendi simgesini isteyen site simgesi indirme.
 
-Her yerde oturum açın:
-* Uygulama ve tarayıcılarda otomatik doldurma, klavyede öneriler
-* Paroladan sonra tek kullanımlık 2FA kodlarını doldurma
-* Android 14+ oturum açma ekranında parolalar ve geçiş anahtarları; geçiş anahtarları KeePassXC biçiminde saklanır, orada da çalışır
-* Yeni ve değişen girişleri kaydetmeyi önerme
+<b>Her yerde oturum açın</b>
+<ul><li>Uygulama ve tarayıcılarda otomatik doldurma, klavyede öneriler</li><li>Paroladan sonra tek kullanımlık 2FA kodlarını doldurma</li><li>Android 14+ oturum açma ekranında parolalar ve geçiş anahtarları</li><li>Geçiş anahtarları KeePassXC biçiminde saklanır, bu yüzden KeePassXC'de de çalışır</li><li>Yeni ve değişen girişleri kaydetmeyi önerme</li></ul>
 
-Kasanız:
-* Gruplar, özel alanlar, ekler, kayıt geçmişi ve çöp kutusu
-* Parola, anahtar dosyası veya ikisi birden; istediğiniz zaman değiştirilebilir
-* Argon2 veya AES-KDF ile AES-256, ChaCha20 ya da Twofish; anahtar türetme için tek dokunuşla ölçüm
-* Diğer cihazlarda yapılan değişikliklerin üzerine yazmak yerine onları birleştirme
-* Kasa dosyasının cihazda 7 gün saklanan günlük yedeği
-* Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass ve KeePassXC CSV dosyalarından içe aktarma; CSV'ye dışa aktarma
+<b>Veritabanınız</b>
+<ul><li>Gruplar, özel alanlar, ekler, kayıt geçmişi ve çöp kutusu</li><li>Parola, anahtar dosyası veya ikisi birden, istediğiniz zaman değiştirilebilir</li><li>Argon2 veya AES-KDF ile AES-256, ChaCha20 ya da Twofish ve anahtar türetme için tek dokunuşla ölçüm</li><li>Diğer cihazlarda yapılan değişikliklerin üzerine yazmak yerine onları birleştirme</li><li>Veritabanı dosyasının cihazda 7 gün saklanan günlük yedeği</li><li>Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass ve KeePassXC CSV dosyalarından içe aktarma ve CSV'ye dışa aktarma</li></ul>
 
-Parolalar:
-* Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)
-* Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi
-* Karekod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları
+<b>Parolalar</b>
+<ul><li>Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)</li><li>Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi</li><li>Karekod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları</li></ul>
 
-Android'in parçası:
-* Material You renkleri, açık ve koyu tema, uygulamaya özel dil
-* Biyometrik kilit açma, otomatik kilit, engellenen ekran görüntüleri ve pano temizleme
-* Hızlı Ayarlar kutucuğu, başlatıcı kısayolları; tablet ve katlanabilir cihazlarda liste ile kayıt yan yana
+<b>Android'in parçası</b>
+<ul><li>Material You renkleri, açık ve koyu tema, uygulamaya özel dil</li><li>Biyometrik kilit açma, otomatik kilit, engellenen ekran görüntüleri ve pano temizleme</li><li>Hızlı Ayarlar kutucuğu ve başlatıcı kısayolları</li><li>Tablet ve katlanabilir cihazlarda liste ile kayıt yan yana</li></ul>
 
-Snaplock'ta hesap, reklam ve izleyici yoktur; hiçbir veri toplamaz.
+Her sürüm, aynı kaynak koddan bayt bayt aynı çıktıyı verecek şekilde derlenir ve geliştiricinin anahtarıyla imzalanır. Bu yüzden GitHub ve F-Droid APK'ları birbirinin yerine kullanılabilir.
+
+Snaplock'ta hesap, reklam ve izleyici yoktur ve hiçbir veri toplanmaz.
