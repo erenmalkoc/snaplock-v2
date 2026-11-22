@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please never paste a real database, master password or entry here.
+        For a security problem use the private form from the issue chooser instead.
+  - type: input
+    id: version
+    attributes:
+      label: Snaplock version
+      description: Shown in Snaplock under Settings, Version.
+      placeholder: "1.2.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - F-Droid
+        - GitHub release
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version and device
+      placeholder: "Android 16, Galaxy A15"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the database
+        2. Tap ...
+        3. See the problem
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What you expected and what happened
+    validations:
+      required: true
+  - type: textarea
+    id: other
+    attributes:
+      label: Anything else
+      description: Screenshots without personal data, which app created the database (KeePassXC, KeePassDX, Snaplock) and where it is stored.
