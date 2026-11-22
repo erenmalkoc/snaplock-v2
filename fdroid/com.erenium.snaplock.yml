@@ -1,3 +1,5 @@
+# Reference copy of the first submission. The live recipe is metadata/com.erenium.snaplock.yml
+# in https://gitlab.com/fdroid/fdroiddata and is updated by F-Droid's bot.
 Categories:
   - Password & 2FA
   - Security
