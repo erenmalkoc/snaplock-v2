@@ -1,0 +1,4 @@
+* HOTP kodları, sayacı kaydeden sonraki kod düğmesiyle
+* Parolayı, bir alanı, 2FA kurulumunu veya Wi-Fi bilgisini karekod olarak gösterme
+* Arama notlarda ve özel alanlarda da buluyor, aksan ve noktalamayı yok sayıyor, yazım hatalarına hoşgörülü
+* Parola sağlığı, 2FA sunan ama kodu eklenmemiş sitelerdeki girişleri öneriyor

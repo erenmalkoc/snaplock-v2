@@ -1,0 +1,4 @@
+* HOTP codes with a next-code button that saves the counter
+* Show a password, field, 2FA setup or Wi-Fi login as a QR code
+* Search finds notes and custom fields, ignores accents and punctuation, forgives typos
+* Password health tips logins on sites with 2FA but no code yet
