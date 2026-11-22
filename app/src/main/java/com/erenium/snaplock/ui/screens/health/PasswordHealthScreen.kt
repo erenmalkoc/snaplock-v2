@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.GppBad
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
@@ -158,6 +159,7 @@ fun PasswordHealthScreen(
             reusedSection(current.reused, onEntryClick)
             section(R.string.health_old, R.string.health_old_desc, Icons.Filled.History, current.old, onEntryClick)
             section(R.string.health_expired, R.string.health_expired_desc, Icons.Filled.EventBusy, current.expired, onEntryClick)
+            section(R.string.health_no_2fa, R.string.health_no_2fa_desc, Icons.Filled.VerifiedUser, current.noTwoFactor, onEntryClick)
         }
     }
 }

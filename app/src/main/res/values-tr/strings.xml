@@ -203,6 +203,8 @@
     <string name="health_old_desc">Önemli olanları değiştirmeyi düşünün.</string>
     <string name="health_expired">Süresi dolmuş</string>
     <string name="health_expired_desc">Son kullanma tarihleri geçti.</string>
+    <string name="health_no_2fa">2FA\'yı açın</string>
+    <string name="health_no_2fa_desc">Bu sitelerde doğrulayıcı uygulama kodları var ama kayıtta henüz tek kullanımlık kod yok. Puanınızı etkilemez.</string>
     <string name="settings_site_icons">Site simgelerini indir</string>
     <string name="settings_site_icons_desc">Her web sitesinin simgesini doğrudan o siteden alır ve veritabanına kaydeder, böylece diğer KeePass uygulamaları da gösterir. Her site yalnızca kendi simgesi için bu cihazın IP adresinden gelen bir istek görür.</string>
     <string name="site_icons_confirm_title">Site simgeleri indirilsin mi?</string>

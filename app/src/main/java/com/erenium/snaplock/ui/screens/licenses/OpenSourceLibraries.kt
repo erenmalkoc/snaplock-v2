@@ -63,5 +63,10 @@ internal val OpenSourceData = listOf(
         name = "EFF large wordlist",
         license = "CC BY 3.0 US",
         url = "https://www.eff.org/dice"
+    ),
+    OpenSourceItem(
+        name = "2FA Directory",
+        license = "MIT",
+        url = "https://2fa.directory"
     )
 )

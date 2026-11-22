@@ -203,6 +203,8 @@
     <string name="health_old_desc">Consider changing important ones.</string>
     <string name="health_expired">Expired</string>
     <string name="health_expired_desc">Their expiry date has passed.</string>
+    <string name="health_no_2fa">Turn on 2FA</string>
+    <string name="health_no_2fa_desc">These sites offer authenticator app codes, but the entry has no one-time code yet. This does not change your score.</string>
     <string name="settings_online">Online (optional)</string>
     <string name="settings_site_icons">Download site icons</string>
     <string name="settings_site_icons_desc">Fetches each website\'s icon straight from the site and saves it in the database, so other KeePass apps show it too. Each site only sees a request for its own icon, from this device\'s IP address.</string>
