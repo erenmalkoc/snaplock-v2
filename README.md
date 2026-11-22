@@ -91,8 +91,9 @@ the feature, not that the app lacks it.
 Sources: the [KeePassDX README](https://github.com/Kunzisoft/KeePassDX#readme) and
 [changelog](https://github.com/Kunzisoft/KeePassDX/blob/HEAD/CHANGELOG), the
 [KeePassVault README](https://github.com/aivanovski/kpassnotes#readme), and the F-Droid
-listings and recipes of all three. The last row comes from the recipes: only Snaplock's has a
-`Binaries` entry, so F-Droid signs the other two builds itself.
+listings and recipes of all three. The last row was checked by comparing the signing
+certificate of each F-Droid APK with the one the project publishes for its GitHub release:
+only Snaplock's two match.
 
 Snaplock does not support HOTP, entry templates, hardware keys or its own keyboard yet.
 
