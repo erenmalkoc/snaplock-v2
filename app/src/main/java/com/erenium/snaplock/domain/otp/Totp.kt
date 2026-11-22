@@ -17,15 +17,18 @@ data class OtpParameters(
     val algorithm: OtpAlgorithm = OtpAlgorithm.SHA1,
     val isSteam: Boolean = false,
     val issuer: String? = null,
-    val account: String? = null
+    val account: String? = null,
+    val counter: Long? = null
 ) {
+    val isHotp: Boolean get() = counter != null
+
     override fun equals(other: Any?): Boolean =
         other is OtpParameters && secret.contentEquals(other.secret) && period == other.period &&
             digits == other.digits && algorithm == other.algorithm && isSteam == other.isSteam &&
-            issuer == other.issuer && account == other.account
+            issuer == other.issuer && account == other.account && counter == other.counter
 
     override fun hashCode(): Int =
-        listOf(secret.contentHashCode(), period, digits, algorithm, isSteam, issuer, account).hashCode()
+        listOf(secret.contentHashCode(), period, digits, algorithm, isSteam, issuer, account, counter).hashCode()
 
     companion object {
         const val DEFAULT_PERIOD = 30
@@ -33,12 +36,28 @@ data class OtpParameters(
     }
 }
 
+object Otp {
+    fun code(parameters: OtpParameters, timeMillis: Long): String =
+        if (parameters.isHotp) Hotp.code(parameters) else Totp.code(parameters, timeMillis)
+}
+
+object Hotp {
+    fun code(parameters: OtpParameters): String = OtpCode.at(parameters, parameters.counter ?: 0L)
+}
+
 object Totp {
+    fun code(parameters: OtpParameters, timeMillis: Long): String =
+        OtpCode.at(parameters, parameters.counter ?: ((timeMillis / 1000) / parameters.period))
+
+    fun secondsRemaining(parameters: OtpParameters, timeMillis: Long): Int =
+        parameters.period - ((timeMillis / 1000) % parameters.period).toInt()
+}
+
+internal object OtpCode {
     private const val STEAM_ALPHABET = "23456789BCDFGHJKMNPQRTVWXY"
     private const val STEAM_DIGITS = 5
 
-    fun code(parameters: OtpParameters, timeMillis: Long): String {
-        val counter = (timeMillis / 1000) / parameters.period
+    fun at(parameters: OtpParameters, counter: Long): String {
         val mac = Mac.getInstance(parameters.algorithm.macName).apply {
             init(SecretKeySpec(parameters.secret, parameters.algorithm.macName))
         }
@@ -57,14 +76,11 @@ object Totp {
                 }
             }
         } else {
-            var modulus = 1
+            var modulus = 1L
             repeat(parameters.digits) { modulus *= 10 }
-            (binary % modulus).toString().padStart(parameters.digits, '0')
+            (binary.toLong() % modulus).toString().padStart(parameters.digits, '0')
         }
     }
-
-    fun secondsRemaining(parameters: OtpParameters, timeMillis: Long): Int =
-        parameters.period - ((timeMillis / 1000) % parameters.period).toInt()
 }
 
 object Base32 {
