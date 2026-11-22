@@ -124,6 +124,15 @@ class FastlaneMetadataTest {
     }
 
     @Test
+    fun localizedGraphicsKeepTheirSizes() {
+        locales.forEach { locale ->
+            val images = locale.resolve("images")
+            images.resolve("icon.png").takeIf { it.isFile }?.let { assertImageSize(it, 512, 512) }
+            images.resolve("featureGraphic.png").takeIf { it.isFile }?.let { assertImageSize(it, 1024, 500) }
+        }
+    }
+
+    @Test
     fun everyImageIsAReadablePngOrJpeg() {
         locales.flatMap { it.resolve("images").walkTopDown().filter { file -> file.isFile }.toList() }.forEach {
             assertTrue("${it.path} has an unexpected extension", it.extension in setOf("png", "jpg", "jpeg"))
