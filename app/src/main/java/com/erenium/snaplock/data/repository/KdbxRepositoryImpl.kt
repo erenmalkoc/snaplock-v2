@@ -177,6 +177,10 @@ class KdbxRepositoryImpl @Inject constructor(
         return listOf(current) + group.groups.flatMap { flattenGroups(it, excludedGroup, group.uuid) }
     }
 
+    // What the entry screen lists as a custom field: not a standard, link, one-time code or passkey field.
+    private fun String.isCustomFieldName(): Boolean =
+        this !in STANDARD_FIELDS && !isLinkField() && !OtpParser.isOtpField(this) && !Passkey.isPasskeyField(this)
+
     private fun KotpassEntry.toDomainEntryDetail(
         groupUuid: UUID,
         storedFiles: Map<ByteString, BinaryData>
@@ -190,9 +194,7 @@ class KdbxRepositoryImpl @Inject constructor(
             notes = this.fields[FIELD_NOTES]?.content,
             groupUuid = groupUuid,
             customFields = fields
-                .filterKeys {
-                    it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) && !Passkey.isPasskeyField(it)
-                }
+                .filterKeys { it.isCustomFieldName() }
                 .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) },
             history = history.mapIndexed { index, version ->
                 EntryVersion(
@@ -204,9 +206,7 @@ class KdbxRepositoryImpl @Inject constructor(
                     url = version.fields[FIELD_URL]?.content,
                     notes = version.fields[FIELD_NOTES]?.content,
                     customFields = version.fields
-                        .filterKeys {
-                            it !in STANDARD_FIELDS && !it.isLinkField() && !OtpParser.isOtpField(it) && !Passkey.isPasskeyField(it)
-                        }
+                        .filterKeys { it.isCustomFieldName() }
                         .map { (name, value) -> CustomField(name, value.content, value is EntryValue.Encrypted) }
                 )
             }.asReversed(),
@@ -228,7 +228,11 @@ class KdbxRepositoryImpl @Inject constructor(
             groupName = group.name,
             url = this.fields[FIELD_URL]?.content?.takeIf { it.isNotBlank() },
             notes = this.fields[FIELD_NOTES]?.content?.takeIf { it.isNotBlank() },
-            icon = iconFrom(icons)
+            icon = iconFrom(icons),
+            // Protected values stay out of the list model, so they can never be searched or shown.
+            customFields = fields.entries
+                .filter { (name, value) -> name.isCustomFieldName() && value !is EntryValue.Encrypted && value.content.isNotBlank() }
+                .associate { it.key to it.value.content }
         )
     }
 

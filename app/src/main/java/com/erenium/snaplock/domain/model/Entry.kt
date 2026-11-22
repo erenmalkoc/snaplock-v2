@@ -13,5 +13,7 @@ data class Entry(
     val notes: String? = null,
     val icon: EntryIcon? = null,
     val deletedAt: Instant? = null,
-    val previousGroupUuid: UUID? = null
+    val previousGroupUuid: UUID? = null,
+    /** Custom fields that are not marked protected, kept here so the list can search them. */
+    val customFields: Map<String, String> = emptyMap()
 )

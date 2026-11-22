@@ -23,6 +23,7 @@ import com.erenium.snaplock.domain.model.EntryFormData
 import com.erenium.snaplock.domain.otp.Base32
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -71,6 +72,24 @@ class KdbxRepositoryOtpTest {
 
     private fun form(otpUri: String?, customFields: List<CustomField>? = null) =
         EntryFormData("GitHub", "octocat", "pw", null, null, null, customFields, otpUri)
+
+    @Test
+    fun theListCarriesOnlyPlainCustomFieldsNeverProtectedOnesOrOneTimeCodes() = runTest {
+        open(
+            mapOf(
+                "Customer" to "4711",
+                "PIN" to "9999",
+                "Blank" to "  ",
+                "otp" to "otpauth://totp/x?secret=$SECRET",
+                "TimeOtp-Secret-Base32" to SECRET
+            ),
+            protectedNames = setOf("PIN")
+        )
+
+        val entry = repository.getEntries().first().single()
+
+        assertEquals(mapOf("Customer" to "4711"), entry.customFields)
+    }
 
     @Test
     fun detailReadsKeePassFieldsAndHidesThemFromCustomFields() = runTest {
