@@ -10,8 +10,9 @@ import com.erenium.snaplock.data.datasource.local.FileTooLargeException
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryDetail
-import com.erenium.snaplock.domain.otp.Totp
+import com.erenium.snaplock.domain.otp.Otp
 import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
+import com.erenium.snaplock.domain.usecase.AdvanceHotpCounterUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
@@ -55,7 +56,8 @@ class EntryDetailViewModel @Inject constructor(
     private val documentFiles: DocumentFiles,
     private val clipboardManager: ClipboardManagerHelper,
     private val getRecycleBinEnabled: GetRecycleBinEnabledUseCase,
-    private val recentlyDeleted: RecentlyDeleted
+    private val recentlyDeleted: RecentlyDeleted,
+    private val advanceHotpCounter: AdvanceHotpCounterUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState = _uiState.asStateFlow()
@@ -135,8 +137,17 @@ class EntryDetailViewModel @Inject constructor(
 
     fun onCopyOtp(label: String) {
         val otp = _uiState.value.entry?.otp ?: return
-        clipboardManager.copyToClipboard(label = label, text = Totp.code(otp, System.currentTimeMillis()))
+        clipboardManager.copyToClipboard(label = label, text = Otp.code(otp, System.currentTimeMillis()))
         copied(label)
+    }
+
+    fun onNextOtp() {
+        val uuid = _uiState.value.entry?.uuid ?: return
+        viewModelScope.launch {
+            advanceHotpCounter(uuid)
+                .onSuccess { loadEntryDetails() }
+                .onFailure { _messages.trySend(R.string.otp_next_failed to null) }
+        }
     }
 
     fun onCopyCustomField(field: CustomField) {

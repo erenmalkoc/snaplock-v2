@@ -12,6 +12,7 @@ import com.erenium.snaplock.data.datasource.prefs.SettingsPrefs
 import com.erenium.snaplock.data.utils.ClipboardManagerHelper
 import com.erenium.snaplock.domain.model.EntryDetail
 import com.erenium.snaplock.domain.usecase.AddAttachmentUseCase
+import com.erenium.snaplock.domain.usecase.AdvanceHotpCounterUseCase
 import com.erenium.snaplock.domain.usecase.DeleteEntryUseCase
 import com.erenium.snaplock.domain.usecase.GetAttachmentUseCase
 import com.erenium.snaplock.domain.usecase.GetEntryDetailsUseCase
@@ -61,7 +62,8 @@ class EntryDetailAttachmentsTest {
         documentFiles,
         ClipboardManagerHelper(context, SettingsPrefs(context)),
         GetRecycleBinEnabledUseCase(repository),
-        RecentlyDeleted()
+        RecentlyDeleted(),
+        AdvanceHotpCounterUseCase(repository)
     )
 
     private suspend fun nextMessage(viewModel: EntryDetailViewModel) =

@@ -77,7 +77,7 @@ internal class AutofillResponses(private val context: Context) {
         credential: Credential,
         inline: InlineSpec? = null
     ): Dataset? {
-        val code = credential.otp?.let { Totp.code(it, System.currentTimeMillis()) }
+        val code = credential.otp?.takeUnless { it.isHotp }?.let { Totp.code(it, System.currentTimeMillis()) }
         val values = form.usernameIds.mapNotNull { id -> credential.username?.let { id to it } } +
             form.passwordIds.mapNotNull { id -> credential.password?.let { id to it } } +
             form.otpIds.mapNotNull { id -> code?.let { id to it } }

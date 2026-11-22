@@ -393,6 +393,9 @@
     </plurals>
     <string name="otp_show">Kodu göster</string>
     <string name="otp_hide">Kodu gizle</string>
+    <string name="otp_counter">Sayaç %1$d</string>
+    <string name="otp_next">Sonraki kod</string>
+    <string name="otp_next_failed">Yeni sayaç kaydedilemedi.</string>
     <string name="entry_delete_message_permanent">Bu kayıt kalıcı olarak silinecek. Bu işlem geri alınamaz.</string>
     <string name="attachment_remove_title">Bu dosya kaldırılsın mı?</string>
     <string name="entry_form_duplicate_field">Özel alan adları benzersiz olmalı ve Title, UserName, Password, URL veya Notes olamaz.</string>

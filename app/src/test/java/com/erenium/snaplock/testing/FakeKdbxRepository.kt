@@ -220,8 +220,12 @@ class FakeKdbxRepository : KdbxRepository {
 
     override suspend fun advanceHotpCounter(uuid: UUID): Result<Long> {
         advanceFailure?.let { return Result.failure(it) }
+        val detail = entryDetails[uuid] ?: return Result.failure(NoSuchElementException(uuid.toString()))
+        val otp = detail.otp?.takeIf { it.isHotp } ?: return Result.failure(IllegalArgumentException("no counter based code"))
+        val next = checkNotNull(otp.counter) + 1
+        entryDetails[uuid] = detail.copy(otp = otp.copy(counter = next))
         advancedCounters += uuid
-        return Result.success(advancedCounters.size.toLong())
+        return Result.success(next)
     }
 
     private fun updateCredential(uuid: UUID, change: Credential.() -> Credential): Result<Unit> {

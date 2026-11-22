@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Visibility
@@ -76,6 +77,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.erenium.snaplock.R
 import com.erenium.snaplock.domain.model.CustomField
 import com.erenium.snaplock.domain.model.EntryVersion
+import com.erenium.snaplock.domain.otp.Hotp
 import com.erenium.snaplock.domain.otp.OtpParameters
 import com.erenium.snaplock.domain.otp.Totp
 import com.erenium.snaplock.presentation.entrydetail.EntryDetailViewModel
@@ -317,7 +319,8 @@ fun EntryDetailScreen(
                             OtpRow(
                                 otp = otp,
                                 label = stringResource(R.string.entry_otp_label),
-                                onCopy = viewModel::onCopyOtp
+                                onCopy = viewModel::onCopyOtp,
+                                onNext = viewModel::onNextOtp
                             )
                         }
 
@@ -468,6 +471,52 @@ fun EntryDetailScreen(
 
 @Composable
 private fun OtpRow(
+    otp: OtpParameters,
+    label: String,
+    onCopy: (String) -> Unit,
+    onNext: () -> Unit
+) {
+    if (otp.isHotp) {
+        HotpRow(otp = otp, label = label, onCopy = onCopy, onNext = onNext)
+    } else {
+        TotpRow(otp = otp, label = label, onCopy = onCopy)
+    }
+}
+
+@Composable
+private fun HotpRow(
+    otp: OtpParameters,
+    label: String,
+    onCopy: (String) -> Unit,
+    onNext: () -> Unit
+) {
+    var codeVisible by rememberSaveable { mutableStateOf(true) }
+    val code = remember(otp) { Hotp.code(otp) }
+    DetailFieldRow(
+        icon = Icons.Filled.VerifiedUser,
+        label = label + " · " + stringResource(R.string.otp_counter, otp.counter ?: 0L),
+        value = if (codeVisible) groupDigits(code) else "•••  •••",
+        valueStyle = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+        selectable = codeVisible
+    ) {
+        IconButton(onClick = onNext) {
+            Icon(imageVector = Icons.Filled.Refresh, contentDescription = stringResource(R.string.otp_next))
+        }
+        IconButton(onClick = { codeVisible = !codeVisible }) {
+            Icon(
+                imageVector = if (codeVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                contentDescription = stringResource(if (codeVisible) R.string.otp_hide else R.string.otp_show)
+            )
+        }
+        CopyButton(
+            contentDescription = stringResource(R.string.copy_field_hint, label),
+            onClick = { onCopy(label) }
+        )
+    }
+}
+
+@Composable
+private fun TotpRow(
     otp: OtpParameters,
     label: String,
     onCopy: (String) -> Unit

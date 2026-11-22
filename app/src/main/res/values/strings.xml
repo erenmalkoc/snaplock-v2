@@ -393,6 +393,9 @@
     </plurals>
     <string name="otp_show">Show code</string>
     <string name="otp_hide">Hide code</string>
+    <string name="otp_counter">Counter %1$d</string>
+    <string name="otp_next">Next code</string>
+    <string name="otp_next_failed">Could not save the new counter.</string>
     <string name="entry_delete_message_permanent">This entry will be deleted permanently. This cannot be undone.</string>
     <string name="attachment_remove_title">Remove this file?</string>
     <string name="entry_form_duplicate_field">Custom field names must be unique and cannot be Title, UserName, Password, URL or Notes.</string>
