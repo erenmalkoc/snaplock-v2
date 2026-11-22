@@ -71,6 +71,30 @@ fun QrShareDialog(entry: EntryDetail, onDismiss: () -> Unit) {
             modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMd)
         ) {
+            if (code != null) {
+                QrCodeImage(
+                    code = code,
+                    contentDescription = stringResource(R.string.qr_content_description, label),
+                    modifier = Modifier
+                        .widthIn(max = QR_MAX_WIDTH)
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                )
+            } else {
+                Text(
+                    text = stringResource(
+                        if (selected.kind == QrShareKind.Wifi && ssid.isBlank()) R.string.qr_wifi_name_needed
+                        else R.string.qr_too_long
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            Text(
+                text = stringResource(R.string.qr_share_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             ChoiceRow(
                 options = options,
                 selected = selected,
@@ -102,30 +126,6 @@ fun QrShareDialog(entry: EntryDetail, onDismiss: () -> Unit) {
                     onCheckedChange = { hidden = it }
                 )
             }
-            if (code != null) {
-                QrCodeImage(
-                    code = code,
-                    contentDescription = stringResource(R.string.qr_content_description, label),
-                    modifier = Modifier
-                        .widthIn(max = QR_MAX_WIDTH)
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)
-                )
-            } else {
-                Text(
-                    text = stringResource(
-                        if (selected.kind == QrShareKind.Wifi && ssid.isBlank()) R.string.qr_wifi_name_needed
-                        else R.string.qr_too_long
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            Text(
-                text = stringResource(R.string.qr_share_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
