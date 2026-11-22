@@ -1,11 +1,13 @@
 package com.erenium.snaplock.di
 
+import com.erenium.snaplock.data.datasource.local.AssetTwoFactorDirectory
 import com.erenium.snaplock.data.datasource.local.AssetWordList
 import com.erenium.snaplock.data.network.PwnedPasswordsClient
 import com.erenium.snaplock.data.network.SiteIconClient
 import com.erenium.snaplock.data.repository.KdbxRepositoryImpl
 import com.erenium.snaplock.domain.icons.SiteIconSource
 import com.erenium.snaplock.domain.passwords.BreachChecker
+import com.erenium.snaplock.domain.passwords.TwoFactorDirectory
 import com.erenium.snaplock.domain.passwords.WordList
 import com.erenium.snaplock.domain.repository.KdbxRepository
 import dagger.Binds
@@ -37,4 +39,9 @@ abstract class AppModule {
     abstract fun bindWordList(
         impl: AssetWordList
     ): WordList
+
+    @Binds
+    abstract fun bindTwoFactorDirectory(
+        impl: AssetTwoFactorDirectory
+    ): TwoFactorDirectory
 }

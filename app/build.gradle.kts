@@ -45,6 +45,7 @@ android {
         unitTests.all {
             it.inputs.dir(rootProject.file("fastlane/metadata/android"))
             it.inputs.file(file("build.gradle.kts"))
+            it.inputs.file(file("src/main/assets/tfa-totp-domains.txt"))
             it.inputs.file(rootProject.file("gradle/libs.versions.toml"))
         }
     }
