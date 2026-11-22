@@ -209,6 +209,52 @@ class EntrySearchTest {
     }
 
     @Test
+    fun aHyphenApostropheOrUnderscoreInsideAWordIsIgnored() {
+        val all = listOf(entry("Home Wi-Fi"), entry("E-Mail Konto"), entry("O'Brien Bank"), entry("my_bank"), entry("Other"))
+
+        assertEquals(listOf("Home Wi-Fi"), titles(search(all, "wifi")))
+        assertEquals(listOf("Home Wi-Fi"), titles(search(all, "wi-fi")))
+        assertEquals(listOf("E-Mail Konto"), titles(search(all, "email")))
+        assertEquals(listOf("O'Brien Bank"), titles(search(all, "obrien")))
+        assertEquals(listOf("my_bank"), titles(search(all, "mybank")))
+        assertEquals(SearchMatch.TITLE, search(all, "wifi").single().match)
+    }
+
+    @Test
+    fun theQueryMayCarryThePunctuationInstead() {
+        val all = listOf(entry("WiFi Home"), entry("Other"))
+
+        assertEquals(listOf("WiFi Home"), titles(search(all, "wi-fi")))
+        assertEquals(listOf("WiFi Home"), titles(search(all, "wi’fi")))
+    }
+
+    @Test
+    fun aJoinedSpellingRanksLikeAWholeWord() {
+        val all = listOf(entry("Rewifi"), entry("Home Wi-Fi"), entry("Wi-Fi"))
+
+        assertEquals(listOf("Wi-Fi", "Home Wi-Fi", "Rewifi"), titles(search(all, "wifi")))
+    }
+
+    @Test
+    fun aSpaceIsNeverJoined() {
+        assertTrue(search(listOf(entry("Home Fi")), "homefi").isEmpty())
+    }
+
+    @Test
+    fun aTypoIsForgivenInTheJoinedSpellingToo() {
+        val hit = search(listOf(entry("Wi-Fi Router")), "wiif").single()
+
+        assertEquals(SearchMatch.SIMILAR, hit.match)
+    }
+
+    @Test
+    fun matchesIgnoresTheSamePunctuation() {
+        assertTrue(EntrySearch.matches("wifi", "Home Wi-Fi"))
+        assertTrue(EntrySearch.matches("wi-fi", "WiFi"))
+        assertFalse(EntrySearch.matches("wifi", "Wi Fi"))
+    }
+
+    @Test
     fun typoDistanceCountsEditsAndSwaps() {
         assertEquals(0, typoDistance("github", "github"))
         assertEquals(3, typoDistance("kitten", "sitting"))

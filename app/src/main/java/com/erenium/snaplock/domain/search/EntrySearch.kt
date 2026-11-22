@@ -16,6 +16,8 @@ class SearchHit(val entry: Entry, val match: SearchMatch, val score: Int)
  */
 object EntrySearch {
     private val whitespace = Regex("\\s+")
+    // A hyphen, apostrophe or underscore between two letters or digits joins them: "wifi" finds "Wi-Fi".
+    private val joiners = Regex("(?<=[\\p{L}\\p{N}])[-'’_](?=[\\p{L}\\p{N}])")
 
     /** Prepares the text of every entry once, so each keystroke only compares strings. */
     fun index(entries: List<Entry>): SearchIndex = SearchIndex(entries, entries.map { Item(it) })
@@ -25,11 +27,20 @@ object EntrySearch {
         val tokens = tokensOf(query)
         if (tokens.isEmpty()) return true
         val folded = texts.mapNotNull { it?.foldForSearch() }
-        return tokens.all { token -> folded.any { it.contains(token) } }
+        return tokens.all { token ->
+            folded.any { it.contains(token.text) || it.withoutJoiners().contains(token.joined) }
+        }
     }
 
-    internal fun tokensOf(query: String): List<String> =
-        query.foldForSearch().split(whitespace).filter { it.isNotEmpty() }
+    internal fun tokensOf(query: String): List<Token> =
+        query.foldForSearch().split(whitespace).filter { it.isNotEmpty() }.map { Token(it) }
+
+    internal fun String.withoutJoiners(): String = replace(joiners, "")
+}
+
+internal class Token(val text: String) {
+    val joined: String = with(EntrySearch) { text.withoutJoiners() }
+    val length: Int get() = text.length
 }
 
 class SearchIndex internal constructor(val entries: List<Entry>, private val items: List<Item>) {
@@ -47,8 +58,18 @@ class SearchIndex internal constructor(val entries: List<Entry>, private val ite
 
 internal class Folded(raw: String) {
     val text = raw.foldForSearch()
+    val joined: String = with(EntrySearch) { text.withoutJoiners() }
+
+    // Both spellings of a word count, "wi-fi" and "wifi".
     val words: List<String> by lazy(LazyThreadSafetyMode.NONE) {
-        text.split(NON_WORD).filter { it.isNotEmpty() }
+        (text.split(NON_WORD) + joined.split(NON_WORD)).filter { it.isNotEmpty() }.distinct()
+    }
+
+    /** How well the token is in this text, trying the punctuation-free spelling of both when it differs. */
+    fun quality(token: Token): Int {
+        val direct = quality(text, token.text)
+        if (joined == text && token.joined == token.text) return direct
+        return maxOf(direct, quality(joined, token.joined))
     }
 
     private companion object {
@@ -78,7 +99,7 @@ private fun SearchMatch.tier(): Int = when (this) {
     SearchMatch.SIMILAR -> 0
 }
 
-private fun Item.strictHit(tokens: List<String>): SearchHit? {
+private fun Item.strictHit(tokens: List<Token>): SearchHit? {
     var total = 0
     var best: Found? = null
     for (token in tokens) {
@@ -89,7 +110,7 @@ private fun Item.strictHit(tokens: List<String>): SearchHit? {
     return best?.let { SearchHit(entry, it.field, total) }
 }
 
-private fun Item.similarHit(tokens: List<String>): SearchHit? {
+private fun Item.similarHit(tokens: List<Token>): SearchHit? {
     var total = 0
     for (token in tokens) {
         total += bestStrict(token)?.score ?: bestSimilar(token) ?: return null
@@ -97,10 +118,10 @@ private fun Item.similarHit(tokens: List<String>): SearchHit? {
     return SearchHit(entry, SearchMatch.SIMILAR, total)
 }
 
-private fun Item.bestStrict(token: String): Found? {
+private fun Item.bestStrict(token: Token): Found? {
     var best: Found? = null
     for ((folded, field) in searchable) {
-        val quality = quality(folded.text, token)
+        val quality = folded.quality(token)
         if (quality == 0) continue
         // Where it matched counts first, how closely it matched breaks the tie inside that field.
         val score = field.tier() * 10 + quality
@@ -138,14 +159,14 @@ internal fun typoAllowance(length: Int): Int = when {
 }
 
 // Notes are long free text, a typo there would match almost anything, so only the other fields count.
-private fun Item.bestSimilar(token: String): Int? {
+private fun Item.bestSimilar(token: Token): Int? {
     val allowance = typoAllowance(token.length)
     if (allowance == 0) return null
     var best: Int? = null
     for ((folded, field) in searchable) {
         if (field == SearchMatch.NOTES) continue
         for (word in folded.words) {
-            val distance = distanceToWord(token, word, allowance)
+            val distance = distanceToWord(token.joined, word, allowance)
             if (distance > allowance) continue
             val score = field.tier() * 3 + (3 - distance)
             if (best == null || score > best) best = score
