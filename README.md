@@ -58,9 +58,10 @@ Requires Android 7.0 or later.
 | --- | --- |
 | **Open and sync** | Opens and saves KDBX 4 databases from KeePassXC, KeePass, KeePassDX and Keepass2Android on any storage the Android file picker reaches. Merges changes made by Syncthing or a cloud drive before saving instead of overwriting them, the way KeePass synchronises. |
 | **Sign in everywhere** | Autofill in apps and browsers with suggestions in the keyboard (Android 11+). Passwords and passkeys in the system sign-in sheet on Android 14+, stored the way KeePassXC stores them. Reads the app and URL links other KeePass apps keep. |
-| **Two-factor codes** | Shows TOTP and Steam Guard codes, adds new ones from a setup key, a camera QR scan or a QR screenshot, and fills them into one-time code fields. |
-| **Organise** | Nested groups, protected and plain custom fields, file attachments, restorable history, recycle bin, site icons, and a two-pane layout on tablets and foldables. |
-| **Stay safe** | Password and passphrase generator with a strength meter, a health report for weak, reused, old and expired passwords, clipboard clearing, auto-lock, and daily backups kept on the device for 7 days. |
+| **Two-factor codes** | Shows TOTP, HOTP and Steam Guard codes, adds new ones from a setup key, a camera QR scan or a QR screenshot, and fills the time-based ones into one-time code fields. A counter-based code moves on with one tap and the new counter is saved in the vault. |
+| **Organise** | Nested groups, protected and plain custom fields, file attachments, restorable history, recycle bin, site icons, and a two-pane layout on tablets and foldables. Search looks through titles, user names, addresses, notes and plain custom fields, ignores accents and punctuation ("sifre" finds "Şifre" and "wifi" finds "Wi-Fi") and forgives a typing mistake when nothing else matches. |
+| **Share by QR code** | Shows a password, a custom field, a web address, a one-time code setup or a Wi-Fi login as a QR code that another device can scan, so nothing has to be typed or copied. |
+| **Stay safe** | Password and passphrase generator with a strength meter, a health report for weak, reused, old and expired passwords with a tip for logins on sites that offer authenticator codes but have none set up (checked against a list inside the app, never online), clipboard clearing, auto-lock, and daily backups kept on the device for 7 days. |
 | **Make it yours** | Choose AES-256, ChaCha20 or Twofish with Argon2d, Argon2id or AES-KDF, and let a benchmark tune unlocking to about a second on your phone. Import CSV from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass and KeePassXC. Light and dark themes, English and Turkish, a Quick Settings tile and launcher shortcuts. |
 
 ## How Snaplock compares
@@ -77,11 +78,12 @@ the feature, not that the app lacks it.
 | --- | --- | --- | --- |
 | Passkeys | yes | yes | — |
 | Autofill | yes | yes | yes |
-| One-time codes | TOTP, Steam Guard | TOTP, HOTP | TOTP, HOTP |
+| One-time codes | TOTP, HOTP, Steam Guard | TOTP, HOTP | TOTP, HOTP |
 | Entry templates | no | yes | yes |
 | Own keyboard | no | yes | — |
 | Key derivation benchmark | yes | yes | — |
 | Password health report | yes | — | — |
+| QR code for a password, field or Wi-Fi login | yes | — | — |
 | CSV import from other managers | 7 formats | — | — |
 | Breach check (optional) | yes | — | — |
 | Built-in WebDAV or Git sync | no | — | yes |
@@ -95,7 +97,7 @@ listings and recipes of all three. The last row was checked by comparing the sig
 certificate of each F-Droid APK with the one the project publishes for its GitHub release:
 only Snaplock's two match.
 
-Snaplock does not support HOTP, entry templates, hardware keys or its own keyboard yet.
+Snaplock does not support entry templates, hardware keys or its own keyboard yet.
 
 </details>
 
@@ -122,6 +124,8 @@ thing that moves, and it is encrypted before it leaves the app.
     I Been Pwned (k-anonymity), never a password or a full hash.
   - Site icon downloads ask each website directly for its own icon (or the server its
     page names for it). No icon service sees the list of sites you use.
+- The 2FA tip in the health report compares your logins with a list of websites that ships
+  inside the app. Nothing is looked up online, and QR codes are drawn on screen only.
 - Passkeys answer for a website only when the request comes from a browser on Google's
   list of privileged browsers. Any other app gets signatures bound to its own signing
   certificate, which websites reject unless they trust that app.
@@ -203,6 +207,10 @@ See [LICENSE](LICENSE).
 The passphrase generator uses the [EFF large wordlist](https://www.eff.org/dice) by the
 Electronic Frontier Foundation, licensed under
 [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/).
+
+The 2FA tip uses a list of websites that offer authenticator app codes from the
+[2FA Directory](https://2fa.directory), licensed MIT, Copyright (c) 2021 2factorauth and
+Contributors. Refresh it with `scripts/update-tfa-domains.py` before a release.
 
 The libraries in the release build are listed in the app under Settings, Open source licenses.
 They are under Apache-2.0 or MIT, apart from the Android desugar JDK libs, which are GPL-2.0
