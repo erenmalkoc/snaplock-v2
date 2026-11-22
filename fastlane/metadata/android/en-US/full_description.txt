@@ -9,7 +9,10 @@ Everything works offline. Two optional features go online only after you turn th
 <ul><li>Groups, custom fields, attachments, entry history and a recycle bin</li><li>Password, key file or both, changeable at any time</li><li>AES-256, ChaCha20 or Twofish with Argon2 or AES-KDF, and a one-tap benchmark for the key derivation</li><li>Merges changes made on other devices instead of overwriting them</li><li>A daily backup of the database file, kept on the device for 7 days</li><li>Import from Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass and KeePassXC CSV exports, and export to CSV</li></ul>
 
 <b>Passwords</b>
-<ul><li>Password and passphrase generator (EFF wordlist) with a strength meter</li><li>Health check for weak, reused, old and expired passwords</li><li>TOTP and Steam Guard codes, added from a QR code or a setup key</li></ul>
+<ul><li>Password and passphrase generator (EFF wordlist) with a strength meter</li><li>Health check for weak, reused, old and expired passwords, with a tip for logins that could use 2FA</li><li>TOTP, HOTP and Steam Guard codes, added from a QR code or a setup key</li></ul>
+
+<b>Share and find</b>
+<ul><li>Show a password, field or Wi-Fi login as a QR code for another device to scan</li><li>Search through notes and custom fields, forgiving accents, punctuation and typing mistakes</li></ul>
 
 <b>Part of Android</b>
 <ul><li>Material You colours, light and dark themes, per-app language</li><li>Biometric unlock, auto-lock, blocked screenshots and clipboard clearing</li><li>Quick Settings tile and launcher shortcuts</li><li>The list and entry side by side on tablets and foldables</li></ul>

@@ -9,7 +9,10 @@ Her şey çevrimdışı çalışır. İki isteğe bağlı özellik yalnızca siz
 <ul><li>Gruplar, özel alanlar, ekler, kayıt geçmişi ve çöp kutusu</li><li>Parola, anahtar dosyası veya ikisi birden, istediğiniz zaman değiştirilebilir</li><li>Argon2 veya AES-KDF ile AES-256, ChaCha20 ya da Twofish ve anahtar türetme için tek dokunuşla ölçüm</li><li>Diğer cihazlarda yapılan değişikliklerin üzerine yazmak yerine onları birleştirme</li><li>Veritabanı dosyasının cihazda 7 gün saklanan günlük yedeği</li><li>Bitwarden, Chrome, Firefox, 1Password, Proton Pass, LastPass ve KeePassXC CSV dosyalarından içe aktarma ve CSV'ye dışa aktarma</li></ul>
 
 <b>Parolalar</b>
-<ul><li>Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)</li><li>Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi</li><li>Karekod veya kurulum anahtarıyla eklenen TOTP ve Steam Guard kodları</li></ul>
+<ul><li>Güç ölçerli parola ve parola cümlesi üreteci (EFF kelime listesi)</li><li>Zayıf, tekrar kullanılan, eski ve süresi dolmuş parolalar için sağlık denetimi, 2FA kullanabilecek girişler için ipucuyla</li><li>Karekod veya kurulum anahtarıyla eklenen TOTP, HOTP ve Steam Guard kodları</li></ul>
+
+<b>Paylaşın ve bulun</b>
+<ul><li>Parolayı, bir alanı veya Wi-Fi bilgisini başka bir cihazın okuması için karekod olarak gösterme</li><li>Notlarda ve özel alanlarda arama, aksan, noktalama ve yazım hatalarına hoşgörülü</li></ul>
 
 <b>Android'in parçası</b>
 <ul><li>Material You renkleri, açık ve koyu tema, uygulamaya özel dil</li><li>Biyometrik kilit açma, otomatik kilit, engellenen ekran görüntüleri ve pano temizleme</li><li>Hızlı Ayarlar kutucuğu ve başlatıcı kısayolları</li><li>Tablet ve katlanabilir cihazlarda liste ile kayıt yan yana</li></ul>
