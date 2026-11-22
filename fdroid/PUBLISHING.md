@@ -29,6 +29,9 @@ developer verification, so F-Droid and GitHub installs are the same APK.
 
 ## Releasing a version
 
+0. Refresh the offline 2FA site list that the health check uses, then commit it when it changed:
+   `python3 -I scripts/update-tfa-domains.py`. The data is the 2FA Directory's, MIT licensed,
+   and the script keeps its copyright line in the file header.
 1. Bump `versionCode`/`versionName` in `app/build.gradle.kts` and add
    `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` for every locale.
    `FastlaneMetadataTest` fails without them, and it also checks the listing against
