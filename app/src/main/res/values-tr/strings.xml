@@ -380,6 +380,8 @@
     <string name="undo_button">Geri al</string>
     <string name="search_match_url">URL eşleşti</string>
     <string name="search_match_notes">Notlar eşleşti</string>
+    <string name="search_match_field">Özel alan eşleşti</string>
+    <string name="search_match_similar">Benzer sonuç</string>
     <string name="entry_add_button">Kayıt ekle</string>
     <string name="detail_expand">Tam değeri göster</string>
     <string name="detail_collapse">Daha az göster</string>

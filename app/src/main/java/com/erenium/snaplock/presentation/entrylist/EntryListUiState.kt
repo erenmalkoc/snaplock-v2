@@ -2,9 +2,8 @@ package com.erenium.snaplock.presentation.entrylist
 
 import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.search.SearchMatch
 import java.util.UUID
-
-enum class SearchMatch { TITLE, USERNAME, URL, NOTES }
 
 data class EntryListUiState(
     val entries: List<Entry> = emptyList(),

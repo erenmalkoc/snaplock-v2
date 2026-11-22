@@ -14,7 +14,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalResources
-import com.erenium.snaplock.presentation.entrylist.SearchMatch
+import com.erenium.snaplock.domain.search.SearchMatch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -535,7 +535,9 @@ private fun EntryListItem(
                 )
                 val matchLabel = when (match) {
                     SearchMatch.URL -> stringResource(R.string.search_match_url)
+                    SearchMatch.FIELD -> stringResource(R.string.search_match_field)
                     SearchMatch.NOTES -> stringResource(R.string.search_match_notes)
+                    SearchMatch.SIMILAR -> stringResource(R.string.search_match_similar)
                     else -> null
                 }
                 val subtitle = listOfNotNull(

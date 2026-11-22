@@ -6,6 +6,7 @@ import com.erenium.snaplock.data.repository.RecentDatabasesRepository
 import com.erenium.snaplock.domain.model.Credential
 import com.erenium.snaplock.domain.model.RecentDatabase
 import com.erenium.snaplock.domain.repository.KdbxRepository
+import com.erenium.snaplock.domain.search.EntrySearch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -133,8 +134,5 @@ class AutofillViewModel @Inject constructor(
     }
 
     private fun Credential.matchesQuery(query: String): Boolean =
-        query.isBlank() ||
-            title.contains(query, ignoreCase = true) ||
-            username?.contains(query, ignoreCase = true) == true ||
-            urls.any { it.contains(query, ignoreCase = true) }
+        EntrySearch.matches(query, title, username, *urls.toTypedArray())
 }

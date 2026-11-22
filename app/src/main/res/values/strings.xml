@@ -380,6 +380,8 @@
     <string name="undo_button">Undo</string>
     <string name="search_match_url">Matches URL</string>
     <string name="search_match_notes">Matches notes</string>
+    <string name="search_match_field">Matches a custom field</string>
+    <string name="search_match_similar">Similar match</string>
     <string name="entry_add_button">Add entry</string>
     <string name="detail_expand">Show full value</string>
     <string name="detail_collapse">Show less</string>

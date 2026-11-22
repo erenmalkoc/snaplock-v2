@@ -3,8 +3,8 @@ package com.erenium.snaplock.presentation.entrylist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.erenium.snaplock.R
-import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.Group
+import com.erenium.snaplock.domain.search.EntrySearch
 import com.erenium.snaplock.domain.text.localeComparator
 import com.erenium.snaplock.domain.usecase.CreateGroupUseCase
 import com.erenium.snaplock.domain.usecase.DeleteGroupUseCase
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,37 +48,37 @@ class EntryListViewModel @Inject constructor(
 
     val deletedEntries = recentlyDeleted.events
 
+    // The text of every entry is prepared once per vault change, not once per keystroke.
+    private val searchIndex = getEntriesUseCase().map { EntrySearch.index(it) }
+
     val uiState: StateFlow<EntryListUiState> =
         combine(
-            getEntriesUseCase(),
+            searchIndex,
             getGroupsUseCase(),
             _query,
             _currentGroupUuid,
             _errorStringId
-        ) { entries, groups, query, currentUuid, error ->
+        ) { index, groups, query, currentUuid, error ->
             val root = groups.firstOrNull { it.parentUuid == null }
             val current = groups.firstOrNull { it.uuid == currentUuid } ?: root
             val searching = query.isNotBlank()
+            val text = localeComparator()
+            val hits = if (searching) index.search(query, text) else emptyList()
             val (visibleEntries, visibleGroups) = if (!searching) {
-                entries.filter { it.groupUuid == current?.uuid } to
+                index.entries.filter { it.groupUuid == current?.uuid }.sortedWith(compareBy(text) { it.title }) to
                     groups.filter { it.parentUuid != null && it.parentUuid == current?.uuid }
             } else {
-                entries.filter { it.matchedField(query) != null } to
-                    groups.filter { it.parentUuid != null && it.name.contains(query, ignoreCase = true) }
+                hits.map { it.entry } to
+                    groups.filter { it.parentUuid != null && EntrySearch.matches(query, it.name) }
             }
-            val text = localeComparator()
             EntryListUiState(
-                entries = visibleEntries.sortedWith(compareBy(text) { it.title }),
+                entries = visibleEntries,
                 subgroups = visibleGroups.sortedWith(compareBy(text) { it.name }),
                 currentGroup = current,
                 query = query,
                 isLoading = false,
                 errorStringId = error,
-                matches = if (searching) {
-                    visibleEntries.mapNotNull { entry -> entry.matchedField(query)?.let { entry.uuid to it } }.toMap()
-                } else {
-                    emptyMap()
-                },
+                matches = hits.associate { it.entry.uuid to it.match },
                 breadcrumb = breadcrumbOf(current, groups),
                 recycleBinEnabled = getRecycleBinEnabled()
             )
@@ -167,13 +168,5 @@ class EntryListViewModel @Inject constructor(
             parent = parent.parentUuid?.let(byId::get)
         }
         return path
-    }
-
-    private fun Entry.matchedField(query: String): SearchMatch? = when {
-        title.contains(query, ignoreCase = true) -> SearchMatch.TITLE
-        username?.contains(query, ignoreCase = true) == true -> SearchMatch.USERNAME
-        url?.contains(query, ignoreCase = true) == true -> SearchMatch.URL
-        notes?.contains(query, ignoreCase = true) == true -> SearchMatch.NOTES
-        else -> null
     }
 }

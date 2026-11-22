@@ -42,6 +42,19 @@ class AutofillViewModelTest {
     private fun stored(uuid: UUID) = repository.credentials.value.single { it.uuid == uuid }
 
     @Test
+    fun theSearchFieldIgnoresCaseAndTurkishAccents() = runTest {
+        val vault = Credential(UUID.randomUUID(), "Şifre Kasası", "ahmet", "pw3", emptyList(), emptyList())
+        repository.credentials.value = listOf(github, mail, vault)
+        val viewModel = viewModel()
+        viewModel.start("com.other.app", null, fillSingleMatch = false)
+
+        viewModel.onQueryChange("SIFRE kasasi")
+
+        val state = awaitReal { viewModel.uiState.first { it.query == "SIFRE kasasi" && !it.isLoading } }
+        assertEquals(listOf(vault), state.others)
+    }
+
+    @Test
     fun pickingAnotherEntryInABrowserRemembersTheSite() = runTest {
         val viewModel = viewModel()
         viewModel.start(CHROME, "www.mail.example", fillSingleMatch = false)

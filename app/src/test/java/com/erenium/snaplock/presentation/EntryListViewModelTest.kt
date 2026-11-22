@@ -5,7 +5,7 @@ import com.erenium.snaplock.domain.model.Entry
 import com.erenium.snaplock.domain.model.Group
 import com.erenium.snaplock.domain.usecase.GetRecycleBinEnabledUseCase
 import com.erenium.snaplock.domain.usecase.RestoreEntryUseCase
-import com.erenium.snaplock.presentation.entrylist.SearchMatch
+import com.erenium.snaplock.domain.search.SearchMatch
 import java.util.Locale
 import com.erenium.snaplock.domain.usecase.CreateGroupUseCase
 import com.erenium.snaplock.domain.usecase.DeleteGroupUseCase
@@ -171,6 +171,59 @@ class EntryListViewModelTest {
 
         viewModel.onQueryChange("")
         assertTrue(viewModel.state().matches.isEmpty())
+    }
+
+    @Test
+    fun searchPutsTheBestMatchFirstInsteadOfTheAlphabet() = runTest {
+        val inUsername = Entry(UUID.randomUUID(), "Aardvark", "bank", root, "Passwords")
+        val inTitle = Entry(UUID.randomUUID(), "Zebra Bank", null, root, "Passwords")
+        repository.entries.value = listOf(inUsername, inTitle)
+        val viewModel = viewModel()
+
+        viewModel.onQueryChange("bank")
+
+        assertEquals(listOf("Zebra Bank", "Aardvark"), viewModel.state().entries.map { it.title })
+    }
+
+    @Test
+    fun searchFindsTurkishTextTypedWithoutTurkishLetters() = runTest {
+        val kasa = Entry(UUID.randomUUID(), "Şifre Kasası", "ahmet", root, "Passwords")
+        repository.entries.value = listOf(kasa, github)
+        repository.groups.value = listOf(Group(root, "Passwords", 2), Group(work, "İş Hesapları", 0, parentUuid = root))
+        val viewModel = viewModel()
+
+        viewModel.onQueryChange("SIFRE kasasi")
+        assertEquals(listOf("Şifre Kasası"), viewModel.state().entries.map { it.title })
+
+        viewModel.onQueryChange("is hesaplari")
+        assertEquals(listOf("İş Hesapları"), viewModel.state().subgroups.map { it.name })
+    }
+
+    @Test
+    fun searchLooksInCustomFieldsAndSaysSo() = runTest {
+        val account = Entry(
+            UUID.randomUUID(), "Insurance", null, root, "Passwords",
+            customFields = mapOf("Policy number" to "TR-4711")
+        )
+        repository.entries.value = listOf(account, github)
+        val viewModel = viewModel()
+
+        viewModel.onQueryChange("4711")
+
+        val state = viewModel.state()
+        assertEquals(listOf("Insurance"), state.entries.map { it.title })
+        assertEquals(SearchMatch.FIELD, state.matches[account.uuid])
+    }
+
+    @Test
+    fun aMisspelledSearchStillFindsTheEntryAndMarksItSimilar() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onQueryChange("githbu")
+
+        val state = viewModel.state()
+        assertEquals(listOf("GitHub"), state.entries.map { it.title })
+        assertEquals(SearchMatch.SIMILAR, state.matches[github.uuid])
     }
 
     @Test
