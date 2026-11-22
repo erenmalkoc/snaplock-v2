@@ -42,6 +42,10 @@ android {
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            it.inputs.dir(rootProject.file("fastlane/metadata/android"))
+            it.inputs.file(file("build.gradle.kts"))
+        }
     }
     androidResources {
         // Lists the app's languages for the per-app language setting on Android 13+
