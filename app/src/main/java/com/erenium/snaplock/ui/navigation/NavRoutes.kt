@@ -13,4 +13,5 @@ object NavRoutes {
     const val CHANGE_PASSWORD = "change_password"
     const val DATABASE_SETTINGS = "database_settings"
     const val PASSWORD_HEALTH = "password_health"
+    const val LICENSES = "licenses"
 }

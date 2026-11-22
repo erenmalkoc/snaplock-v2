@@ -306,6 +306,11 @@
     <string name="settings_version">Version</string>
     <string name="settings_license">License</string>
     <string name="settings_license_value">GPL-3.0-or-later</string>
+    <string name="settings_licenses">Open source licenses</string>
+    <string name="settings_licenses_desc">Libraries and data Snaplock includes</string>
+    <string name="licenses_intro">Snaplock is free software under the GPL-3.0-or-later. It includes the open source libraries and data below, each under its own license.</string>
+    <string name="licenses_libraries">Libraries</string>
+    <string name="licenses_data">Data</string>
     <string name="settings_source">Source code</string>
     <string name="settings_source_desc">View the project on GitHub</string>
     <string name="settings_privacy">Privacy</string>

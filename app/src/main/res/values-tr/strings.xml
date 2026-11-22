@@ -306,6 +306,11 @@
     <string name="settings_version">Sürüm</string>
     <string name="settings_license">Lisans</string>
     <string name="settings_license_value">GPL-3.0-or-later</string>
+    <string name="settings_licenses">Açık kaynak lisansları</string>
+    <string name="settings_licenses_desc">Snaplock\'un içerdiği kitaplıklar ve veriler</string>
+    <string name="licenses_intro">Snaplock, GPL-3.0-or-later ile lisanslanmış özgür bir yazılımdır. Aşağıdaki açık kaynak kitaplıklarını ve verileri içerir, her biri kendi lisansı altındadır.</string>
+    <string name="licenses_libraries">Kitaplıklar</string>
+    <string name="licenses_data">Veriler</string>
     <string name="settings_source">Kaynak kodu</string>
     <string name="settings_source_desc">Projeyi GitHub\'da görüntüleyin</string>
     <string name="settings_privacy">Gizlilik</string>

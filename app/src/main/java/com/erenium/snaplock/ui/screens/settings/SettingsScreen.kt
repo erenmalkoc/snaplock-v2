@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
@@ -56,6 +57,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToChangePassword: () -> Unit,
     onNavigateToDatabaseSettings: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.uiState.collectAsState()
@@ -178,7 +180,7 @@ fun SettingsScreen(
                 )
             }
 
-            AboutGroup(snackbarHostState = snackbarHostState)
+            AboutGroup(snackbarHostState = snackbarHostState, onNavigateToLicenses = onNavigateToLicenses)
         }
     }
 }
@@ -224,7 +226,7 @@ private fun AutofillGroup(snackbarHostState: SnackbarHostState) {
 }
 
 @Composable
-private fun AboutGroup(snackbarHostState: SnackbarHostState) {
+private fun AboutGroup(snackbarHostState: SnackbarHostState, onNavigateToLicenses: () -> Unit) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
@@ -242,6 +244,12 @@ private fun AboutGroup(snackbarHostState: SnackbarHostState) {
             title = stringResource(R.string.settings_license),
             description = stringResource(R.string.settings_license_value),
             icon = Icons.Filled.Gavel
+        )
+        SettingRow(
+            title = stringResource(R.string.settings_licenses),
+            description = stringResource(R.string.settings_licenses_desc),
+            icon = Icons.Filled.Description,
+            onClick = onNavigateToLicenses
         )
         SettingRow(
             title = stringResource(R.string.settings_source),

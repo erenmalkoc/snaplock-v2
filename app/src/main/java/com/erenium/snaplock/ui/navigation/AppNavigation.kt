@@ -40,6 +40,7 @@ import com.erenium.snaplock.ui.screens.entryform.EntryFormScreen
 import com.erenium.snaplock.ui.screens.entrylist.EntryListScreen
 import com.erenium.snaplock.ui.screens.generator.PasswordGeneratorScreen
 import com.erenium.snaplock.ui.screens.health.PasswordHealthScreen
+import com.erenium.snaplock.ui.screens.licenses.LicensesScreen
 import com.erenium.snaplock.ui.screens.recyclebin.RecycleBinScreen
 import com.erenium.snaplock.ui.screens.settings.SettingsScreen
 import com.erenium.snaplock.ui.screens.unlock.UnlockScreen
@@ -228,8 +229,14 @@ fun AppNavigation(
                     SettingsScreen(
                         onNavigateBack = { navController.popBackStack() },
                         onNavigateToChangePassword = { navController.navigate(NavRoutes.CHANGE_PASSWORD) },
-                        onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) }
+                        onNavigateToDatabaseSettings = { navController.navigate(NavRoutes.DATABASE_SETTINGS) },
+                        onNavigateToLicenses = { navController.navigate(NavRoutes.LICENSES) }
                     )
+                }
+            }
+            composable(route = NavRoutes.LICENSES) {
+                if (!isLocked) {
+                    LicensesScreen(onNavigateBack = { navController.popBackStack() })
                 }
             }
             composable(route = NavRoutes.DATABASE_SETTINGS) {
