@@ -8,7 +8,8 @@ This project targets both F-Droid and Google Play. F-Droid is the priority.
 - No proprietary dependencies (no Firebase, Google Play Services, analytics).
 - `local.properties` and signing keystores are git-ignored.
 - Fastlane metadata under `fastlane/metadata/android/<locale>/`.
-- F-Droid build recipe in `fdroid/com.erenium.snaplock.yml`.
+- F-Droid build recipe: the live one is in fdroiddata, `fdroid/com.erenium.snaplock.yml`
+  is a reference copy of the first submission.
 - AGP's dependency metadata block is disabled (`dependenciesInfo` in
   `app/build.gradle.kts`); F-Droid rejects it.
 
@@ -29,7 +30,9 @@ developer verification, so F-Droid and GitHub installs are the same APK.
 ## Releasing a version
 
 1. Bump `versionCode`/`versionName` in `app/build.gradle.kts` and add
-   `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt`.
+   `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt` for every locale.
+   `FastlaneMetadataTest` fails without them, and it also checks the listing against
+   F-Droid's length limits, markup and the no-semicolon rule.
 2. Push a `vX.Y.Z` tag. The Release workflow (`.github/workflows/release.yml`) builds
    the unsigned APK on Debian trixie, like the F-Droid buildserver, and a second job
    rebuilds it with another JDK, path and core count. Both builds must match.
@@ -58,16 +61,22 @@ developer verification, so F-Droid and GitHub installs are the same APK.
 Never build the APK you sign on Windows: the checkout uses CRLF line endings there,
 so the output differs from F-Droid's Linux build.
 
-## F-Droid submission
+## F-Droid
 
-Merge request: https://gitlab.com/fdroid/fdroiddata/-/merge_requests/40965. It was
-closed for inactivity on 2026-08-14 while the signing model was undecided.
+Snaplock is in the main F-Droid repository since 2026-11-20. The merge request
+https://gitlab.com/fdroid/fdroiddata/-/merge_requests/40965 was merged on 2026-11-16,
+after it had been closed for inactivity on 2026-08-14 while the signing model was
+undecided and then reopened with reproducible builds.
 
-1. In the fork (`gitlab.com/erenmalkoc/fdroiddata`, branch `add-snaplock`), replace
-   `metadata/com.erenium.snaplock.yml` with `fdroid/com.erenium.snaplock.yml`.
-   `commit:` must be the full 40-character hash of the tagged commit.
-2. Reopen the merge request and reply that it now uses reproducible builds. The
-   pipeline rebuilds the app and compares it with the release APK.
+- The live recipe is `metadata/com.erenium.snaplock.yml` in
+  [fdroiddata](https://gitlab.com/fdroid/fdroiddata). Changes to the recipe itself, such as
+  a website, translation or donation link, go through a merge request from the fork
+  `gitlab.com/erenmalkoc/fdroiddata`.
+- A release needs no recipe change: the checkupdates bot adds a build for every new tag.
+  F-Droid reads the `fastlane` listing from the latest version it builds, so listing
+  changes show up with the next release.
+- Check what is published with `curl -s https://f-droid.org/api/v1/packages/com.erenium.snaplock`
+  and follow the build state in https://f-droid.org/repo/status/running.json.
 
 ## Anti-features
 
